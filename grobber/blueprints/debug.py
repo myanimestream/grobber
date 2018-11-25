@@ -1,4 +1,4 @@
-from flask import Blueprint, Response, request
+from quart import Blueprint, Response, request
 
 from .. import streams
 from ..exceptions import *
@@ -9,7 +9,7 @@ debug_blueprint = Blueprint("debug", __name__, url_prefix="/debug")
 
 
 @debug_blueprint.route("/extract")
-def extract_stream() -> Response:
+async def extract_stream() -> Response:
     url = request.args.get("url")
     if not url:
         raise InvalidRequest("No url parameter specified")

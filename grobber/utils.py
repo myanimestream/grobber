@@ -10,7 +10,7 @@ from concurrent.futures import Executor, ThreadPoolExecutor
 from string import Formatter
 from typing import Any, Callable, Dict, Iterator, List, Optional, TypeVar, Union
 
-from flask import Response, current_app, jsonify, request, url_for
+from quart import Response, current_app, jsonify, request, url_for
 
 from .exceptions import GrobberException
 

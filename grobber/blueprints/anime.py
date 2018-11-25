@@ -1,8 +1,8 @@
 import logging
 from operator import attrgetter, methodcaller
 
-import flask
-from flask import Blueprint, Response, redirect, request
+import quart
+from quart import Blueprint, Response, redirect, request
 
 from .. import proxy, sources
 from ..exceptions import InvalidRequest, UIDUnknown
@@ -15,7 +15,7 @@ anime_blueprint = Blueprint("anime", __name__)
 
 
 @anime_blueprint.route("/search/<query>")
-def search(query: str) -> Response:
+async def search(query: str) -> Response:
     num_results = cast_argument(request.args.get("results"), int, 1)
     if not (0 < num_results <= 10):
         raise InvalidRequest(f"Can only request up to 10 results (not {num_results})")
@@ -38,7 +38,7 @@ def search(query: str) -> Response:
 
 
 @anime_blueprint.route("/anime/episode-count", methods=("POST",))
-def get_anime_episode_count() -> Response:
+async def get_anime_episode_count() -> Response:
     anime_uids = request.json
     if not isinstance(anime_uids, list):
         raise InvalidRequest("Body needs to contain a list of uids!")
@@ -51,7 +51,7 @@ def get_anime_episode_count() -> Response:
 
 
 @anime_blueprint.route("/anime/<UID:uid>")
-def get_anime(uid: UID) -> Response:
+async def get_anime(uid: UID) -> Response:
     anime = sources.get_anime(uid)
     if not anime:
         raise UIDUnknown(uid)
@@ -59,7 +59,7 @@ def get_anime(uid: UID) -> Response:
 
 
 @anime_blueprint.route("/anime/<UID:uid>/preload")
-def preload_anime(uid: UID) -> Response:
+async def preload_anime(uid: UID) -> Response:
     anime = sources.get_anime(uid)
     if not anime:
         raise UIDUnknown(uid)
@@ -70,7 +70,7 @@ def preload_anime(uid: UID) -> Response:
 
 
 @anime_blueprint.route("/anime/<UID:uid>/state")
-def get_anime_state(uid: UID) -> Response:
+async def get_anime_state(uid: UID) -> Response:
     anime = sources.get_anime(uid)
     if not anime:
         raise UIDUnknown(uid)
@@ -78,7 +78,7 @@ def get_anime_state(uid: UID) -> Response:
 
 
 @anime_blueprint.route("/anime/<UID:uid>/<int:index>")
-def get_episode(uid: UID, index: int) -> Response:
+async def get_episode(uid: UID, index: int) -> Response:
     anime = sources.get_anime(uid)
     if not anime:
         raise UIDUnknown(uid)
@@ -89,7 +89,7 @@ def get_episode(uid: UID, index: int) -> Response:
 
 
 @anime_blueprint.route("/anime/<UID:uid>/<int:index>/preload")
-def preload_episode(uid: UID, index: int) -> Response:
+async def preload_episode(uid: UID, index: int) -> Response:
     anime = sources.get_anime(uid)
     if not anime:
         raise UIDUnknown(uid)
@@ -101,7 +101,7 @@ def preload_episode(uid: UID, index: int) -> Response:
 
 
 @anime_blueprint.route("/anime/<UID:uid>/<int:index>/state")
-def get_episode_state(uid: UID, index: int) -> Response:
+async def get_episode_state(uid: UID, index: int) -> Response:
     anime = sources.get_anime(uid)
     if not anime:
         raise UIDUnknown(uid)
@@ -110,7 +110,7 @@ def get_episode_state(uid: UID, index: int) -> Response:
 
 
 @anime_blueprint.route("/anime/<UID:uid>/<int:index>/poster")
-def get_episode_poster(uid: UID, index: int) -> Response:
+async def get_episode_poster(uid: UID, index: int) -> Response:
     anime = sources.get_anime(uid)
     if not anime:
         raise UIDUnknown(uid)
@@ -121,7 +121,7 @@ def get_episode_poster(uid: UID, index: int) -> Response:
 
 
 @anime_blueprint.route("/anime/<UID:uid>/<int:index>/stream")
-def get_episode_stream(uid: UID, index: int) -> Response:
+async def get_episode_stream(uid: UID, index: int) -> Response:
     anime = sources.get_anime(uid)
     if not anime:
         raise UIDUnknown(uid)
@@ -134,6 +134,6 @@ def get_episode_stream(uid: UID, index: int) -> Response:
         url = None
 
     if not url:
-        return flask.abort(404)
+        quart.abort(404)
 
     return redirect(url)

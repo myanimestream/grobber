@@ -3,7 +3,7 @@ from operator import attrgetter
 from typing import Dict
 
 import mistune
-from flask import Blueprint, Response, render_template, request
+from quart import Blueprint, Response, render_template, request
 
 from .. import proxy, sources
 from ..exceptions import GrobberException, InvalidRequest, UIDUnknown
@@ -14,7 +14,7 @@ templates = Blueprint("templates", __name__, url_prefix="/templates")
 
 
 @templates.route("/changelog/<from_version>/<to_version>")
-def get_changelog(from_version: str, to_version: str) -> Response:
+async def get_changelog(from_version: str, to_version: str) -> Response:
     try:
         from_version = Version(*map(int, from_version.split(".")))
     except ValueError:
@@ -40,11 +40,12 @@ def get_changelog(from_version: str, to_version: str) -> Response:
             categories[log_type].insert(0, ChangelogEntry(text, priority, version, document["release"]))
     for category_changes in categories.values():
         category_changes.sort(key=attrgetter("priority"), reverse=True)
-    return render_template("changelog.html", categories=categories, from_version=from_version, to_version=to_version)
+    html = await render_template("changelog.html", categories=categories, from_version=from_version, to_version=to_version)
+    return Response(html)
 
 
 @templates.route("/player/<UID:uid>/<int:index>")
-def player(uid: UID, index: int) -> Response:
+async def player(uid: UID, index: int) -> Response:
     anime = sources.get_anime(uid)
     if not anime:
         return error_response(UIDUnknown(uid))
@@ -54,20 +55,22 @@ def player(uid: UID, index: int) -> Response:
     except GrobberException as e:
         return error_response(e)
 
-    return render_template("player.html", episode=episode, uid=uid, index=index)
+    html = await render_template("player.html", episode=episode, uid=uid, index=index)
+    return Response(html)
 
 
 @templates.route("/mal/episode/<UID:uid>")
-def mal_episode_list(uid: UID) -> Response:
+async def mal_episode_list(uid: UID) -> Response:
     anime = sources.get_anime(uid)
     if not anime:
         return error_response(UIDUnknown(uid))
     offset = cast_argument(request.args.get("offset"), int, 0)
-    return render_template("mal/episode_list.html", episode_count=anime.episode_count, offset=offset)
+    html = await  render_template("mal/episode_list.html", episode_count=anime.episode_count, offset=offset)
+    return Response(html)
 
 
 @templates.route("/mal/episode/<UID:uid>/<int:index>")
-def mal_episode(uid: UID, index: int) -> Response:
+async def mal_episode(uid: UID, index: int) -> Response:
     anime = sources.get_anime(uid)
     if not anime:
         return error_response(UIDUnknown(uid))
@@ -77,11 +80,13 @@ def mal_episode(uid: UID, index: int) -> Response:
     except GrobberException as e:
         return error_response(e)
 
-    return render_template("mal/episode.html", episode=episode, uid=uid, index=index, episode_count=anime.episode_count)
+    html = await render_template("mal/episode.html", episode=episode, uid=uid, index=index, episode_count=anime.episode_count)
+    return Response(html)
 
 
 @templates.route("/mal/settings")
-def mal_settings():
+async def mal_settings():
     # MultiDicts have Lists for values (because there can be multiple values for the same key but we don't want that, thus the "to_dict"
     context = request.args.to_dict()
-    return render_template("mal/settings.html", **context)
+    html = await render_template("mal/settings.html", **context)
+    return Response(html)

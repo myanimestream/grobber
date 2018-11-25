@@ -2,11 +2,11 @@ import os
 from functools import partial
 from operator import itemgetter
 
-from flask import g, request
 from pymongo import MongoClient
 from pymongo.collection import Collection
 from pymongo.database import Database
-from werkzeug.local import LocalProxy
+from quart import g, request
+from quart.local import LocalProxy
 
 _MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
 _MONGO_DB_NAME = os.getenv("MONGO_DB", "MyAnimeStream")

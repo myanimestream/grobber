@@ -2,9 +2,8 @@ import logging
 import os
 
 import raven
-from flask import Flask, Response, redirect
+from quart import Quart, Response, redirect
 from raven.conf import setup_logging
-from raven.contrib.flask import Sentry
 from raven.handlers.logging import SentryHandler
 
 from . import __info__, proxy, sources
@@ -15,9 +14,8 @@ from .utils import *
 
 log = logging.getLogger(__name__)
 
-app = Flask("grobber", static_url_path="/")
+app = Quart("grobber", static_url_path="/")
 sentry_client = raven.Client(release=__info__.__version__)
-Sentry(app, sentry_client)
 sentry_handler = SentryHandler(sentry_client)
 sentry_handler.setLevel(logging.ERROR)
 setup_logging(sentry_handler)
@@ -51,16 +49,16 @@ def teardown_app_context(*_):
 
 
 @app.after_request
-def after_request(response: Response) -> Response:
+async def after_request(response: Response) -> Response:
     response.headers["grobber-version"] = __info__.__version__
     return response
 
 
 @app.context_processor
-def inject_jinja_globals():
+async def inject_jinja_globals():
     return dict(url_for=external_url_for)
 
 
 @app.route("/download")
-def get_userscript() -> Response:
+async def get_userscript() -> Response:
     return redirect(app.config["USERSCRIPT_LOCATION"])

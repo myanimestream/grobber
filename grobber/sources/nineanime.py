@@ -1,5 +1,5 @@
 import re
-from typing import Iterator, List, Tuple
+from typing import Iterator, List
 
 from bs4 import BeautifulSoup
 
@@ -23,20 +23,6 @@ RE_SPECIAL = re.compile(r"[^\w\-]+")
 RE_CLEAN = re.compile(r"-+")
 
 RE_DUB_STRIPPER = re.compile(r"\s\(Dub\)$")
-
-
-def search_anime_page(name: str, dub: bool = False) -> Iterator[Tuple[Request, float]]:
-    req = Request(SEARCH_URL, {"keyword": name})
-    bs = req.bs
-    container = bs.select_one("div.film-list")
-    search_results = container.select("div.item")
-    for result in search_results:
-        title = result.select_one("a.name").text
-        if dub != title.endswith("(Dub)"):
-            continue
-        link = result.select_one("a.poster")["href"]
-        similarity = get_certainty(name, title)
-        yield Request(link), similarity
 
 
 class NineEpisode(Episode):
@@ -93,8 +79,18 @@ class NineAnime(Anime):
 
     @classmethod
     def search(cls, query: str, dub: bool = False) -> Iterator[SearchResult]:
-        for req, certainty in search_anime_page(query, dub=dub):
-            yield SearchResult(cls(req), certainty)
+        req = Request(SEARCH_URL, {"keyword": query})
+        bs = req.bs
+        container = bs.select_one("div.film-list")
+        search_results = container.select("div.item")
+        for result in search_results:
+            title = result.select_one("a.name").text
+            if dub != title.endswith("(Dub)"):
+                continue
+
+            link = result.select_one("a.poster")["href"]
+            similarity = get_certainty(query, title)
+            yield SearchResult(cls(Request(link)), similarity)
 
     @cached_property
     def raw_eps(self) -> List[NineEpisode]:

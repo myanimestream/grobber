@@ -1,7 +1,7 @@
 import re
 from typing import Pattern, Union
 
-from flask import Blueprint, Flask, Response, redirect, request
+from quart import Blueprint, Quart, Response, redirect, request
 
 from ..url_pool import UrlPool, gogoanime_pool, nineanime_pool
 
@@ -10,8 +10,8 @@ forward = Blueprint("forward", __name__, url_prefix="/forward")
 RE_ROUTE_CLEANER: Pattern = re.compile(r"\W+")
 
 
-def create_forward(app: Union[Blueprint, Flask], pool: UrlPool, rule: str, path: str, *, include_query: bool = True) -> None:
-    def forwarder(**kwargs) -> Response:
+def create_forward(app: Union[Blueprint, Quart], pool: UrlPool, rule: str, path: str, *, include_query: bool = True) -> None:
+    async def forwarder(**kwargs) -> Response:
         url = f"{path}"
         for name, arg in kwargs.items():
             url += f"/{arg}"

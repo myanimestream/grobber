@@ -1,6 +1,7 @@
-version: 2.1.0;
+version: 3.0.0;
 release: unknown;
 ------------------
+changed[2]: Switched to Quart;
 added[1]: masterani.me source;
 added: Allowing redirects for streams (fixes google servers);
 changed: More flexible url behaviour for stream urls;

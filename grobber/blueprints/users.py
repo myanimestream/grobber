@@ -1,4 +1,4 @@
-from flask import Blueprint, Response, request
+from quart import Blueprint, Response, request
 
 from .. import proxy
 from ..exceptions import InvalidRequest, UserNotFound
@@ -32,12 +32,12 @@ def get_data_resp(username: str, name: str) -> Response:
 
 
 @users.route("/<username>/config")
-def get_user_config(username: str) -> Response:
+async def get_user_config(username: str) -> Response:
     return get_data_resp(username, "config")
 
 
 @users.route("/<username>/config", methods=("POST",))
-def set_user_config(username: str) -> Response:
+async def set_user_config(username: str) -> Response:
     update = request.get_json()
     if not update:
         return error_response(InvalidRequest("Config missing"))
@@ -45,17 +45,17 @@ def set_user_config(username: str) -> Response:
 
 
 @users.route("/<username>/anime")
-def get_all_anime(username: str) -> Response:
+async def get_all_anime(username: str) -> Response:
     return get_data_resp(username, "anime")
 
 
 @users.route("/<username>/anime/<name>")
-def get_anime(username: str, name: str) -> Response:
+async def get_anime(username: str, name: str) -> Response:
     return get_data_resp(username, "anime")
 
 
 @users.route("/<username>/anime", methods=("POST",))
-def set_user_episodes(username: str) -> Response:
+async def set_user_episodes(username: str) -> Response:
     update = request.get_json()
     if not update:
         return error_response(InvalidRequest("Episodes missing"))

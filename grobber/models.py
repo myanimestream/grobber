@@ -10,7 +10,7 @@ from itertools import groupby
 from operator import attrgetter
 from typing import Any, Dict, Iterator, List, MutableSequence, NewType, Optional, Union
 
-from werkzeug.routing import BaseConverter
+from quart.routing import BaseConverter
 
 from .decorators import cached_property
 from .exceptions import EpisodeNotFound
