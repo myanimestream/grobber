@@ -1,0 +1,31 @@
+{% if episode.stream %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr/dist/plyr.css">
+
+    <video id="player" poster="{{ url_for("anime.get_episode_poster", uid=uid, index=index) }}" playsinline controls
+           data-plyr-config='{"disableContextMenu": false}'>
+        {% for link in episode.stream %}
+            <source src="{{ link }}" type="video/mp4">
+        {% endfor %}
+    </video>
+{% else %}
+    <style>
+        .embedded-player-container {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-top: calc(9 / 16 * 100%);
+            overflow: hidden;
+        }
+
+        #embedded-player {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+    <div class="embedded-player-container">
+        <iframe id="embedded-player" src="{{ episode.host_url }}" allowfullscreen></iframe>
+    </div>
+{% endif %}

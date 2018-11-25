@@ -1,0 +1,59 @@
+{% macro table(start, end, ascend=True, visible=True) %}
+    <table class="mt8 episode_list js-watch-episode-list {{ "ascend" if ascend else "descend" }}" {{ "style=display:none;" if not visible }}
+           width="100%"
+           cellspacing="0" cellpadding="0" border="0">
+        <tbody>
+        <tr class="episode-list-header">
+            <td class="episode-number">
+                <div class="btn-sort-outer js-btn-sort"
+                     onclick="$('.js-watch-episode-list.ascend').toggle();$('.js-watch-episode-list.descend').toggle();">
+                </div>
+            </td>
+            <td class="episode-video"></td>
+            <td class="episode-title">Episode Title</td>
+        </tr>
+        {% for ind in (range(start, end) if ascend else range(start, end)|reverse) %}
+            <tr class="episode-list-data">
+                <td class="episode-number nowrap">{{ ind + 1 }}</td>
+                <td class="episode-video nowrap">
+                    <a href="episode/{{ ind + 1 }}">
+                        <img src="https://myanimelist.cdn-dena.com/images/icon_watch_monitor.png" alt="Watch Episode #{{ ind + 1 }}" width="20"
+                             height="19">
+                    </a>
+                </td>
+                <td class="episode-title">
+                    <a href="episode/{{ ind + 1 }}" class="fl-l fw-b ">Episode {{ ind + 1 }}</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endmacro %}
+
+<div class="container">
+    {{ table(offset, [episode_count, offset + 100]|min) }}
+    {{ table(offset, [episode_count, offset + 100]|min, False, False) }}
+</div>
+
+{% if episode_count > 100 %}
+    <div class="mt12 mb12">
+        <div class="pagination ac">
+            {% if offset > 200 %}
+                <a class="link {{ "current" if offset == 0 }}" href="?offset=0">1 - 100</a>
+                <span class="skip">&lt;</span>
+            {% endif %}
+            {% for off in range([offset - 200, 0]|max, [offset + 300, episode_count]|min, 100) %}
+                <a class="link {{ "current" if offset == off }}" href="?offset={{ off }}">
+                    {{ off + 1 }} - {{ [off + 100, episode_count]|min }}
+                </a>
+            {% endfor %}
+            {% if (episode_count - offset) > 300 %}
+                {% set target_offset = 100 * ((episode_count - 1) // 100) %}
+                <span class="skip">&gt;</span>
+                <a class="link {{ "current" if offset == target_offset }}" href="?offset={{ target_offset }}">
+                    {{ target_offset }} - {{ episode_count }}
+                </a>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}

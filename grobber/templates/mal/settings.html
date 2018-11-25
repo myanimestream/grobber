@@ -1,0 +1,41 @@
+{% macro selection(name, options, selected) %}
+    <select name="{{ name }}" class="inputtext">
+        {% for option, value in options %}
+            <option value="{{ value }}" {{ "selected" if value == selected }}>{{ option }}</option>
+        {% endfor %}
+    </select>
+{% endmacro %}
+<div id="update_success_display" class="goodresult" style="display:none;"><strong>Successfully updated your MyAnimeStream settings.</strong></div>
+<div id="update_fail_display" class="badresult" style="display:none;">
+    <strong>Couldn't update your MyAnimeStream settings. Please try again.</strong>
+</div>
+<form method="post" style="display: inline;">
+    <table width="100%" cellspacing="13" cellpadding="0" border="0">
+        <tbody>
+        <tr>
+            <td colspan="2">
+                <div class="normal_header">Episode Settings</div>
+            </td>
+        </tr>
+        <tr>
+            <td>Anime Translation</td>
+            <td>{{ selection("dub", [("Dubbed", "true"), ("Subbed", "false")], dub|default("false")) }}</td>
+        </tr>
+        <tr>
+            <td>Replace Crunchyroll embed</td>
+            <td>{{ selection("replaceStream", [("Yes", "true"), ("No", "false")], replaceStream|default("true")) }}</td>
+        </tr>
+        <tr>
+            <td>Update Anime status</td>
+            <td>{{ selection("updateAnimeStatus", [("Yes", "true"), ("No", "false")], updateAnimeStatus|default("true")) }}</td>
+        </tr>
+        <tr>
+            <td></td>
+            <td>
+                <input value="Submit" name="submit" class="inputButton" type="button">
+                <input onclick="history.go(-1);" class="inputButton" value="Cancel" type="button">
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</form>
