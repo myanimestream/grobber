@@ -54,20 +54,20 @@ class Streamango(Stream):
     HOST = "streamango.com"
 
     @cached_property
-    def poster(self) -> Optional[str]:
-        video = self._req.bs.find("video", id="mgvideo")
+    async def poster(self) -> Optional[str]:
+        video = (await self._req.bs).find("video", id="mgvideo")
         if video:
             link = video.attrs.get("poster")
-            if link and Request(link).head_success:
+            if link and await Request(link).head_success:
                 return link
 
     @cached_property
-    def links(self) -> List[str]:
-        source = extract_stream(self._req.text)
+    async def links(self) -> List[str]:
+        source = extract_stream(await self._req.text)
         if source:
             link = Request(add_http_scheme(source))
-            if link.head_success:
-                return [link.url]
+            if await link.head_success:
+                return [await link.url]
         return []
 
 

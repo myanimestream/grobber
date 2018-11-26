@@ -1,7 +1,9 @@
+import asyncio
 import importlib
 import logging
-from itertools import chain, zip_longest
-from typing import Dict, Iterator, Optional, Set, Type
+from typing import AsyncIterator, Dict, Optional, Set, Type
+
+from motor.motor_asyncio import AsyncIOMotorCollection
 
 from ..exceptions import UIDUnknown
 from ..models import Anime, SearchResult, UID
@@ -28,29 +30,35 @@ log.info(f"Using Sources: {SOURCES.keys()}")
 CACHE: Set[Anime] = set()
 
 
-def save_dirty() -> None:
+async def save_dirty(collection: AsyncIOMotorCollection = None) -> None:
+    collection = collection or anime_collection
+
     num_saved = 0
+    coros = []
     for anime in CACHE:
         if anime.dirty:
             num_saved += 1
-            anime_collection.update_one({"_id": anime.uid}, {"$set": anime.state}, upsert=True)
+            coro = collection.update_one({"_id": await anime.uid}, {"$set": anime.state}, upsert=True)
+            coros.append(coro)
+
+    await asyncio.gather(*coros)
     log.debug(f"Saved {num_saved} dirty out of {len(CACHE)} cached anime")
     CACHE.clear()
 
 
-def delete_anime(uid: str) -> None:
+async def delete_anime(uid: str) -> None:
     log.info(f"deleting anime {uid}...")
-    anime_collection.delete_one(dict(_id=uid))
+    await anime_collection.delete_one(dict(_id=uid))
 
 
-def get_anime(uid: UID) -> Optional[Anime]:
-    doc = anime_collection.find_one(uid)
+async def get_anime(uid: UID) -> Optional[Anime]:
+    doc = await anime_collection.find_one(uid)
     if doc:
         try:
             cls = SOURCES[doc["cls"]]
         except KeyError:
             log.warning(f"couldn't find source for {uid}: {doc['cls']}")
-            delete_anime(uid)
+            await delete_anime(uid)
             raise UIDUnknown(uid)
 
         anime = cls.from_state(doc)
@@ -58,15 +66,16 @@ def get_anime(uid: UID) -> Optional[Anime]:
         return anime
 
 
-def search_anime(query: str, dub=False) -> Iterator[SearchResult]:
+async def search_anime(query: str, dub=False) -> AsyncIterator[SearchResult]:
     sources = [source.search(query, dub=dub) for source in SOURCES.values()]
-    result_zip = zip_longest(*sources)
-    result_iter = chain(*result_zip)
 
-    for result in result_iter:
-        if result is None:
-            continue
-
-        anime = result.anime
-        CACHE.add(anime)
-        yield result
+    while sources:
+        for source in reversed(sources):
+            try:
+                result = await source.__anext__()
+            except StopAsyncIteration:
+                log.debug(f"{source} exhausted")
+                sources.remove(source)
+            else:
+                CACHE.add(result.anime)
+                yield result

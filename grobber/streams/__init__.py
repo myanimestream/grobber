@@ -1,7 +1,7 @@
 import importlib
 import logging
 from operator import attrgetter
-from typing import Iterator, List, Type
+from typing import AsyncIterator, List, Type
 
 from ..models import Stream
 from ..request import Request
@@ -33,7 +33,7 @@ _load_streams()
 log.info(f"Using Streams: {[stream.__name__ for stream in STREAMS]}")
 
 
-def get_stream(req: Request) -> Iterator[Stream]:
+async def get_stream(req: Request) -> AsyncIterator[Stream]:
     for stream in STREAMS:
-        if stream.can_handle(req):
+        if await stream.can_handle(req):
             yield stream(req)

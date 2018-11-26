@@ -54,8 +54,8 @@ class Mp4Upload(Stream):
     HOST = "mp4upload.com"
 
     @cached_property
-    def player_data(self) -> PlayerData:
-        player_data = extract_player_data(self._req.text)
+    async def player_data(self) -> PlayerData:
+        player_data = extract_player_data(await self._req.text)
         if player_data:
             return player_data
         else:
@@ -63,15 +63,15 @@ class Mp4Upload(Stream):
             return PlayerData(None, None)
 
     @cached_property
-    def poster(self) -> Optional[str]:
-        link = self.player_data[1]
-        if link and Request(link).head_success:
+    async def poster(self) -> Optional[str]:
+        link = (await self.player_data)[1]
+        if link and await Request(link).head_success:
             return link
 
     @cached_property
-    def links(self) -> List[str]:
-        source = self.player_data[0]
-        if source and Request(source).head_success:
+    async def links(self) -> List[str]:
+        source = (await self.player_data)[0]
+        if source and await Request(source).head_success:
             return [source]
         return []
 

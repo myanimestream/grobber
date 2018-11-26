@@ -1,14 +1,15 @@
+import asyncio
 import inspect
 import json
 import logging
-from string import Formatter
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Awaitable, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
-import requests
 import yarl
+from aiohttp import ClientResponse, ClientSession
+from aiohttp.client_exceptions import ClientError
 from bs4 import BeautifulSoup
-from requests.exceptions import ConnectionError, ReadTimeout
 
+from .async_string_formatter import AsyncFormatter
 from .decorators import cached_property
 
 log = logging.getLogger(__name__)
@@ -18,7 +19,7 @@ DEFAULT_HEADERS = {
 }
 
 
-class UrlFormatter(Formatter):
+class UrlFormatter(AsyncFormatter):
     _FIELDS: Dict[Any, Any]
 
     def __init__(self, fields: Dict[Any, Any] = None) -> None:
@@ -34,11 +35,13 @@ class UrlFormatter(Formatter):
         for args in fields.items():
             self.add_field(*args)
 
-    def get_value(self, key: Union[str, int], args: List[Any], kwargs: Dict[Any, Any]) -> Any:
+    async def get_value(self, key: Union[str, int], args: List[Any], kwargs: Dict[Any, Any]) -> Any:
         if key in self._FIELDS:
             value = self._FIELDS[key]
             if inspect.isfunction(value):
                 value = value()
+                if inspect.isawaitable(value):
+                    value = await value
 
             return value
 
@@ -47,12 +50,14 @@ class UrlFormatter(Formatter):
 
 DefaultUrlFormatter = UrlFormatter()
 
+AIOSESSION = ClientSession()
+
 
 class Request:
     ATTRS = ()
 
     _url: str
-    _response: requests.Response
+    _response: ClientResponse
     _success: bool
     _text: str
     _json: Dict[str, Any]
@@ -63,15 +68,17 @@ class Request:
         self._params = params
         self._headers = headers
         self._timeout = timeout
+
         self.request_kwargs = request_kwargs
 
         self._formatter = DefaultUrlFormatter
+        self._session = AIOSESSION
 
     def __hash__(self) -> int:
-        return hash(self.url)
+        return hash(self._raw_url)
 
     def __eq__(self, other: "Request") -> bool:
-        return self.url == other.url
+        return self._raw_url == other._raw_url and self._params == other._params
 
     def __repr__(self) -> str:
         props: Tuple[str, ...] = (
@@ -80,7 +87,9 @@ class Request:
             hasattr(self, "_bs") and "BS"
         )
         cached = ",".join(filter(None, props))
-        return f"<{self.url} ({cached})>"
+
+        url = self._url if hasattr(self, "_url") else self._raw_url
+        return f"<{url} ({cached})>"
 
     @property
     def state(self) -> dict:
@@ -112,85 +121,110 @@ class Request:
         return headers
 
     @cached_property
-    def url(self) -> str:
-        raw_url = self._formatter.format(self._raw_url)
-        return requests.Request("GET", raw_url, params=self._params, headers=self.headers).prepare().url
-
-    @url.setter
-    def url(self, value: str):
-        self._url = value
-        self._dirty(3)
+    async def url(self) -> str:
+        raw_url = await self._formatter.format(self._raw_url)
+        return yarl.URL(raw_url).with_query(self._params).human_repr()
 
     @cached_property
-    def yarl(self):
-        return yarl.URL(self.url)
+    async def yarl(self):
+        return yarl.URL(await self.url)
 
     @cached_property
-    def response(self) -> requests.Response:
-        return self.perform_request("get")
-
-    @response.setter
-    def response(self, value: requests.Response):
-        self._response = value
-        self._dirty(2)
+    async def response(self) -> ClientResponse:
+        return await self.perform_request("get")
 
     @cached_property
-    def success(self) -> bool:
+    async def success(self) -> bool:
         try:
-            return self.response.ok
-        except (ConnectionError, ReadTimeout):
+            (await self.response).raise_for_status()
+        except ClientError as e:
+            log.warning(f"Couldn't fetch {self}", exc_info=e)
             return False
+        else:
+            return True
 
     @cached_property
-    def head_response(self) -> requests.Response:
+    async def head_response(self) -> ClientResponse:
         if hasattr(self, "_response"):
-            return self.response
+            return await self.response
 
-        return self.perform_request("head", timeout=self._timeout or 5)
+        return await self.perform_request("head", timeout=self._timeout or 5)
 
     @cached_property
-    def head_success(self) -> bool:
+    async def head_success(self) -> bool:
         try:
-            return self.head_response.ok
-        except (ConnectionError, ReadTimeout) as e:
-            log.warning(f"Couldn't head to {self.url}", exc_info=e)
+            (await self.response).raise_for_status()
+        except ClientError as e:
+            log.warning(f"Couldn't head to {self}", exc_info=e)
             return False
+        else:
+            return True
 
     @cached_property
-    def text(self) -> str:
-        self.response.encoding = "utf-8-sig"
-        text = self.response.text.replace("\ufeff", "")
-        return text
+    async def text(self) -> str:
+        resp = await self.response
+        text = await resp.text("utf-8-sig")
 
-    @text.setter
-    def text(self, value: str):
-        self._text = value
-        self._dirty(1)
+        return text.replace("\ufeff", "")
 
     @cached_property
-    def json(self) -> Dict[str, Any]:
+    async def json(self) -> Dict[str, Any]:
+        text = await self.text
         try:
-            return json.loads(self.text)
+            return json.loads(text)
         except json.JSONDecodeError:
-            log.exception(f"Couldn't parse json:\n\n{self.text}\n\n")
+            log.exception(f"Couldn't parse json:\n\n{text}\n\n")
 
     @cached_property
-    def bs(self) -> BeautifulSoup:
-        return self.create_soup(self.text)
+    async def bs(self) -> BeautifulSoup:
+        return self.create_soup(await self.text)
 
-    def _dirty(self, flag: int):
-        if flag > 2:
-            del self._response
-            del self._success
-        if flag > 1:
-            del self._text
-        if flag > 0:
-            del self._bs
-            del self._json
-
-    def perform_request(self, method: str, **kwargs) -> requests.Response:
+    async def perform_request(self, method: str, **kwargs) -> ClientResponse:
         options = self.request_kwargs.copy()
         options.update(headers=self.headers, timeout=self._timeout)
         options.update(kwargs)
 
-        return requests.request(method, self.url, **options)
+        return await self._session.request(method, await self.url, **options)
+
+    @staticmethod
+    async def try_req(req: "Request", *, predicate: Callable[["Request"], Awaitable[bool]] = None) -> Optional["Request"]:
+        if predicate is None:
+            if await req.head_success:
+                return req
+        else:
+            res = predicate(req)
+            if inspect.isawaitable(res):
+                res = await res
+
+            if res:
+                return req
+
+        return None
+
+    @staticmethod
+    async def first(requests: Iterable["Request"], *, timeout: float = None,
+                    predicate: Callable[["Request"], Awaitable[bool]] = None) -> Optional["Request"]:
+
+        coros = {Request.try_req(request, predicate=predicate) for request in requests}
+
+        while coros:
+            done, coros = await asyncio.wait(coros, timeout=timeout, return_when=asyncio.FIRST_COMPLETED)
+            if not done:
+                break
+
+            request = next(iter(done)).result()
+
+            if request:
+                return request
+
+        return None
+
+    @staticmethod
+    async def all(requests: Iterable["Request"], *, timeout: float = None, predicate: Callable[["Request"], Awaitable[bool]] = None) -> ["Request"]:
+        wrapped = {Request.try_req(request, predicate=predicate) for request in requests}
+        if not wrapped:
+            return []
+
+        done, _ = await asyncio.wait(wrapped, timeout=timeout,
+                                     return_when=asyncio.ALL_COMPLETED)
+        return list(filter(None, (task.result() for task in done)))

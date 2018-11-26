@@ -27,24 +27,25 @@ class Vidstreaming(Stream):
     HOST = "vidstreaming.io"
 
     @cached_property
-    def player_data(self) -> dict:
-        return extract_player_data(self._req.text)
+    async def player_data(self) -> dict:
+        return extract_player_data(await self._req.text)
 
     @cached_property
-    def poster(self) -> Optional[str]:
-        link = self.player_data.get("image")
-        if link and Request(link).head_success:
+    async def poster(self) -> Optional[str]:
+        link = (await self.player_data).get("image")
+        if link and await Request(link).head_success:
             return link
         return None
 
     @cached_property
-    def links(self) -> List[str]:
-        raw_sources = self.player_data.get("sources")
+    async def links(self) -> List[str]:
+        raw_sources = (await self.player_data).get("sources")
         if not raw_sources:
             return []
+
         sources = [Request(source["file"]) for source in raw_sources]
         log.debug(f"found sources {sources}")
-        return self.get_successful_links(sources)
+        return await self.get_successful_links(sources)
 
 
 register_stream(Vidstreaming)

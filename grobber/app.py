@@ -44,8 +44,13 @@ def handle_grobber_exception(exc: GrobberException) -> Response:
 
 @app.teardown_appcontext
 def teardown_app_context(*_):
-    sources.save_dirty()
-    proxy.teardown()
+    # collection = proxy.anime_collection._get_current_object()
+    collection = proxy.anime_collection
+
+    async def teardown() -> None:
+        await sources.save_dirty(collection)
+
+    do_later(teardown())
 
 
 @app.after_request

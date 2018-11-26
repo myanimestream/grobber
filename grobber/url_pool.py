@@ -1,4 +1,5 @@
 import logging
+from asyncio import Lock
 from datetime import datetime, timedelta
 from typing import List
 
@@ -20,34 +21,36 @@ class UrlPool:
 
         self.strip_slash = strip_slash
         self.ttl = timedelta(seconds=ttl)
+        self._lock = Lock()
 
     def __str__(self) -> str:
         return f"<Pool {self.name}>"
 
     @property
-    def url(self) -> str:
-        if (not self._next_update) or datetime.now() > self._next_update:
-            self.fetch()
+    async def url(self) -> str:
+        async with self._lock:
+            if (not self._next_update) or datetime.now() > self._next_update:
+                await self.fetch()
 
-        if (not self._next_update) or datetime.now() > self._next_update:
-            log.debug(f"searching new url for {self}")
-            self.update_url()
-            self._next_update = datetime.now() + self.ttl
-            self.upload()
+            if (not self._next_update) or datetime.now() > self._next_update:
+                log.debug(f"searching new url for {self}")
+                await self.update_url()
+                self._next_update = datetime.now() + self.ttl
+                await self.upload()
 
-        return self.prepare_url(self._url)
+            return self.prepare_url(self._url)
 
-    def fetch(self) -> None:
-        doc = proxy.url_pool_collection.find_one(self.name)
+    async def fetch(self) -> None:
+        doc = await proxy.url_pool_collection.find_one(self.name)
         if not doc:
             log.debug(f"creating pool for {self}")
         else:
-            log.debug("initialising from database")
+            log.debug(f"{self} initialising from database")
             self._url = doc["url"]
             self._next_update = doc["next_update"]
 
-    def upload(self) -> None:
-        proxy.url_pool_collection.update_one(dict(_id=self.name), {"$set": dict(url=self._url, next_update=self._next_update)}, upsert=True)
+    async def upload(self) -> None:
+        await proxy.url_pool_collection.update_one(dict(_id=self.name), {"$set": dict(url=self._url, next_update=self._next_update)}, upsert=True)
 
     def prepare_url(self, url: str) -> str:
         if self.strip_slash:
@@ -55,15 +58,15 @@ class UrlPool:
 
         return url
 
-    def update_url(self) -> None:
-        for i, url in enumerate(self.urls):
-            req = Request(url, allow_redirects=True)
-            log.debug(f"trying {req}")
-            if req.head_success:
-                self.urls.insert(0, self.urls.pop(i))
-                self._url = req.head_response.url
-                log.debug(f"{req} successful, moving to front! ({self._url})")
-                break
+    async def update_url(self) -> None:
+        requests = [Request(url, allow_redirects=True) for url in self.urls]
+        req = await Request.first(requests)
+
+        if req:
+            self._url = str((await req.head_response).url)
+
+            log.debug(f"{req} successful, moving to front! ({self._url})")
+            self.urls.insert(0, self.urls.pop(requests.index(req)))
         else:
             raise GrobberException(f"{self} No working url found")
 

@@ -22,34 +22,39 @@ class Generic(Stream):
     PRIORITY = 0
 
     @classmethod
-    def can_handle(cls, req: Request) -> bool:
-        if req.yarl.host in BLOCKED_HOSTS:
+    async def can_handle(cls, req: Request) -> bool:
+        if (await req.yarl).host in BLOCKED_HOSTS:
             log.debug(f"ignoring {req} because it's blocked")
             return False
         return True
 
-    def get_links(self, pattern: Pattern) -> List[Request]:
-        if not self._req.success:
+    async def get_links(self, pattern: Pattern) -> List[Request]:
+        if not await self._req.success:
             log.warning(f"couldn't access {self}")
             return []
         links = set()
-        for group in pattern.findall(self._req.text):
-            url = add_http_scheme(group[0], self._req.url)
+
+        for group in pattern.findall(await self._req.text):
+            url = add_http_scheme(group[0], await self._req.url)
             links.add(Request(url))
+
         return list(links)
 
     @cached_property
-    def poster(self) -> Optional[str]:
-        potential_links = self.get_links(RE_IMAGE_LINK_MATCHER)
-        poster = next((poster.url for poster in potential_links if poster.head_success), None)
+    async def poster(self) -> Optional[str]:
+        potential_links = await self.get_links(RE_IMAGE_LINK_MATCHER)
+
+        poster = await Request.first(potential_links)
         if poster:
             log.debug(f"Found poster for {self}: {poster}")
-        return poster
+            return await poster.url
+
+        return None
 
     @cached_property
-    def links(self) -> List[str]:
-        potential_links = self.get_links(RE_VIDEO_LINK_MATCHER)
-        return Stream.get_successful_links(potential_links)
+    async def links(self) -> List[str]:
+        potential_links = await self.get_links(RE_VIDEO_LINK_MATCHER)
+        return await self.get_successful_links(potential_links)
 
 
 register_stream(Generic)

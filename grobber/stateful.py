@@ -1,4 +1,6 @@
 import abc
+import asyncio
+import inspect
 import logging
 from collections import deque
 from contextlib import suppress
@@ -7,7 +9,6 @@ from typing import Any, Dict, Iterable, List, Mapping, Pattern, TypeVar
 
 import bson
 
-from . import utils
 from .request import Request
 
 log = logging.getLogger(__name__)
@@ -68,12 +69,15 @@ class Stateful(abc.ABC):
     def deserialise_special(cls, key: str, value: BsonType) -> Any:
         raise TypeError(f"Special key \"{key}\" doesn't have a handler to deserialise!")
 
-    def preload_attrs(self, *attrs: str, parallel: bool = True, recursive: bool = False) -> List[Any]:
+    async def preload_attrs(self, *attrs: str, recursive: bool = False) -> List[Any]:
         if not attrs:
             attrs = self.ATTRS
 
-        def preload(attr: str) -> Any:
+        async def preload(attr: str) -> Any:
             value = getattr(self, attr)
+
+            if inspect.isawaitable(value):
+                value = await value
 
             if recursive:
                 stack = deque()
@@ -83,7 +87,7 @@ class Stateful(abc.ABC):
                     v = stack.pop()
 
                     if isinstance(v, Stateful):
-                        v.preload_attrs(parallel=parallel, recursive=recursive)
+                        await v.preload_attrs(recursive=recursive)
                     elif isinstance(v, Mapping):
                         stack.extend(v.keys())
                         stack.extend(v.values())
@@ -92,10 +96,7 @@ class Stateful(abc.ABC):
 
             return value
 
-        if parallel:
-            return list(utils.thread_pool.map(preload, attrs))
-        else:
-            return [preload(attr) for attr in attrs]
+        return await asyncio.gather(*(preload(attr) for attr in attrs))
 
     @property
     def state(self) -> Dict[str, BsonType]:

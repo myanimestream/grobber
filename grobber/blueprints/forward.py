@@ -18,7 +18,7 @@ def create_forward(app: Union[Blueprint, Quart], pool: UrlPool, rule: str, path:
         if include_query:
             url += "?" + request.query_string.decode("utf-8")
 
-        return redirect(pool.url + url)
+        return redirect(await pool.url + url)
 
     forwarder.__name__ = pool.name + RE_ROUTE_CLEANER.sub("", path)
 

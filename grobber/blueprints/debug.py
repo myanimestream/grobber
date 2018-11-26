@@ -1,7 +1,10 @@
+from datetime import datetime, timedelta
+
 from quart import Blueprint, Response, request
 
-from .. import streams
+from .. import sources, streams
 from ..exceptions import *
+from ..models import UID
 from ..request import Request
 from ..utils import create_response
 
@@ -14,9 +17,20 @@ async def extract_stream() -> Response:
     if not url:
         raise InvalidRequest("No url parameter specified")
 
-    stream = next(streams.get_stream(Request(url)), None)
+    stream = await streams.get_stream(Request(url)).__anext__()
     if not stream:
         raise StreamNotFound()
 
-    stream.preload_attrs(recursive=True)
+    await stream.preload_attrs(recursive=True)
     return create_response(stream.state)
+
+
+@debug_blueprint.route("/expire/<UID:uid>")
+async def expire_anime(uid: UID) -> Response:
+    anime = await sources.get_anime(uid)
+    if not anime:
+        raise UIDUnknown(uid)
+
+    anime._last_update = datetime.now() - timedelta(seconds=anime.EXPIRE_TIME)
+    anime.dirty = True
+    return create_response()

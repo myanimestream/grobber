@@ -1,14 +1,11 @@
-__all__ = ["create_response", "error_response", "cast_argument", "add_http_scheme", "parse_js_json", "thread_pool", "wait_for_first",
-           "ChangelogEntry", "Version", "external_url_for", "format_available"]
+__all__ = ["create_response", "error_response", "add_http_scheme", "parse_js_json", "external_url_for", "format_available", "do_later", "anext"]
 
-import concurrent.futures
+import asyncio
 import json
 import logging
 import re
-from collections import namedtuple
-from concurrent.futures import Executor, ThreadPoolExecutor
 from string import Formatter
-from typing import Any, Callable, Dict, Iterator, List, Optional, TypeVar, Union
+from typing import Any, AsyncIterator, Awaitable, Dict, List, TypeVar, Union
 
 from quart import Response, current_app, jsonify, request, url_for
 
@@ -37,18 +34,6 @@ def error_response(exception: GrobberException) -> Response:
     return create_response(data, success=False)
 
 
-def cast_argument(val: T, cls: Callable[[T], T2], default: Any = _DEFAULT) -> T2:
-    try:
-        new_val = cls(val)
-    except Exception as e:
-        if default is _DEFAULT:
-            raise e
-        else:
-            return default
-    else:
-        return new_val
-
-
 def add_http_scheme(link: str, base_url: str = None, *, _scheme="http") -> str:
     if link.startswith("//"):
         return f"{_scheme}:{link}"
@@ -67,49 +52,6 @@ def parse_js_json(text: str):
     valid_json = RE_JSON_EXPANDER.sub("\"\\2\": ", text).replace("'", "\"")
     valid_json = RE_JSON_REMOVE_TRAILING_COMMA.sub(r"\1", valid_json)
     return json.loads(valid_json)
-
-
-THREAD_WORKERS = 10
-thread_pool: Executor = ThreadPoolExecutor(max_workers=THREAD_WORKERS)
-
-
-def wait_for_first(items: List[Callable[..., T]], cond: Callable[[T], bool] = bool) -> Optional[T]:
-    fs = [thread_pool.submit(item) for item in items]
-    fut_iter = concurrent.futures.as_completed(fs)
-    for fut in fut_iter:
-        res = fut.result()
-        if cond(res):
-            for future in fs:
-                future.cancel()
-            return res
-
-
-ChangelogEntry = namedtuple("ChangelogEntry", ("text", "priority", "version", "date"))
-
-
-class Version:
-    def __init__(self, major: int, minor: int, patch: int):
-        self.major = major
-        self.minor = minor
-        self.patch = patch
-
-    def __len__(self) -> int:
-        return 3
-
-    def __iter__(self) -> Iterator[int]:
-        return iter((self.major, self.minor, self.patch))
-
-    def __str__(self) -> str:
-        return ".".join(str(i) for i in self)
-
-    @classmethod
-    def from_version_num(cls, version_num: int) -> "Version":
-        version = [(version_num & (16 ** (4 * i) - 1)) >> ((i - 1) * 16) for i in range(3, 0, -1)]
-        return cls(*version)
-
-    @property
-    def version_num(self) -> int:
-        return sum(part << (len(self) - i) * 16 for i, part in enumerate(self, 1))
 
 
 def external_url_for(endpoint, **kwargs):
@@ -136,3 +78,23 @@ ModestFormatter = _ModestFormatter()
 
 def format_available(text: str, *args, **kwargs) -> str:
     return ModestFormatter.format(text, *args, **kwargs)
+
+
+def do_later(target: Awaitable) -> None:
+    async def safe_run(aw: Awaitable) -> None:
+        try:
+            await aw
+        except Exception as e:
+            log.exception(f"Something went wrong while awaiting {target}")
+
+    asyncio.ensure_future(safe_run(target))
+
+
+async def anext(iterable: AsyncIterator[T], default: Any = _DEFAULT) -> T:
+    try:
+        return await iterable.__anext__()
+    except StopAsyncIteration:
+        if default is _DEFAULT:
+            raise
+        else:
+            return default

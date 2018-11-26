@@ -1,14 +1,15 @@
 import abc
+import asyncio
+import inspect
 import logging
 import re
 import sys
 from collections import namedtuple
 from datetime import datetime
 from difflib import SequenceMatcher
-from functools import partial
 from itertools import groupby
 from operator import attrgetter
-from typing import Any, Dict, Iterator, List, MutableSequence, NewType, Optional, Union
+from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Iterable, List, MutableSequence, NewType, Optional, TypeVar, Union
 
 from quart.routing import BaseConverter
 
@@ -16,7 +17,6 @@ from .decorators import cached_property
 from .exceptions import EpisodeNotFound
 from .request import Request
 from .stateful import BsonType, Expiring
-from .utils import thread_pool, wait_for_first
 
 log = logging.getLogger(__name__)
 
@@ -33,14 +33,33 @@ class UIDConverter(BaseConverter):
 
 RE_UID_CLEANER = re.compile(r"[^a-z0-9一-龯]+")
 
+T = TypeVar("T")
+
+
+async def get_first(coros: Iterable[Awaitable[T]], predicate: Callable[[T], Union[bool, Awaitable[bool]]] = bool) -> Optional[T]:
+    while coros:
+        done, coros = await asyncio.wait(coros, return_when=asyncio.FIRST_COMPLETED)
+        if done:
+            result = next(iter(done)).result()
+            res = predicate(result)
+            if inspect.isawaitable(res):
+                res = await res
+            if res:
+                for coro in coros:
+                    coro.cancel()
+
+                return result
+
+    return None
+
 
 def get_certainty(a: str, b: str) -> float:
     return round(SequenceMatcher(a=a, b=b).ratio(), 2)
 
 
 class SearchResult(namedtuple("SearchResult", ("anime", "certainty"))):
-    def to_dict(self):
-        return {"anime": self.anime.to_dict(),
+    async def to_dict(self) -> Dict[str, Any]:
+        return {"anime": await self.anime.to_dict(),
                 "certainty": self.certainty}
 
 
@@ -60,63 +79,65 @@ class Stream(Expiring, abc.ABC):
     def __repr__(self) -> str:
         return f"{type(self).__name__} Stream: {self._req}"
 
-    def __iter__(self) -> Iterator[str]:
-        return iter(self.links)
-
     @classmethod
-    def can_handle(cls, req: Request) -> bool:
-        return req.yarl.host.lstrip("www.") == cls.HOST
+    async def can_handle(cls, req: Request) -> bool:
+        return (await req.yarl).host.lstrip("www.") == cls.HOST
 
     @property
     @abc.abstractmethod
-    def links(self) -> List[str]:
+    async def links(self) -> List[str]:
         ...
 
     @cached_property
-    def poster(self) -> Optional[str]:
+    async def poster(self) -> Optional[str]:
         return None
 
     @cached_property
-    def working(self) -> bool:
-        return len(self.links) > 0
+    async def working(self) -> bool:
+        return len(await self.links) > 0
 
     @property
-    def working_self(self) -> Optional["Stream"]:
-        if self.working:
+    async def working_self(self) -> Optional["Stream"]:
+        if await self.working:
             return self
         else:
             return None
 
     @staticmethod
-    def get_successful_links(sources: Union[Request, MutableSequence[Request]]) -> List[str]:
+    async def get_successful_links(sources: Union[Request, MutableSequence[Request]]) -> List[str]:
         if isinstance(sources, Request):
             sources = [sources]
 
         for source in sources:
             source.request_kwargs["allow_redirects"] = True
 
-        all(thread_pool.map(attrgetter("head_success"), sources))
+        async def source_check(req: Request) -> bool:
+            if await req.head_success:
+                content_type = (await req.head_response).content_type
 
-        urls = []
-        for source in sources:
-            if source.head_success:
-                content_type = source.head_response.headers.get("content-type")
                 if not content_type:
                     log.debug(f"No content type for {source}")
-                    continue
+                    return False
+
                 if content_type.startswith(VIDEO_MIME_TYPES):
                     log.debug(f"Accepting {source}")
-                    urls.append(source.url)
+                    return True
             else:
                 log.debug(f"{source} didn't make it!")
+                return False
 
+        requests = await Request.all(sources, predicate=source_check)
+
+        urls = []
+        for req in requests:
+            urls.append(await req.url)
         return urls
 
-    def to_dict(self) -> Dict[str, BsonType]:
+    async def to_dict(self) -> Dict[str, BsonType]:
         return {"type": type(self).__name__,
-                "url": self._req.url,
-                "links": self.links,
-                "poster": self.poster,
+                "url": self._req._raw_url,
+                "links": await self.links,
+                "poster": await self.poster,
                 "updated": self.last_update.isoformat()}
 
 
@@ -149,17 +170,20 @@ class Episode(Expiring, abc.ABC):
 
     @property
     @abc.abstractmethod
-    def streams(self) -> List[Stream]:
+    async def streams(self) -> List[Stream]:
         ...
 
     @cached_property
-    def stream(self) -> Optional[Stream]:
+    async def stream(self) -> Optional[Stream]:
         log.debug(f"{self} Searching for working stream...")
-        for priority, streams in groupby(self.streams, attrgetter("PRIORITY")):
+
+        streams = await self.streams
+
+        for priority, streams in groupby(streams, attrgetter("PRIORITY")):
             streams = list(streams)
             log.debug(f"Looking at {len(streams)} stream(s) with priority {priority}")
-            items = [partial(attrgetter("working_self"), stream) for stream in self.streams]
-            working_stream = wait_for_first(items)
+
+            working_stream = await get_first([stream.working_self for stream in streams])
             if working_stream:
                 log.debug(f"Found working stream: {working_stream}")
                 return working_stream
@@ -167,14 +191,13 @@ class Episode(Expiring, abc.ABC):
         log.debug(f"No working stream for {self}")
 
     @cached_property
-    def poster(self) -> Optional[str]:
+    async def poster(self) -> Optional[str]:
         log.debug("searching for poster")
-        items = [partial(attrgetter("poster"), stream) for stream in self.streams]
-        return wait_for_first(items)
+        return await get_first([stream.poster for stream in await self.streams])
 
     @property
     @abc.abstractmethod
-    def host_url(self) -> str:
+    async def host_url(self) -> str:
         ...
 
     def serialise_special(self, key: str, value: Any) -> BsonType:
@@ -201,10 +224,11 @@ class Episode(Expiring, abc.ABC):
         elif key == "stream":
             return cls.get_stream(value)
 
-    def to_dict(self) -> Dict[str, BsonType]:
-        return {"embed": self.host_url,
-                "stream": self.stream.to_dict() if self.stream else None,
-                "poster": self.poster,
+    async def to_dict(self) -> Dict[str, BsonType]:
+        stream = await self.stream
+        return {"embed": await self.host_url,
+                "stream": await stream.to_dict() if stream else None,
+                "poster": await self.poster,
                 "updated": self.last_update.isoformat()}
 
 
@@ -223,30 +247,27 @@ class Anime(Expiring, abc.ABC):
         self._dirty = False
         self._last_update = datetime.now()
 
-    def __getitem__(self, item: int) -> EPISODE_CLS:
-        return self.get(item)
-
     def __bool__(self) -> bool:
         return True
 
-    def __len__(self) -> int:
-        return self.episode_count
-
-    def __iter__(self) -> Iterator[EPISODE_CLS]:
-        return iter(self.episodes.values())
-
     def __repr__(self) -> str:
-        return self.uid
+        if hasattr(self, "_uid"):
+            return self._uid
+        else:
+            return repr(self._req)
 
     def __str__(self) -> str:
-        return self.title
+        if hasattr(self, "_title"):
+            return self._title
+        else:
+            return repr(self)
 
     def __eq__(self, other: "Anime") -> bool:
-        return self.uid == other.uid
+        return hash(self) == hash(other)
 
     def __hash__(self) -> int:
-        if hasattr(self, "_uid") or hasattr(self._req, "_response"):
-            return hash(self.uid)
+        if hasattr(self, "_uid"):
+            return hash(self._uid)
         return hash(self._req)
 
     @property
@@ -266,15 +287,15 @@ class Anime(Expiring, abc.ABC):
                 ep.dirty = value
 
     @cached_property
-    def uid(self) -> UID:
+    async def uid(self) -> UID:
         name = RE_UID_CLEANER.sub("", type(self).__name__.lower())
-        anime = RE_UID_CLEANER.sub("", self.title.lower())
-        dub = "-dub" if self.is_dub else ""
+        anime = RE_UID_CLEANER.sub("", (await self.title).lower())
+        dub = "-dub" if await self.is_dub else ""
         return UID(f"{name}-{anime}{dub}")
 
     @property
-    def id(self) -> UID:
-        return self.uid
+    async def id(self) -> UID:
+        return await self.uid
 
     @id.setter
     def id(self, value: UID):
@@ -282,60 +303,61 @@ class Anime(Expiring, abc.ABC):
 
     @property
     @abc.abstractmethod
-    def is_dub(self) -> False:
+    async def is_dub(self) -> False:
         ...
 
     @property
     @abc.abstractmethod
-    def title(self) -> str:
+    async def title(self) -> str:
         ...
 
     @cached_property
-    def episode_count(self) -> int:
-        return len(self.get_episodes())
+    async def episode_count(self) -> int:
+        return len(await self.get_episodes())
 
     @property
-    def episodes(self) -> Dict[int, EPISODE_CLS]:
+    async def episodes(self) -> Dict[int, EPISODE_CLS]:
         if hasattr(self, "_episodes"):
-            if len(self._episodes) != self.episode_count:
+            if len(self._episodes) != await self.episode_count:
                 log.info(f"{self} doesn't have all episodes. updating!")
-                for i in range(self.episode_count):
+
+                for i in range(await self.episode_count):
                     if i not in self._episodes:
-                        self._episodes[i] = self.get_episode(i)
+                        self._episodes[i] = await self.get_episode(i)
         else:
-            eps = self.get_episodes()
+            eps = await self.get_episodes()
             self._episodes = dict(enumerate(eps))
 
         return self._episodes
 
-    def get(self, index: int) -> EPISODE_CLS:
+    async def get(self, index: int) -> EPISODE_CLS:
         if hasattr(self, "_episodes"):
             ep = self._episodes.get(index)
             if ep is not None:
                 return ep
         try:
-            return self.episodes[index]
+            return (await self.episodes)[index]
         except KeyError:
-            raise EpisodeNotFound(index, self.episode_count)
+            raise EpisodeNotFound(index, await self.episode_count)
 
     @abc.abstractmethod
-    def get_episodes(self) -> List[EPISODE_CLS]:
+    async def get_episodes(self) -> List[EPISODE_CLS]:
         ...
 
     @abc.abstractmethod
-    def get_episode(self, index: int) -> EPISODE_CLS:
+    async def get_episode(self, index: int) -> EPISODE_CLS:
         ...
 
-    def to_dict(self) -> Dict[str, BsonType]:
-        return {"uid": self.uid,
-                "title": self.title,
-                "episodes": self.episode_count,
-                "dub": self.is_dub,
+    async def to_dict(self) -> Dict[str, BsonType]:
+        return {"uid": await self.uid,
+                "title": await self.title,
+                "episodes": await self.episode_count,
+                "dub": await self.is_dub,
                 "updated": self.last_update.isoformat()}
 
     @classmethod
     @abc.abstractmethod
-    def search(cls, query: str, dub: bool = False) -> Iterator[SearchResult]:
+    async def search(cls, query: str, dub: bool = False) -> AsyncIterator[SearchResult]:
         ...
 
     def serialise_special(self, key: str, value: Any) -> BsonType:
