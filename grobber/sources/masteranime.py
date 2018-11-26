@@ -93,7 +93,7 @@ class MasterAnime(Anime):
 
     @cached_property
     async def episode_count(self) -> int:
-        return (await self.info_data)["episode_count"]
+        return len(await self.episode_data)
 
     @classmethod
     async def search(cls, query: str, dub: bool = False) -> AsyncIterator[SearchResult]:
@@ -113,7 +113,6 @@ class MasterAnime(Anime):
             anime._anime_id = anime_id
             anime._anime_slug = raw_anime["slug"]
             anime._title = title
-            anime._episode_count = raw_anime["episode_count"]
 
             yield SearchResult(anime, get_certainty(title, query))
 

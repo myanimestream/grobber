@@ -71,7 +71,7 @@ async def preload_anime(uid: UID) -> Response:
     if not anime:
         raise UIDUnknown(uid)
 
-    await anime.preload_attrs(recursive=True)
+    await anime.preload_attrs(recursive=False)
 
     return create_response(await anime.to_dict())
 
