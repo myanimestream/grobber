@@ -3,8 +3,6 @@ import importlib
 import logging
 from typing import AsyncIterator, Dict, Optional, Set, Type
 
-from motor.motor_asyncio import AsyncIOMotorCollection
-
 from ..exceptions import UIDUnknown
 from ..models import Anime, SearchResult, UID
 from ..proxy import anime_collection
@@ -30,15 +28,13 @@ log.info(f"Using Sources: {SOURCES.keys()}")
 CACHE: Set[Anime] = set()
 
 
-async def save_dirty(collection: AsyncIOMotorCollection = None) -> None:
-    collection = collection or anime_collection
-
+async def save_dirty() -> None:
     num_saved = 0
     coros = []
     for anime in CACHE:
         if anime.dirty:
             num_saved += 1
-            coro = collection.update_one({"_id": await anime.uid}, {"$set": anime.state}, upsert=True)
+            coro = anime_collection.update_one({"_id": await anime.uid}, {"$set": anime.state}, upsert=True)
             coros.append(coro)
 
     await asyncio.gather(*coros)

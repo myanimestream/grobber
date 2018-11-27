@@ -118,7 +118,7 @@ class GogoAnime(Anime):
 
     @cached_property
     async def raw_eps(self) -> List[GogoEpisode]:
-        episode_req = Request(EPISODE_LIST_URL, {"id": self.anime_id, "ep_start": 0, "ep_end": self.episode_count})
+        episode_req = Request(EPISODE_LIST_URL, {"id": await self.anime_id, "ep_start": 0, "ep_end": await self.episode_count})
         episode_links = (await episode_req.bs).find_all("li")
         episodes = []
         for episode_link in reversed(episode_links):

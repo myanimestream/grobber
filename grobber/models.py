@@ -177,11 +177,11 @@ class Episode(Expiring, abc.ABC):
     async def stream(self) -> Optional[Stream]:
         log.debug(f"{self} Searching for working stream...")
 
-        streams = await self.streams
+        all_streams = await self.streams
 
-        for priority, streams in groupby(streams, attrgetter("PRIORITY")):
+        for priority, streams in groupby(all_streams, attrgetter("PRIORITY")):
             streams = list(streams)
-            log.debug(f"Looking at {len(streams)} stream(s) with priority {priority}")
+            log.info(f"Looking at {len(streams)} stream(s) with priority {priority}")
 
             working_stream = await get_first([stream.working_self for stream in streams])
             if working_stream:

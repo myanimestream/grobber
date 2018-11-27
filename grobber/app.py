@@ -6,7 +6,7 @@ from quart import Quart, Response, redirect
 from raven.conf import setup_logging
 from raven.handlers.logging import SentryHandler
 
-from . import __info__, proxy, sources
+from . import __info__, sources
 from .blueprints import *
 from .exceptions import GrobberException
 from .models import UIDConverter
@@ -44,13 +44,7 @@ def handle_grobber_exception(exc: GrobberException) -> Response:
 
 @app.teardown_appcontext
 def teardown_app_context(*_):
-    # collection = proxy.anime_collection._get_current_object()
-    collection = proxy.anime_collection
-
-    async def teardown() -> None:
-        await sources.save_dirty(collection)
-
-    do_later(teardown())
+    do_later(sources.save_dirty())
 
 
 @app.after_request

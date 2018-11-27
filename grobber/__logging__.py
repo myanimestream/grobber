@@ -1,5 +1,3 @@
-import sys
-
 CONFIG = {
     "version": 1,
     "formatters": {
@@ -17,14 +15,12 @@ CONFIG = {
         }
     },
     "loggers": {
-        "urllib3": {
-            "level": "WARNING"
+        "grobber": {
+            "level": "DEBUG"
         }
     },
     "root": {
-        "level": "NOTSET",
+        "level": "WARNING",
         "handlers": ["wsgi"]
     }
 }
-
-sys.modules[__name__] = CONFIG

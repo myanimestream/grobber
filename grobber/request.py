@@ -1,13 +1,18 @@
 import asyncio
+import contextlib
 import inspect
 import json
 import logging
+import os
 from typing import Any, Awaitable, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
+import pyppeteer
 import yarl
 from aiohttp import ClientResponse, ClientSession
 from aiohttp.client_exceptions import ClientError
 from bs4 import BeautifulSoup
+from pyppeteer.browser import Browser
+from pyppeteer.page import Page
 
 from .async_string_formatter import AsyncFormatter
 from .decorators import cached_property
@@ -51,6 +56,15 @@ class UrlFormatter(AsyncFormatter):
 DefaultUrlFormatter = UrlFormatter()
 
 AIOSESSION = ClientSession()
+
+CHROME_WS = os.getenv("CHROME_WS")
+
+
+async def get_browser(**options) -> Browser:
+    if CHROME_WS:
+        return await pyppeteer.connect(browserWSEndpoint=CHROME_WS, **options)
+    else:
+        return await pyppeteer.launch(**options)
 
 
 class Request:
@@ -138,7 +152,7 @@ class Request:
         try:
             (await self.response).raise_for_status()
         except ClientError as e:
-            log.warning(f"Couldn't fetch {self}", exc_info=e)
+            log.warning(f"Couldn't fetch to {self}: {e}")
             return False
         else:
             return True
@@ -153,9 +167,9 @@ class Request:
     @cached_property
     async def head_success(self) -> bool:
         try:
-            (await self.response).raise_for_status()
+            (await self.head_response).raise_for_status()
         except ClientError as e:
-            log.warning(f"Couldn't head to {self}", exc_info=e)
+            log.warning(f"Couldn't head to {self}: {e}")
             return False
         else:
             return True
@@ -178,6 +192,39 @@ class Request:
     @cached_property
     async def bs(self) -> BeautifulSoup:
         return self.create_soup(await self.text)
+
+    @contextlib.asynccontextmanager
+    async def browser(self, **options) -> Browser:
+        if hasattr(self, "_browser"):
+            self._browser_ref += 1
+        else:
+            self._browser = await get_browser(**options)
+            self._browser_ref = 1
+
+        try:
+            yield self._browser
+        finally:
+            self._browser_ref -= 1
+            if self._browser_ref <= 0:
+                await self._browser.close()
+
+    @contextlib.asynccontextmanager
+    async def page(self) -> Page:
+        browser: Browser
+        async with self.browser() as browser:
+            if hasattr(self, "_page"):
+                self._page_ref += 1
+            else:
+                self._page = await browser.newPage()
+                self._page_ref = 1
+                await self._page.goto(await self.url)
+
+            try:
+                yield self._page
+            finally:
+                self._page_ref -= 1
+                if self._page_ref <= 0:
+                    await self._page.close()
 
     async def perform_request(self, method: str, **kwargs) -> ClientResponse:
         options = self.request_kwargs.copy()
@@ -215,6 +262,9 @@ class Request:
             request = next(iter(done)).result()
 
             if request:
+                for coro in coros:
+                    coro.cancel()
+
                 return request
 
         return None
