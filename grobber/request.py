@@ -160,7 +160,7 @@ class Request:
     @cached_property
     async def head_response(self) -> ClientResponse:
         if hasattr(self, "_response"):
-            return await self.response
+            return self._response
 
         return await self.perform_request("head", timeout=self._timeout or 5)
 

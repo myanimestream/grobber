@@ -24,7 +24,7 @@ class UrlPool:
         self._lock = Lock()
 
     def __str__(self) -> str:
-        return f"<Pool {self.name}>"
+        return f"<Pool {self.name}: {self._url}>"
 
     @property
     async def url(self) -> str:
