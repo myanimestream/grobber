@@ -101,7 +101,8 @@ class MasterAnime(Anime):
             log.debug("dubbed not supported")
             return
 
-        req = Request(SEARCH_URL, {"search": query, "order": "relevance_desc"})
+        # Query limit is 45 characters!!
+        req = Request(SEARCH_URL, {"search": query[:45], "order": "relevance_desc"})
 
         for raw_anime in (await req.json)["data"]:
             anime_id = raw_anime["id"]

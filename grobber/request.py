@@ -14,8 +14,8 @@ from bs4 import BeautifulSoup
 from pyppeteer.browser import Browser
 from pyppeteer.page import Page
 
-from .async_string_formatter import AsyncFormatter
 from .decorators import cached_property
+from .utils import AsyncFormatter
 
 log = logging.getLogger(__name__)
 
@@ -151,7 +151,7 @@ class Request:
     async def success(self) -> bool:
         try:
             (await self.response).raise_for_status()
-        except ClientError as e:
+        except (ClientError, asyncio.TimeoutError) as e:
             log.warning(f"Couldn't fetch to {self}: {e}")
             return False
         else:
@@ -168,7 +168,7 @@ class Request:
     async def head_success(self) -> bool:
         try:
             (await self.head_response).raise_for_status()
-        except ClientError as e:
+        except (ClientError, asyncio.TimeoutError) as e:
             log.warning(f"Couldn't head to {self}: {e}")
             return False
         else:

@@ -14,7 +14,7 @@ from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Iterable, List
 from quart.routing import BaseConverter
 
 from .decorators import cached_property
-from .exceptions import EpisodeNotFound
+from .exceptions import EpisodeNotFound, StreamNotFound
 from .request import Request
 from .stateful import BsonType, Expiring
 
@@ -82,6 +82,10 @@ class Stream(Expiring, abc.ABC):
     @classmethod
     async def can_handle(cls, req: Request) -> bool:
         return (await req.yarl).host.lstrip("www.") == cls.HOST
+
+    @property
+    def persist(self) -> bool:
+        return False
 
     @property
     @abc.abstractmethod
@@ -190,6 +194,13 @@ class Episode(Expiring, abc.ABC):
 
         log.debug(f"No working stream for {self}")
 
+    async def get(self, index: int) -> Stream:
+        streams = await self.streams
+        if not 0 <= index < len(streams):
+            raise StreamNotFound()
+
+        return streams[index]
+
     @cached_property
     async def poster(self) -> Optional[str]:
         log.debug("searching for poster")
@@ -202,7 +213,8 @@ class Episode(Expiring, abc.ABC):
 
     def serialise_special(self, key: str, value: Any) -> BsonType:
         if key == "streams":
-            return [stream.state for stream in value if getattr(stream, "_links", False) or getattr(stream, "_poster", False)]
+            # if there are no links/poster in a stream and it has already been "processed", get rid of it
+            return [stream.state for stream in value if stream.persist or getattr(stream, "_links", True) or getattr(stream, "_poster", True)]
         elif key == "stream":
             return value.state
 
@@ -228,6 +240,7 @@ class Episode(Expiring, abc.ABC):
         stream = await self.stream
         return {"embed": await self.host_url,
                 "stream": await stream.to_dict() if stream else None,
+                "streams": len(await self.streams),
                 "poster": await self.poster,
                 "updated": self.last_update.isoformat()}
 

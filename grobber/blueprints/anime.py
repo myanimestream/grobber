@@ -130,20 +130,29 @@ async def get_episode_poster(uid: UID, index: int) -> Response:
     return redirect(poster)
 
 
-@anime_blueprint.route("/<UID:uid>/<int:index>/stream")
-async def get_episode_stream(uid: UID, index: int) -> Response:
+@anime_blueprint.route("/<UID:uid>/<int:episode_index>/stream/<int:stream_index>")
+async def get_stream(uid: UID, episode_index: int, stream_index: int) -> Response:
     anime = await sources.get_anime(uid)
     if not anime:
         raise UIDUnknown(uid)
 
-    episode = await anime.get(index)
-    stream = await episode.stream
-    if stream:
-        url = next(iter(await stream.links), None)
+    episode = await anime.get(episode_index)
+    stream = await episode.get(stream_index)
+
+    return create_response(await stream.to_dict())
+
+
+@anime_blueprint.route("/<UID:uid>/<int:episode_index>/stream/<int:stream_index>/link")
+async def get_stream_redirect(uid: UID, episode_index: int, stream_index: int) -> Response:
+    anime = await sources.get_anime(uid)
+    if not anime:
+        raise UIDUnknown(uid)
+
+    episode = await anime.get(episode_index)
+    stream = await episode.get(stream_index)
+    links = await stream.links
+
+    if links:
+        return redirect(links[0])
     else:
-        url = None
-
-    if not url:
         quart.abort(404)
-
-    return redirect(url)

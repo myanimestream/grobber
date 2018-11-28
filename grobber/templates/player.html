@@ -1,9 +1,9 @@
-{% if episode.stream %}
+{% if sources %}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr/dist/plyr.css">
 
     <video id="player" poster="{{ url_for("anime.get_episode_poster", uid=uid, index=index) }}" playsinline controls
            data-plyr-config='{"disableContextMenu": false}'>
-        {% for link in episode.stream %}
+        {% for link in sources %}
             <source src="{{ link }}" type="video/mp4">
         {% endfor %}
     </video>
@@ -26,6 +26,6 @@
         }
     </style>
     <div class="embedded-player-container">
-        <iframe id="embedded-player" src="{{ episode.host_url }}" allowfullscreen></iframe>
+        <iframe id="embedded-player" src="{{ host_url }}" allowfullscreen></iframe>
     </div>
 {% endif %}
