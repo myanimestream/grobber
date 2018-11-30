@@ -25,7 +25,12 @@ def cached_property(func: Callable[..., Awaitable]) -> property:
                 val = await func(self, *args, **kwargs)
 
                 setattr(self, cache_name, val)
-                if func.__name__ in self.ATTRS:
+
+                try:
+                    func.__name__ in self.ATTRS
+                except AttributeError:
+                    pass
+                else:
                     self._dirty = True
 
         return val

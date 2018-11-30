@@ -99,7 +99,13 @@ class Stream(Expiring, abc.ABC):
 
     @cached_property
     async def working(self) -> bool:
-        return len(await self.links) > 0
+        try:
+            return len(await self.links) > 0
+        except asyncio.CancelledError:
+            return False
+        except Exception:
+            log.exception(f"{self} Couldn't fetch links")
+            return False
 
     @property
     async def working_self(self) -> Optional["Stream"]:

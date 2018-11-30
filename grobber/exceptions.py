@@ -5,8 +5,9 @@ class GrobberExceptionType(IntEnum):
     UNKNOWN = 0
     GENERAL = 1
     INVALID_REQUEST = 2
+    UID_UNKNOWN = 3
 
-    UIDUnknown = 101
+    ANIME_NOT_FOUND = 101
     EPISODE_NOT_FOUND = 102
     STREAM_NOT_FOUND = 103
 
@@ -29,8 +30,17 @@ class InvalidRequest(GrobberException):
 
 
 class UIDUnknown(GrobberException):
-    def __init__(self, query: str):
-        super().__init__(f"No anime with uid \"{query}\" found", GrobberExceptionType.UIDUnknown)
+    def __init__(self, uid: str):
+        super().__init__(f"Nothing with uid {uid} found", GrobberExceptionType.UID_UNKNOWN)
+
+
+class AnimeNotFound(GrobberException):
+    def __init__(self, query: str, **filters) -> None:
+        msg = f"Couldn't find anime \"{query}\""
+        if filters:
+            msg += f" with filters {', '.join(f'{key}={value}' for key, value in filters.items())}"
+
+        super().__init__(msg, GrobberExceptionType.ANIME_NOT_FOUND)
 
 
 class EpisodeNotFound(GrobberException):
@@ -45,5 +55,5 @@ class StreamNotFound(GrobberException):
 
 
 class UserNotFound(GrobberException):
-    def __init__(self, username: str):
-        super().__init__(f"No user with username \"{username}\" found", GrobberExceptionType.USER_NOT_FOUND)
+    def __init__(self, token: str):
+        super().__init__(f"api token \"{token}\" rejected!", GrobberExceptionType.USER_NOT_FOUND)
