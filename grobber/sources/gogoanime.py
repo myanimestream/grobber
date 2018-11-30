@@ -6,9 +6,11 @@ from typing import AsyncIterator, List, Optional
 
 from . import register_source
 from ..decorators import cached_property
+from ..languages import Language
 from ..models import Anime, Episode, SearchResult, Stream, get_certainty
-from ..request import Request
+from ..request import DefaultUrlFormatter, Request
 from ..streams import get_stream
+from ..url_pool import UrlPool
 from ..utils import add_http_scheme, anext
 
 log = logging.getLogger(__name__)
@@ -78,6 +80,10 @@ class GogoAnime(Anime):
     async def is_dub(self) -> bool:
         return (await self.raw_title).endswith("(Dub)")
 
+    @property
+    async def language(self) -> Language:
+        return Language.ENGLISH
+
     @cached_property
     async def episode_count(self) -> int:
         holder = (await self._req.bs).select_one("#episode_page a.active")
@@ -97,7 +103,10 @@ class GogoAnime(Anime):
             raise ValueError(f"Couldn't understand last episode label for {self}: \"{last_ep_text}\"")
 
     @classmethod
-    async def search(cls, query: str, dub: bool = False) -> AsyncIterator[SearchResult]:
+    async def search(cls, query: str, *, language=Language.ENGLISH, dubbed=False) -> AsyncIterator[SearchResult]:
+        if language != Language.ENGLISH:
+            return
+
         req = Request(SEARCH_URL, {"keyword": query})
         bs = await req.bs
         container = bs.select_one("ul.items")
@@ -109,7 +118,7 @@ class GogoAnime(Anime):
         for result in search_results:
             image_link = result.find("a")
             title = image_link["title"]
-            if dub != title.endswith("(Dub)"):
+            if dubbed != title.endswith("(Dub)"):
                 continue
 
             link = BASE_URL + image_link["href"]
@@ -139,5 +148,8 @@ class GogoAnime(Anime):
     async def get_episodes(self) -> List[GogoEpisode]:
         return await self.raw_eps
 
+
+gogoanime_pool = UrlPool("GogoAnime", ["https://gogoanimes.co", "http://gogoanimes.co"])
+DefaultUrlFormatter.add_field("GOGOANIME_URL", lambda: gogoanime_pool.url)
 
 register_source(GogoAnime)

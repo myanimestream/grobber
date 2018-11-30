@@ -14,7 +14,7 @@ from bs4 import BeautifulSoup
 from pyppeteer.browser import Browser
 from pyppeteer.page import Page
 
-from .decorators import cached_property
+from .decorators import cached_contextmanager, cached_property
 from .utils import AsyncFormatter
 
 log = logging.getLogger(__name__)
@@ -43,6 +43,7 @@ class UrlFormatter(AsyncFormatter):
     async def get_value(self, key: Union[str, int], args: List[Any], kwargs: Dict[Any, Any]) -> Any:
         if key in self._FIELDS:
             value = self._FIELDS[key]
+
             if inspect.isfunction(value):
                 value = value()
                 if inspect.isawaitable(value):
@@ -137,7 +138,7 @@ class Request:
     @cached_property
     async def url(self) -> str:
         raw_url = await self._formatter.format(self._raw_url)
-        return yarl.URL(raw_url).with_query(self._params).human_repr()
+        return yarl.URL(raw_url).update_query(self._params).human_repr()
 
     @cached_property
     async def yarl(self):
@@ -193,38 +194,25 @@ class Request:
     async def bs(self) -> BeautifulSoup:
         return self.create_soup(await self.text)
 
-    @contextlib.asynccontextmanager
+    @cached_contextmanager
     async def browser(self, **options) -> Browser:
-        if hasattr(self, "_browser"):
-            self._browser_ref += 1
-        else:
-            self._browser = await get_browser(**options)
-            self._browser_ref = 1
-
+        browser = await get_browser(**options)
         try:
-            yield self._browser
+            yield browser
         finally:
-            self._browser_ref -= 1
-            if self._browser_ref <= 0:
-                await self._browser.close()
+            await browser.close()
 
     @contextlib.asynccontextmanager
     async def page(self) -> Page:
         browser: Browser
         async with self.browser() as browser:
-            if hasattr(self, "_page"):
-                self._page_ref += 1
-            else:
-                self._page = await browser.newPage()
-                self._page_ref = 1
-                await self._page.goto(await self.url)
+            page = await browser.newPage()
+            await page.goto(await self.url)
 
             try:
-                yield self._page
+                yield page
             finally:
-                self._page_ref -= 1
-                if self._page_ref <= 0:
-                    await self._page.close()
+                await page.close()
 
     async def perform_request(self, method: str, **kwargs) -> ClientResponse:
         options = self.request_kwargs.copy()

@@ -30,7 +30,7 @@ def _load_streams():
 
 
 _load_streams()
-log.info(f"Using Streams: {[stream.__name__ for stream in STREAMS]}")
+log.info(f"Using Streams: {', '.join(stream.__name__ for stream in STREAMS)}")
 
 
 async def get_stream(req: Request) -> AsyncIterator[Stream]:

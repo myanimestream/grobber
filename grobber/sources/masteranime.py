@@ -6,9 +6,11 @@ from typing import Any, AsyncIterator, Dict, List, Optional
 from . import register_source
 from .. import utils
 from ..decorators import cached_property
+from ..languages import Language
 from ..models import Anime, Episode, SearchResult, Stream, get_certainty
-from ..request import Request
+from ..request import DefaultUrlFormatter, Request
 from ..streams import get_stream
+from ..url_pool import UrlPool
 
 log = logging.getLogger(__name__)
 
@@ -91,14 +93,17 @@ class MasterAnime(Anime):
     async def is_dub(self) -> bool:
         return False
 
+    @property
+    async def language(self) -> Language:
+        return Language.ENGLISH
+
     @cached_property
     async def episode_count(self) -> int:
         return len(await self.episode_data)
 
     @classmethod
-    async def search(cls, query: str, dub: bool = False) -> AsyncIterator[SearchResult]:
-        if dub:
-            log.debug("dubbed not supported")
+    async def search(cls, query: str, *, language=Language.ENGLISH, dubbed=False) -> AsyncIterator[SearchResult]:
+        if dubbed or language != Language.ENGLISH:
             return
 
         # Query limit is 45 characters!!
@@ -136,5 +141,8 @@ class MasterAnime(Anime):
     async def get_episodes(self) -> List[Episode]:
         return await self.raw_eps
 
+
+masteranime_pool = UrlPool("MasterAnime", ["https://www.masterani.me"])
+DefaultUrlFormatter.add_field("MASTERANIME_URL", lambda: masteranime_pool.url)
 
 register_source(MasterAnime)

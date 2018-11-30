@@ -103,6 +103,7 @@ class Stateful(abc.ABC):
         data = {"req": self._req.state}
         if self.INCLUDE_CLS:
             data["cls"] = self.qualcls
+
         for attr in self.ATTRS:
             val = getattr(self, "_" + attr, _DEFAULT)
             if val is not _DEFAULT:
@@ -110,6 +111,7 @@ class Stateful(abc.ABC):
                     val = self.serialise_special(attr, val)
                     attr += self.__SPECIAL_MARKER
                 data[attr] = val
+
         return data
 
     @classmethod

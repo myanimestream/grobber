@@ -15,6 +15,7 @@ from quart.routing import BaseConverter
 
 from .decorators import cached_property
 from .exceptions import EpisodeNotFound, StreamNotFound
+from .languages import Language
 from .request import Request
 from .stateful import BsonType, Expiring
 
@@ -203,7 +204,7 @@ class Episode(Expiring, abc.ABC):
 
     @cached_property
     async def poster(self) -> Optional[str]:
-        log.debug("searching for poster")
+        log.debug(f"{self} searching for poster")
         return await get_first([stream.poster for stream in await self.streams])
 
     @property
@@ -249,7 +250,7 @@ class Anime(Expiring, abc.ABC):
     EPISODE_CLS = Episode
 
     INCLUDE_CLS = True
-    ATTRS = ("id", "is_dub", "title", "episode_count", "episodes", "last_update")
+    ATTRS = ("id", "is_dub", "language", "title", "episode_count", "episodes", "last_update")
     CHANGING_ATTRS = ("episode_count",)
     EXPIRE_TIME = 30 * Expiring.MINUTE  # 30 mins should be fine, right?
 
@@ -303,8 +304,11 @@ class Anime(Expiring, abc.ABC):
     async def uid(self) -> UID:
         name = RE_UID_CLEANER.sub("", type(self).__name__.lower())
         anime = RE_UID_CLEANER.sub("", (await self.title).lower())
-        dub = "-dub" if await self.is_dub else ""
-        return UID(f"{name}-{anime}{dub}")
+
+        lang = (await self.language).value
+        dubbed = "_dub" if await self.is_dub else ""
+
+        return UID(f"{name}-{anime}{lang}{dubbed}")
 
     @property
     async def id(self) -> UID:
@@ -317,6 +321,11 @@ class Anime(Expiring, abc.ABC):
     @property
     @abc.abstractmethod
     async def is_dub(self) -> False:
+        ...
+
+    @property
+    @abc.abstractmethod
+    async def language(self) -> Language:
         ...
 
     @property
@@ -365,12 +374,13 @@ class Anime(Expiring, abc.ABC):
         return {"uid": await self.uid,
                 "title": await self.title,
                 "episodes": await self.episode_count,
-                "dub": await self.is_dub,
+                "dubbed": await self.is_dub,
+                "language": (await self.language).value,
                 "updated": self.last_update.isoformat()}
 
     @classmethod
     @abc.abstractmethod
-    async def search(cls, query: str, dub: bool = False) -> AsyncIterator[SearchResult]:
+    async def search(cls, query: str, *, dubbed: bool = False, language: Language = Language.ENGLISH) -> AsyncIterator[SearchResult]:
         ...
 
     def serialise_special(self, key: str, value: Any) -> BsonType:

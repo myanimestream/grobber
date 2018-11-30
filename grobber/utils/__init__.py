@@ -1,12 +1,13 @@
-__all__ = ["AsyncFormatter", "create_response", "error_response", "add_http_scheme", "parse_js_json", "external_url_for", "format_available",
-           "do_later", "anext"]
+__all__ = ["AsyncFormatter", "create_response", "error_response", "add_http_scheme", "parse_js_json", "external_url_for",
+           "format_available",
+           "do_later", "anext", "fuzzy_bool"]
 
 import asyncio
 import json
 import logging
 import re
 from string import Formatter
-from typing import Any, AsyncIterator, Awaitable, Dict, List, TypeVar, Union
+from typing import Any, AsyncIterator, Awaitable, Dict, List, Optional, TypeVar, Union
 
 from quart import Response, current_app, jsonify, request, url_for
 
@@ -44,6 +45,12 @@ def add_http_scheme(link: str, base_url: str = None, *, _scheme="http") -> str:
             return base_url.rstrip("/") + "/" + link
         return f"{_scheme}://{link}"
     return link
+
+
+def fuzzy_bool(s: Optional[str]) -> bool:
+    if s:
+        return str(s).lower() in {"true", "t", "yes", "y", "1"}
+    return False
 
 
 RE_JSON_EXPANDER = re.compile(r"(['\"])?([a-z0-9A-Z_]+)(['\"])?(\s)?:(?=(\s)?[\[\d\"'{])", re.DOTALL)

@@ -4,8 +4,9 @@ import logging
 from typing import AsyncIterator, Dict, Optional, Set, Type
 
 from ..exceptions import UIDUnknown
+from ..languages import Language
+from ..locals import anime_collection, query_collection
 from ..models import Anime, SearchResult, UID
-from ..proxy import anime_collection
 
 log = logging.getLogger(__name__)
 
@@ -23,7 +24,7 @@ def _load_sources():
 
 
 _load_sources()
-log.info(f"Using Sources: {SOURCES.keys()}")
+log.info(f"Using Sources: {', '.join(source.__name__ for source in SOURCES.values())}")
 
 CACHE: Set[Anime] = set()
 
@@ -45,6 +46,8 @@ async def save_dirty() -> None:
 async def delete_anime(uid: str) -> None:
     log.info(f"deleting anime {uid}...")
     await anime_collection.delete_one(dict(_id=uid))
+    # delete all queries that point to this uid
+    await query_collection.delete_many(dict(uid=uid))
 
 
 async def get_anime(uid: UID) -> Optional[Anime]:
@@ -62,8 +65,8 @@ async def get_anime(uid: UID) -> Optional[Anime]:
         return anime
 
 
-async def search_anime(query: str, dub=False) -> AsyncIterator[SearchResult]:
-    sources = [source.search(query, dub=dub) for source in SOURCES.values()]
+async def search_anime(query: str, *, language=Language.ENGLISH, dubbed=False) -> AsyncIterator[SearchResult]:
+    sources = [source.search(query, language=language, dubbed=dubbed) for source in SOURCES.values()]
 
     while sources:
         for source in reversed(sources):

@@ -1,6 +1,6 @@
 from quart import Blueprint, Response, request
 
-from .. import proxy
+from .. import locals
 from ..exceptions import InvalidRequest, UserNotFound
 from ..utils import *
 
@@ -9,8 +9,8 @@ users = Blueprint("users", __name__, url_prefix="/user")
 
 async def store_data(username: str, name: str, data: dict) -> Response:
     data = {f"{name}.{key}": value for key, value in data.items()}
-    await proxy.user_collection.update_one({"_id": username},
-                                           {"$setOnInsert": {"_id": username},
+    await locals.user_collection.update_one({"_id": username},
+                                            {"$setOnInsert": {"_id": username},
                                             "$set": data,
                                             "$currentDate": {"last_edit": True},
                                             "$inc": {"edits": 1}
@@ -19,7 +19,7 @@ async def store_data(username: str, name: str, data: dict) -> Response:
 
 
 async def get_data_resp(username: str, name: str) -> Response:
-    user_data = await proxy.user_collection.find_one(username, projection={name: 1})
+    user_data = await locals.user_collection.find_one(username, projection={name: 1})
     if user_data:
         items = user_data.get(name, {})
         return create_response(**{name: items})

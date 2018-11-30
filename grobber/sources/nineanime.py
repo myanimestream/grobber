@@ -6,9 +6,11 @@ from bs4 import BeautifulSoup
 from . import register_source
 from .. import utils
 from ..decorators import cached_property
+from ..languages import Language
 from ..models import Anime, Episode, SearchResult, Stream, get_certainty
-from ..request import Request
+from ..request import DefaultUrlFormatter, Request
 from ..streams import get_stream
+from ..url_pool import UrlPool
 
 SERVERS_TOKEN = 648
 
@@ -77,15 +79,22 @@ class NineAnime(Anime):
     def is_dub(self) -> bool:
         return self.raw_title.endswith("(Dub)")
 
+    @property
+    async def language(self) -> Language:
+        return Language.ENGLISH
+
     @classmethod
-    def search(cls, query: str, dub: bool = False) -> Iterator[SearchResult]:
+    def search(cls, query: str, *, language=Language.ENGLISH, dubbed=False) -> Iterator[SearchResult]:
+        if language != Language.ENGLISH:
+            return
+
         req = Request(SEARCH_URL, {"keyword": query})
         bs = req.bs
         container = bs.select_one("div.film-list")
         search_results = container.select("div.item")
         for result in search_results:
             title = result.select_one("a.name").text
-            if dub != title.endswith("(Dub)"):
+            if dubbed != title.endswith("(Dub)"):
                 continue
 
             link = result.select_one("a.poster")["href"]
@@ -111,5 +120,8 @@ class NineAnime(Anime):
     def get_episode(self, index: int) -> NineEpisode:
         return self.raw_eps[index]
 
+
+nineanime_pool = UrlPool("9anime", ["https://9anime.to/", "http://9anime.to"])
+DefaultUrlFormatter.add_field("9ANIME_URL", lambda: nineanime_pool.url)
 
 register_source(NineAnime)

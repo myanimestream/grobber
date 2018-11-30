@@ -3,9 +3,9 @@ from asyncio import Lock
 from datetime import datetime, timedelta
 from typing import List
 
-from . import proxy
+from . import locals
 from .exceptions import GrobberException
-from .request import DefaultUrlFormatter, Request
+from .request import Request
 
 log = logging.getLogger(__name__)
 
@@ -41,7 +41,7 @@ class UrlPool:
             return self.prepare_url(self._url)
 
     async def fetch(self) -> None:
-        doc = await proxy.url_pool_collection.find_one(self.name)
+        doc = await locals.url_pool_collection.find_one(self.name)
         if not doc:
             log.debug(f"creating pool for {self}")
         else:
@@ -50,7 +50,7 @@ class UrlPool:
             self._next_update = doc["next_update"]
 
     async def upload(self) -> None:
-        await proxy.url_pool_collection.update_one(dict(_id=self.name), {"$set": dict(url=self._url, next_update=self._next_update)}, upsert=True)
+        await locals.url_pool_collection.update_one(dict(_id=self.name), {"$set": dict(url=self._url, next_update=self._next_update)}, upsert=True)
 
     def prepare_url(self, url: str) -> str:
         if self.strip_slash:
@@ -69,12 +69,3 @@ class UrlPool:
             self.urls.insert(0, self.urls.pop(requests.index(req)))
         else:
             raise GrobberException(f"{self} No working url found")
-
-
-gogoanime_pool = UrlPool("GogoAnime", ["https://gogoanimes.co", "http://gogoanimes.co"])
-masteranime_pool = UrlPool("MasterAnime", ["https://www.masterani.me"])
-nineanime_pool = UrlPool("9anime", ["https://9anime.to/", "http://9anime.to"])
-
-DefaultUrlFormatter.add_field("GOGOANIME_URL", lambda: gogoanime_pool.url)
-DefaultUrlFormatter.add_field("MASTERANIME_URL", lambda: masteranime_pool.url)
-DefaultUrlFormatter.add_field("9ANIME_URL", lambda: nineanime_pool.url)

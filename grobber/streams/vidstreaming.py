@@ -16,7 +16,6 @@ RE_EXTRACT_SETUP = re.compile(r"playerInstance\.setup\((.+?)\);", re.DOTALL)
 def extract_player_data(text: str) -> dict:
     match = RE_EXTRACT_SETUP.search(text)
     if not match:
-        log.debug("Couldn't find player data")
         return {}
     return parse_js_json(match.group(1))
 
@@ -28,7 +27,11 @@ class Vidstreaming(Stream):
 
     @cached_property
     async def player_data(self) -> dict:
-        return extract_player_data(await self._req.text)
+        data = extract_player_data(await self._req.text)
+        if not data:
+            log.debug(f"Couldn't find player data {self}")
+
+        return data
 
     @cached_property
     async def poster(self) -> Optional[str]:
