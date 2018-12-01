@@ -5,7 +5,6 @@ import logging
 import re
 import sys
 from collections import namedtuple
-from datetime import datetime
 from difflib import SequenceMatcher
 from itertools import groupby
 from operator import attrgetter
@@ -261,11 +260,6 @@ class Anime(Expiring, abc.ABC):
     EXPIRE_TIME = 30 * Expiring.MINUTE  # 30 mins should be fine, right?
 
     _episodes: Dict[int, EPISODE_CLS]
-
-    def __init__(self, req: Request):
-        super().__init__(req)
-        self._dirty = False
-        self._last_update = datetime.now()
 
     def __bool__(self) -> bool:
         return True

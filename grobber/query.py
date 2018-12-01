@@ -1,6 +1,7 @@
 import abc
 import asyncio
 import inspect
+import logging
 import typing
 import uuid
 from operator import attrgetter
@@ -16,6 +17,8 @@ from .exceptions import AnimeNotFound, InvalidRequest, UIDUnknown, UserNotFound
 from .languages import Language
 from .models import Anime, Episode, Stream, UID
 from .utils import fuzzy_bool
+
+log = logging.getLogger(__name__)
 
 _DEFAULT = object()
 
