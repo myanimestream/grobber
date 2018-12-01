@@ -132,10 +132,10 @@ class AnimeQuery(metaclass=abc.ABCMeta):
     class _Generic(metaclass=abc.ABCMeta):
         def __init__(self, **kwargs) -> None:
             cls = type(self)
-            items = kwargs or typing.get_type_hints(cls)
-            args = request.args
+            hints = typing.get_type_hints(cls)
+            args = kwargs or request.args
 
-            for key, typ in items.items():
+            for key, typ in hints.items():
                 value = args.get(key)
                 if value is None:
                     if not hasattr(self, key):
