@@ -43,15 +43,14 @@ async def get_anime_episode_count() -> Response:
 @anime_blueprint.route("/")
 async def get_anime_info() -> Response:
     anime = await query.get_anime()
-    return create_response(await anime.to_dict())
+    return create_response(anime=await anime.to_dict())
 
 
 @anime_blueprint.route("/preload/")
 async def preload_anime() -> Response:
     anime = await query.get_anime()
     await anime.preload_attrs(recursive=False)
-
-    return create_response(await anime.to_dict())
+    return create_response()
 
 
 @anime_blueprint.route("/state/")
@@ -62,8 +61,11 @@ async def get_anime_state() -> Response:
 
 @anime_blueprint.route("/episode/")
 async def get_episode_info() -> Response:
-    episode = await query.get_episode()
-    return create_response(await episode.to_dict())
+    anime = await query.get_anime()
+    episode = await query.get_episode(anime=anime)
+
+    anime_dict, episode_dict = await asyncio.gather(anime.to_dict(), episode.to_dict())
+    return create_response(anime=anime_dict, episode=episode_dict)
 
 
 @anime_blueprint.route("/episode/preload/")
@@ -71,8 +73,7 @@ async def preload_episode() -> Response:
     episode = await query.get_episode()
 
     await episode.preload_attrs(recursive=True)
-
-    return create_response(await episode.to_dict())
+    return create_response()
 
 
 @anime_blueprint.route("/episode/state/")
@@ -83,19 +84,22 @@ async def get_episode_state() -> Response:
 
 @anime_blueprint.route("/stream/")
 async def get_stream_info() -> Response:
-    stream = await query.get_stream()
+    anime = await query.get_anime()
+    episode = await query.get_episode(anime=anime)
+    stream = await query.get_stream(episode=episode)
 
-    return create_response(await stream.to_dict())
+    anime_dict, episode_dict, stream_dict = await asyncio.gather(anime.to_dict(), episode.to_dict(), stream.to_dict())
+    return create_response(anime=anime_dict, episode=episode_dict, stream=stream_dict)
 
 
-@anime_blueprint.route("/poster/<UID:uid>/<int:index>/")
+@anime_blueprint.route("/poster/<UID:uid>/<int:index>")
 async def episode_poster(uid: UID, index: int) -> Response:
     episode = await query.get_episode(uid=uid, episode_index=index)
     poster = await episode.poster or external_url_for("static", filename="images/default_poster")
     return redirect(poster)
 
 
-@anime_blueprint.route("/source/<UID:uid>/<int:episode_index>/<int:stream_index>/")
+@anime_blueprint.route("/source/<UID:uid>/<int:episode_index>/<int:stream_index>")
 async def episode_stream_source(uid: UID, episode_index: int, stream_index: int) -> Response:
     stream = await query.get_stream(uid=uid, episode_index=episode_index, stream_index=stream_index)
     links = await stream.links
@@ -106,7 +110,7 @@ async def episode_stream_source(uid: UID, episode_index: int, stream_index: int)
         quart.abort(404)
 
 
-@anime_blueprint.route("/source/<UID:uid>/<int:episode_index>/")
+@anime_blueprint.route("/source/<UID:uid>/<int:episode_index>")
 async def episode_source(uid: UID, episode_index: int) -> Response:
     episode = await query.get_episode(uid=uid, episode_index=episode_index)
 

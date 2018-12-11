@@ -291,15 +291,17 @@ async def get_anime(**kwargs) -> Anime:
     return await AnimeQuery.build(**kwargs).resolve()
 
 
-async def get_episode(episode_index: int = None, **kwargs) -> Episode:
+async def get_episode(episode_index: int = None, anime: Anime = None, **kwargs) -> Episode:
     if episode_index is None:
         episode_index = _get_int_param("episode")
 
-    return await (await get_anime(**kwargs)).get(episode_index)
+    anime = anime or await get_anime(**kwargs)
+    return await anime.get(episode_index)
 
 
-async def get_stream(stream_index: int = None, **kwargs) -> Stream:
+async def get_stream(stream_index: int = None, episode: Episode = None, **kwargs) -> Stream:
     if stream_index is None:
         stream_index = _get_int_param("stream")
 
-    return await (await get_episode(**kwargs)).get(stream_index)
+    episode = episode or await get_episode(**kwargs)
+    return await episode.get(stream_index)

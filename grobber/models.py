@@ -308,7 +308,7 @@ class Anime(Expiring, abc.ABC):
         lang = (await self.language).value
         dubbed = "_dub" if await self.is_dub else ""
 
-        return UID(f"{name}-{anime}{lang}{dubbed}")
+        return UID(f"{name}-{anime}-{lang}{dubbed}")
 
     @property
     async def id(self) -> UID:

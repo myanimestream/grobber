@@ -2,7 +2,7 @@ import logging
 import os
 
 import raven
-from quart import Quart, Response, redirect
+from quart import Quart, Response
 from raven.conf import setup_logging
 from raven.handlers.logging import SentryHandler
 
@@ -31,8 +31,6 @@ host_url = os.getenv("HOST_URL")
 if host_url:
     app.config["HOST_URL"] = add_http_scheme(host_url)
 
-app.config["USERSCRIPT_LOCATION"] = os.getenv("USERSCRIPT_LOCATION", "js/myanimestream.user.js")
-
 log.info(f"grobber version {__info__.__version__} running!")
 
 
@@ -57,6 +55,6 @@ async def inject_jinja_globals():
     return dict(url_for=external_url_for)
 
 
-@app.route("/download")
-async def get_userscript() -> Response:
-    return redirect(app.config["USERSCRIPT_LOCATION"])
+@app.route("/dolos-info")
+async def get_dolos_info() -> Response:
+    return create_response(id="grobber", version=__info__.__version__)
