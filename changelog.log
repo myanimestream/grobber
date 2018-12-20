@@ -1,11 +1,11 @@
-version: 3.0.0;
+version: 3.0.1;
 release: unknown;
 ------------------
 changed[2]: Switched to Quart;
 added[1]: masterani.me source;
 added: Allowing redirects for streams (fixes google servers);
 changed: More flexible url behaviour for stream urls;
-removed[1]: 9Anime is gone for now;
+changed[1]: 9Anime is now slow as duck but at least it works again ;
 fixed: some stream issues and other stuff;
 
 ==================

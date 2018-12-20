@@ -23,7 +23,6 @@ setup_logging(sentry_handler)
 app.url_map.converters["UID"] = UIDConverter
 
 app.register_blueprint(anime_blueprint)
-app.register_blueprint(templates)
 app.register_blueprint(debug_blueprint)
 
 host_url = os.getenv("HOST_URL")

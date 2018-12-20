@@ -1,5 +1,4 @@
 import asyncio
-import contextlib
 import inspect
 import json
 import logging
@@ -56,6 +55,7 @@ class UrlFormatter(AsyncFormatter):
 
 DefaultUrlFormatter = UrlFormatter()
 
+# AIOSESSION = ClientSession(trust_env=True)
 AIOSESSION = ClientSession()
 
 CHROME_WS = os.getenv("CHROME_WS")
@@ -202,10 +202,10 @@ class Request:
         finally:
             await browser.close()
 
-    @contextlib.asynccontextmanager
+    @cached_contextmanager
     async def page(self) -> Page:
         browser: Browser
-        async with self.browser() as browser:
+        async with self.browser as browser:
             page = await browser.newPage()
             await page.goto(await self.url)
 

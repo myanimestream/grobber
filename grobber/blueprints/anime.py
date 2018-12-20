@@ -62,9 +62,17 @@ async def get_anime_state() -> Response:
 @anime_blueprint.route("/episode/")
 async def get_episode_info() -> Response:
     anime = await query.get_anime()
-    episode = await query.get_episode(anime=anime)
+    episode_index = query.get_episode_index()
+    episode = await query.get_episode(anime=anime, episode_index=episode_index)
 
     anime_dict, episode_dict = await asyncio.gather(anime.to_dict(), episode.to_dict())
+
+    anime_uid = await anime.uid
+    episode_dict["source_urls"] = [external_url_for("anime.episode_stream_source",
+                                                    uid=anime_uid,
+                                                    episode_index=episode_index,
+                                                    source_index=i) for i in range(3)]
+
     return create_response(anime=anime_dict, episode=episode_dict)
 
 
@@ -99,13 +107,12 @@ async def episode_poster(uid: UID, index: int) -> Response:
     return redirect(poster)
 
 
-@anime_blueprint.route("/source/<UID:uid>/<int:episode_index>/<int:stream_index>")
-async def episode_stream_source(uid: UID, episode_index: int, stream_index: int) -> Response:
-    stream = await query.get_stream(uid=uid, episode_index=episode_index, stream_index=stream_index)
-    links = await stream.links
+@anime_blueprint.route("/source/<UID:uid>/<int:episode_index>/<int:source_index>")
+async def episode_stream_source(uid: UID, episode_index: int, source_index: int) -> Response:
+    source = await query.get_source(uid=uid, episode_index=episode_index, source_index=source_index)
 
-    if links:
-        return redirect(links[0])
+    if source:
+        return redirect(source)
     else:
         quart.abort(404)
 

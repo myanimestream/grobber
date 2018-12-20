@@ -1,12 +1,13 @@
 import asyncio
 import importlib
 import logging
-from typing import AsyncIterator, Dict, Optional, Set, Type
+from typing import AsyncIterator, Dict, List, Optional, Set, Type
 
 from ..exceptions import UIDUnknown
 from ..languages import Language
 from ..locals import anime_collection, query_collection
 from ..models import Anime, SearchResult, UID
+from ..utils import anext
 
 log = logging.getLogger(__name__)
 
@@ -66,15 +67,17 @@ async def get_anime(uid: UID) -> Optional[Anime]:
 
 
 async def search_anime(query: str, *, language=Language.ENGLISH, dubbed=False) -> AsyncIterator[SearchResult]:
-    sources = [source.search(query, language=language, dubbed=dubbed) for source in SOURCES.values()]
+    sources: List[AsyncIterator[SearchResult]] = [source.search(query, language=language, dubbed=dubbed) for source in SOURCES.values()]
 
     while sources:
         for source in reversed(sources):
             try:
-                result = await source.__anext__()
+                result = await anext(source)
             except StopAsyncIteration:
                 log.debug(f"{source} exhausted")
                 sources.remove(source)
+            except Exception:
+                log.exception(f"{source} failed to yield a search result!")
             else:
                 CACHE.add(result.anime)
                 yield result

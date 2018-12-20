@@ -108,8 +108,13 @@ class MasterAnime(Anime):
 
         # Query limit is 45 characters!!
         req = Request(SEARCH_URL, {"search": query[:45], "order": "relevance_desc"})
+        json_data = await req.json
 
-        for raw_anime in (await req.json)["data"]:
+        if not json_data:
+            logging.warning("couldn't get json from masteranime")
+            return
+
+        for raw_anime in json_data["data"]:
             anime_id = raw_anime["id"]
             title = raw_anime["title"]
 

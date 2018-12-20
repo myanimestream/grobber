@@ -9,7 +9,7 @@ import re
 from string import Formatter
 from typing import Any, AsyncIterator, Awaitable, Dict, List, Optional, TypeVar, Union
 
-from quart import Response, current_app, jsonify, request, url_for
+from quart import Response, jsonify, url_for
 
 from .async_string_formatter import AsyncFormatter
 from ..exceptions import GrobberException
@@ -63,15 +63,10 @@ def parse_js_json(text: str):
     return json.loads(valid_json)
 
 
-def external_url_for(endpoint, **kwargs):
-    kwargs["_external"] = False
-    kwargs["_scheme"] = None
-    url = url_for(endpoint, **kwargs)
-
-    if "HOST_URL" in current_app.config:
-        return current_app.config["HOST_URL"] + url
-    else:
-        return request.host_url.rstrip("/") + url
+def external_url_for(endpoint: str, **kwargs):
+    kwargs["_external"] = True
+    kwargs["_scheme"] = "https"
+    return url_for(endpoint, **kwargs)
 
 
 class _ModestFormatter(Formatter):

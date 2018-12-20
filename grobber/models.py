@@ -63,7 +63,7 @@ class SearchResult(namedtuple("SearchResult", ("anime", "certainty"))):
                 "certainty": self.certainty}
 
 
-VIDEO_MIME_TYPES = ("video/webm", "video/ogg", "video/mp4")
+VIDEO_MIME_TYPES = ("video/",)
 
 
 class Stream(Expiring, abc.ABC):
@@ -130,10 +130,9 @@ class Stream(Expiring, abc.ABC):
                     return False
 
                 if content_type.startswith(VIDEO_MIME_TYPES):
-                    log.debug(f"Accepting {source}")
                     return True
             else:
-                log.debug(f"{source} didn't make it!")
+                log.debug(f"{source} didn't make it (probably timeout)!")
                 return False
 
         requests = await Request.all(sources, predicate=source_check)
@@ -141,13 +140,17 @@ class Stream(Expiring, abc.ABC):
         urls = []
         for req in requests:
             urls.append(await req.url)
+
+        log.debug(f"found {len(urls)} working sources")
         return urls
 
     async def to_dict(self) -> Dict[str, BsonType]:
+        links, poster = await asyncio.gather(self.links, self.poster)
+
         return {"type": type(self).__name__,
                 "url": self._req._raw_url,
-                "links": await self.links,
-                "poster": await self.poster,
+                "links": links,
+                "poster": poster,
                 "updated": self.last_update.isoformat()}
 
 
@@ -182,6 +185,17 @@ class Episode(Expiring, abc.ABC):
     @abc.abstractmethod
     async def streams(self) -> List[Stream]:
         ...
+
+    @cached_property
+    async def sources(self) -> List[str]:
+        sources = []
+        streams = await self.streams
+        stream_links = await asyncio.gather(*(stream.links for stream in streams))
+
+        for links in stream_links:
+            sources.extend(links)
+
+        return sources
 
     @cached_property
     async def stream(self) -> Optional[Stream]:
@@ -243,11 +257,11 @@ class Episode(Expiring, abc.ABC):
             return cls.get_stream(value)
 
     async def to_dict(self) -> Dict[str, BsonType]:
-        stream = await self.stream
-        return {"embed": await self.host_url,
+        host_url, stream, poster = await asyncio.gather(self.host_url, self.stream, self.poster)
+
+        return {"embed": host_url,
                 "stream": await stream.to_dict() if stream else None,
-                "streams": len(await self.streams),
-                "poster": await self.poster,
+                "poster": poster,
                 "updated": self.last_update.isoformat()}
 
 
@@ -371,11 +385,13 @@ class Anime(Expiring, abc.ABC):
         ...
 
     async def to_dict(self) -> Dict[str, BsonType]:
-        return {"uid": await self.uid,
-                "title": await self.title,
-                "episodes": await self.episode_count,
-                "dubbed": await self.is_dub,
-                "language": (await self.language).value,
+        uid, title, episode_count, is_dub, language = await asyncio.gather(self.uid, self.title, self.episode_count, self.is_dub, self.language)
+
+        return {"uid": uid,
+                "title": title,
+                "episodes": episode_count,
+                "dubbed": is_dub,
+                "language": language.value,
                 "updated": self.last_update.isoformat()}
 
     @classmethod

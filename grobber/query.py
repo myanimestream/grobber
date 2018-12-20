@@ -13,7 +13,7 @@ from quart import request
 
 from . import languages, locals, sources
 from .decorators import cached_property
-from .exceptions import AnimeNotFound, InvalidRequest, UIDUnknown, UserNotFound
+from .exceptions import AnimeNotFound, InvalidRequest, SourceNotFound, UIDUnknown, UserNotFound
 from .languages import Language
 from .models import Anime, Episode, Stream, UID
 from .utils import fuzzy_bool
@@ -239,7 +239,7 @@ class AnimeQuery(metaclass=abc.ABCMeta):
                 return query
 
         raise InvalidRequest("Please specify the anime using either its uid, "
-                             "a query (anime) and your api key (user), or a query, language and dubbed value")
+                             "or a query, language and dubbed value")
 
 
 def _get_int_param(name: str, default: Any = _DEFAULT) -> int:
@@ -282,7 +282,7 @@ async def search_anime() -> List[Anime]:
         results_pool.append(result)
 
     results = sorted(results_pool, key=attrgetter("certainty"), reverse=True)[:num_results]
-    await asyncio.gather(*(result.anime.preload_attrs() for result in results))
+    await asyncio.gather(*(result.anime.preload_attrs(*(set(Anime.ATTRS) - {"episodes"})) for result in results))
 
     return results[:num_results]
 
@@ -291,9 +291,13 @@ async def get_anime(**kwargs) -> Anime:
     return await AnimeQuery.build(**kwargs).resolve()
 
 
+def get_episode_index() -> int:
+    return _get_int_param("episode")
+
+
 async def get_episode(episode_index: int = None, anime: Anime = None, **kwargs) -> Episode:
     if episode_index is None:
-        episode_index = _get_int_param("episode")
+        episode_index = get_episode_index()
 
     anime = anime or await get_anime(**kwargs)
     return await anime.get(episode_index)
@@ -305,3 +309,16 @@ async def get_stream(stream_index: int = None, episode: Episode = None, **kwargs
 
     episode = episode or await get_episode(**kwargs)
     return await episode.get(stream_index)
+
+
+async def get_source(source_index: int = None, episode: Episode = None, **kwargs) -> str:
+    if source_index is None:
+        source_index = _get_int_param("source")
+
+    episode = episode or await get_episode(**kwargs)
+    srcs = await episode.sources
+
+    if not 0 <= source_index < len(srcs):
+        raise SourceNotFound()
+
+    return srcs[source_index]

@@ -39,7 +39,7 @@ def cached_property(func: Callable[..., Awaitable]) -> property:
 
 
 class _RefCounter(_AsyncGeneratorContextManager):
-    def __init__(self, func, args, kwargs):
+    def __init__(self, func, *args, **kwargs):
         super().__init__(func, args, kwargs)
         self.ref_count = 1
 
@@ -62,11 +62,11 @@ def cached_contextmanager(func: Callable[..., AsyncGenerator]) -> property:
     ref_name = f"_{func.__name__}_ref"
 
     @wraps(func)
-    async def wrapper(self, *args, **kwargs):
+    def wrapper(self, *args, **kwargs):
         try:
             ref = getattr(self, ref_name)
         except AttributeError:
-            ref = _RefCounter(func, *args, **kwargs)
+            ref = _RefCounter(func, self, *args, **kwargs)
             setattr(self, ref_name, ref)
 
         return ref

@@ -10,6 +10,7 @@ class GrobberExceptionType(IntEnum):
     ANIME_NOT_FOUND = 101
     EPISODE_NOT_FOUND = 102
     STREAM_NOT_FOUND = 103
+    SOURCE_NOT_FOUND = 104
 
     USER_NOT_FOUND = 201
 
@@ -52,6 +53,11 @@ class EpisodeNotFound(GrobberException):
 class StreamNotFound(GrobberException):
     def __init__(self):
         super().__init__(f"Couldn't extract a stream for this anime", GrobberExceptionType.STREAM_NOT_FOUND)
+
+
+class SourceNotFound(GrobberException):
+    def __init__(self):
+        super().__init__(f"Source not found", GrobberExceptionType.SOURCE_NOT_FOUND)
 
 
 class UserNotFound(GrobberException):
