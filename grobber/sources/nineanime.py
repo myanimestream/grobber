@@ -6,11 +6,9 @@ from pyppeteer.page import Page
 from . import register_source
 from ..decorators import cached_property
 from ..languages import Language
-from ..models import Anime, Episode, SearchResult, Stream, get_certainty
+from ..models import Anime, Episode, SearchResult, get_certainty
 from ..request import DefaultUrlFormatter, Request
-from ..streams import get_stream
 from ..url_pool import UrlPool
-from ..utils import anext
 
 BASE_URL = "{9ANIME_URL}"
 SEARCH_URL = BASE_URL + "/search"
@@ -21,17 +19,10 @@ RE_DUB_STRIPPER = re.compile(r"\s\(Dub\)$")
 class NineEpisode(Episode):
     # TODO: automatically switch episode if no stream found! But also start with the most likely stream!
     @cached_property
-    async def streams(self) -> List[Stream]:
-        stream = await anext(get_stream(Request(await self.host_url)), None)
-        if stream:
-            return [stream]
-        return []
-
-    @cached_property
-    async def host_url(self) -> str:
+    async def raw_streams(self) -> List[str]:
         async with self._req.page as page:
             page: Page
-            return await page.evaluate("""document.querySelector("div#player iframe").src""", force_expr=True)
+            return [await page.evaluate("""document.querySelector("div#player iframe").src""", force_expr=True)]
 
 
 class NineAnime(Anime):
@@ -49,7 +40,7 @@ class NineAnime(Anime):
     async def is_dub(self) -> bool:
         return (await self.raw_title).endswith("(Dub)")
 
-    @property
+    @cached_property
     async def language(self) -> Language:
         return Language.ENGLISH
 

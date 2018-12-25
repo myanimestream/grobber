@@ -62,16 +62,9 @@ async def get_anime_state() -> Response:
 @anime_blueprint.route("/episode/")
 async def get_episode_info() -> Response:
     anime = await query.get_anime()
-    episode_index = query.get_episode_index()
-    episode = await query.get_episode(anime=anime, episode_index=episode_index)
+    episode = await query.get_episode(anime=anime)
 
     anime_dict, episode_dict = await asyncio.gather(anime.to_dict(), episode.to_dict())
-
-    anime_uid = await anime.uid
-    episode_dict["source_urls"] = [external_url_for("anime.episode_stream_source",
-                                                    uid=anime_uid,
-                                                    episode_index=episode_index,
-                                                    source_index=i) for i in range(3)]
 
     return create_response(anime=anime_dict, episode=episode_dict)
 

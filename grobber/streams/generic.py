@@ -23,9 +23,6 @@ class Generic(Stream):
 
     @classmethod
     async def can_handle(cls, req: Request) -> bool:
-        if (await req.yarl).host in BLOCKED_HOSTS:
-            log.debug(f"ignoring {req} because it's blocked")
-            return False
         return True
 
     async def get_links(self, pattern: Pattern) -> List[Request]:
@@ -39,6 +36,10 @@ class Generic(Stream):
             links.add(Request(url))
 
         return list(links)
+
+    @cached_property
+    async def external(self) -> bool:
+        return (await self._req.yarl).host not in BLOCKED_HOSTS
 
     @cached_property
     async def poster(self) -> Optional[str]:

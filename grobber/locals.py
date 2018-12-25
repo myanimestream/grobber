@@ -9,8 +9,5 @@ mongo_client: AsyncIOMotorClient = AsyncIOMotorClient(_MONGO_URI)
 db: AsyncIOMotorDatabase = mongo_client[_MONGO_DB_NAME]
 
 anime_collection: AsyncIOMotorCollection = db["anime"]
-user_collection: AsyncIOMotorCollection = db["users"]
-query_collection: AsyncIOMotorCollection = db["queries"]
 
-changelog_collection: AsyncIOMotorCollection = db["changelog"]
 url_pool_collection: AsyncIOMotorCollection = db["url_pool"]

@@ -23,5 +23,9 @@ class RapidVideo(Stream):
         sources = [Request(source["src"], timeout=5) for source in (await self._req.bs).select("video source")]
         return await Stream.get_successful_links(sources)
 
+    @cached_property
+    async def external(self) -> bool:
+        return True
+
 
 register_stream(RapidVideo)

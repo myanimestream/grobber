@@ -70,5 +70,9 @@ class Streamango(Stream):
                 return [await link.url]
         return []
 
+    @cached_property
+    async def external(self) -> bool:
+        return False
+
 
 register_stream(Streamango)

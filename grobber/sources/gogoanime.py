@@ -1,17 +1,15 @@
 import logging
 import math
 import re
-from operator import attrgetter
 from typing import AsyncIterator, List, Optional
 
 from . import register_source
 from ..decorators import cached_property
 from ..languages import Language
-from ..models import Anime, Episode, SearchResult, Stream, get_certainty
+from ..models import Anime, Episode, SearchResult, get_certainty
 from ..request import DefaultUrlFormatter, Request
-from ..streams import get_stream
 from ..url_pool import UrlPool
-from ..utils import add_http_scheme, anext
+from ..utils import add_http_scheme
 
 log = logging.getLogger(__name__)
 
@@ -43,21 +41,14 @@ def get_potential_page_name(name: str) -> str:
 
 class GogoEpisode(Episode):
     @cached_property
-    async def streams(self) -> List[Stream]:
+    async def raw_streams(self) -> List[str]:
         streams = []
         bs = await self._req.bs
         links = bs.select("div.anime_muti_link a")
         for link in links:
-            stream = await anext(get_stream(Request(add_http_scheme(link["data-video"]))), None)
-            if stream:
-                streams.append(stream)
+            streams.append(add_http_scheme(link["data-video"]))
 
-        streams.sort(key=attrgetter("PRIORITY"), reverse=True)
         return streams
-
-    @cached_property
-    async def host_url(self) -> str:
-        return add_http_scheme((await self._req.bs).find("iframe")["src"], _scheme="https")
 
 
 class GogoAnime(Anime):
@@ -80,7 +71,7 @@ class GogoAnime(Anime):
     async def is_dub(self) -> bool:
         return (await self.raw_title).endswith("(Dub)")
 
-    @property
+    @cached_property
     async def language(self) -> Language:
         return Language.ENGLISH
 
@@ -151,5 +142,6 @@ class GogoAnime(Anime):
 
 gogoanime_pool = UrlPool("GogoAnime", ["https://gogoanimes.co", "http://gogoanimes.co"])
 DefaultUrlFormatter.add_field("GOGOANIME_URL", lambda: gogoanime_pool.url)
+DefaultUrlFormatter.use_proxy("GOGOANIME_URL")
 
 register_source(GogoAnime)

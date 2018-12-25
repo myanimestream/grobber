@@ -48,6 +48,7 @@ def extract_player_data(text: str) -> Optional[PlayerData]:
 
 
 class Mp4Upload(Stream):
+
     ATTRS = ("player_data",)
     EXPIRE_TIME = Expiring.HOUR
 
@@ -74,6 +75,10 @@ class Mp4Upload(Stream):
         if source and await Request(source).head_success:
             return [source]
         return []
+
+    @cached_property
+    async def external(self) -> bool:
+        return True
 
 
 register_stream(Mp4Upload)

@@ -1,15 +1,13 @@
 import json
 import logging
-from operator import attrgetter
 from typing import Any, AsyncIterator, Dict, List, Optional
 
 from . import register_source
 from .. import utils
 from ..decorators import cached_property
 from ..languages import Language
-from ..models import Anime, Episode, SearchResult, Stream, get_certainty
+from ..models import Anime, Episode, SearchResult, get_certainty
 from ..request import DefaultUrlFormatter, Request
-from ..streams import get_stream
 from ..url_pool import UrlPool
 
 log = logging.getLogger(__name__)
@@ -21,7 +19,7 @@ EPISODE_URL = BASE_URL + "/anime/watch/{anime_slug}/{episode}"
 
 
 class MasterEpisode(Episode):
-    ATTRS = ("mirror_data", "mirror_links")
+    ATTRS = ("mirror_data",)
 
     @cached_property
     async def mirror_data(self) -> List[Dict[str, Any]]:
@@ -34,7 +32,7 @@ class MasterEpisode(Episode):
         return json.loads(element[":mirrors"])
 
     @cached_property
-    async def mirror_links(self) -> List[str]:
+    async def raw_streams(self) -> List[str]:
         links = []
         for mirror in await self.mirror_data:
             host_data = mirror["host"]
@@ -44,25 +42,6 @@ class MasterEpisode(Episode):
             links.append(f"{prefix}{embed_id}{suffix}")
 
         return links
-
-    @cached_property
-    async def streams(self) -> List[Stream]:
-        streams = []
-        for link in await self.mirror_links:
-            stream = await utils.anext(get_stream(Request(link)), None)
-            if stream:
-                streams.append(stream)
-
-        streams.sort(key=attrgetter("PRIORITY"), reverse=True)
-        return streams
-
-    @cached_property
-    async def host_url(self) -> str:
-        mirror_links = await self.mirror_links
-        if mirror_links:
-            return mirror_links[0]
-        else:
-            return await self._req.url
 
 
 class MasterAnime(Anime):
@@ -93,7 +72,7 @@ class MasterAnime(Anime):
     async def is_dub(self) -> bool:
         return False
 
-    @property
+    @cached_property
     async def language(self) -> Language:
         return Language.ENGLISH
 

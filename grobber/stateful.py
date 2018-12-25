@@ -37,7 +37,7 @@ def check_container_bson(data: Any) -> bool:
 
 
 class Stateful(abc.ABC):
-    __SPECIAL_MARKER = "$state"
+    _SPECIAL_MARKER = "$state"
     INCLUDE_CLS = False
     ATTRS = ()
 
@@ -109,7 +109,7 @@ class Stateful(abc.ABC):
             if val is not _DEFAULT:
                 if not check_container_bson(val):
                     val = self.serialise_special(attr, val)
-                    attr += self.__SPECIAL_MARKER
+                    attr += self._SPECIAL_MARKER
                 data[attr] = val
 
         return data
@@ -118,8 +118,8 @@ class Stateful(abc.ABC):
     def from_state(cls, state: Dict[str, BsonType]) -> "Stateful":
         inst = cls(Request.from_state(state.pop("req")))
         for key, value in state.items():
-            if key.endswith(cls.__SPECIAL_MARKER):
-                key = key[:-len(cls.__SPECIAL_MARKER)]
+            if key.endswith(cls._SPECIAL_MARKER):
+                key = key[:-len(cls._SPECIAL_MARKER)]
                 value = cls.deserialise_special(key, value)
             setattr(inst, "_" + key, value)
         return inst

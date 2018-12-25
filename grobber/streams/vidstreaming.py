@@ -50,5 +50,9 @@ class Vidstreaming(Stream):
         log.debug(f"found sources {sources}")
         return await self.get_successful_links(sources)
 
+    @cached_property
+    async def external(self) -> bool:
+        return True
+
 
 register_stream(Vidstreaming)

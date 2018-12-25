@@ -25,12 +25,20 @@ DEFAULT_HEADERS = {
 
 class UrlFormatter(AsyncFormatter):
     _FIELDS: Dict[Any, Any]
+    _PROXY_DOMAINS: Dict[str, bool]
 
-    def __init__(self, fields: Dict[Any, Any] = None) -> None:
+    def __init__(self, fields: Dict[Any, Any] = None, proxy_domains: Dict[str, bool] = None) -> None:
         self._FIELDS = fields or {}
+        self._PROXY_DOMAINS = proxy_domains or {}
 
     def add_field(self, key: Any, value: Any) -> None:
         self._FIELDS[key] = value
+
+    def use_proxy(self, key: str, use: bool = True):
+        if key not in self._FIELDS:
+            raise KeyError("Please use the same key as for the formatting field.")
+
+        self._PROXY_DOMAINS[key] = use
 
     def add_fields(self, fields: Dict[Any, Any] = None, **kwargs) -> None:
         fields = fields or {}
@@ -52,13 +60,18 @@ class UrlFormatter(AsyncFormatter):
 
         return super().get_value(key, args, kwargs)
 
+    def should_use_proxy(self, url: str) -> bool:
+        for field, use in self._PROXY_DOMAINS.items():
+            if f"{{{field}}}" in url:
+                return use
+
 
 DefaultUrlFormatter = UrlFormatter()
 
-# AIOSESSION = ClientSession(trust_env=True)
-AIOSESSION = ClientSession()
+AIOSESSION = ClientSession(headers=DEFAULT_HEADERS)
 
 CHROME_WS = os.getenv("CHROME_WS")
+PROXY_URL = os.getenv("PROXY_URL")
 
 
 async def get_browser(**options) -> Browser:
@@ -78,7 +91,7 @@ class Request:
     _json: Dict[str, Any]
     _bs: BeautifulSoup
 
-    def __init__(self, url: str, params: Any = None, headers: Any = None, timeout: int = None, **request_kwargs) -> None:
+    def __init__(self, url: str, params: Any = None, headers: Any = None, timeout: int = None, use_proxy: bool = False, **request_kwargs) -> None:
         self._raw_url = url
         self._params = params
         self._headers = headers
@@ -88,6 +101,7 @@ class Request:
 
         self._formatter = DefaultUrlFormatter
         self._session = AIOSESSION
+        self._use_proxy = use_proxy or self._formatter.should_use_proxy(self._raw_url)
 
     def __hash__(self) -> int:
         return hash(self._raw_url)
@@ -130,10 +144,7 @@ class Request:
 
     @property
     def headers(self):
-        headers = DEFAULT_HEADERS.copy()
-        if self._headers:
-            headers.update(self._headers)
-        return headers
+        return self._headers
 
     @cached_property
     async def url(self) -> str:
@@ -163,7 +174,7 @@ class Request:
         if hasattr(self, "_response"):
             return self._response
 
-        return await self.perform_request("head", timeout=self._timeout or 5)
+        return await self.perform_request("head", timeout=self._timeout or 7)
 
     @cached_property
     async def head_success(self) -> bool:
@@ -217,9 +228,22 @@ class Request:
     async def perform_request(self, method: str, **kwargs) -> ClientResponse:
         options = self.request_kwargs.copy()
         options.update(headers=self.headers, timeout=self._timeout)
+
+        if self._use_proxy:
+            log.debug(f"{self} using proxy")
+            options["proxy"] = PROXY_URL
+
         options.update(kwargs)
 
-        return await self._session.request(method, await self.url, **options)
+        url = await self.url
+        resp = await self._session.request(method, url, **options)
+
+        if resp.status == 403 and not self._use_proxy:
+            log.info(f"{self} request blocked (403 forbidden). Trying again with proxy")
+            self._use_proxy = True
+            resp = await self.perform_request(method, **kwargs)
+
+        return resp
 
     @staticmethod
     async def try_req(req: "Request", *, predicate: Callable[["Request"], Awaitable[bool]] = None) -> Optional["Request"]:

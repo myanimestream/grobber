@@ -1,19 +1,14 @@
 import abc
 import asyncio
-import inspect
 import logging
 import typing
-import uuid
 from operator import attrgetter
-from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Union
+from typing import Any, List, NamedTuple, Optional
 
-from bson import ObjectId
-from motor.motor_asyncio import AsyncIOMotorCollection
 from quart import request
 
-from . import languages, locals, sources
-from .decorators import cached_property
-from .exceptions import AnimeNotFound, InvalidRequest, SourceNotFound, UIDUnknown, UserNotFound
+from . import languages, sources
+from .exceptions import AnimeNotFound, InvalidRequest, SourceNotFound, UIDUnknown
 from .languages import Language
 from .models import Anime, Episode, Stream, UID
 from .utils import fuzzy_bool
@@ -29,103 +24,6 @@ class SearchFilter(NamedTuple):
 
     def as_dict(self):
         return self._asdict()
-
-
-class DBModelMeta(type):
-    COLLECTION: str = None
-
-    @property
-    def collection(self) -> AsyncIOMotorCollection:
-        if not self.COLLECTION:
-            raise TypeError(f"Model {self} doesn't have a COLLECTION")
-
-        return locals.db[self.COLLECTION]
-
-
-class DBModel(metaclass=DBModelMeta):
-    _id: ObjectId
-
-    @classmethod
-    def load(cls, document: Dict[str, Any]):
-        inst = cls()
-        hints = typing.get_type_hints(cls)
-
-        for key, value in document.items():
-            typ = hints.get(key)
-            if not typ:
-                continue
-
-            if inspect.isfunction(typ) and hasattr(typ, "__supertype__"):
-                typ = typ.__supertype__
-
-            if isinstance(value, typ):
-                value = value
-            else:
-                converter = getattr(cls, f"load_{key}", typ)
-                value = converter(value)
-
-            setattr(inst, key, value)
-
-        return inst
-
-    @classmethod
-    async def find(cls, query, *, sort: List[Tuple[Union[str, List[str]], int]] = None):
-        document = await cls.collection.find_one(query, sort=sort)
-        if document:
-            return cls.load(document)
-
-        return None
-
-    @classmethod
-    async def find_all(cls, query):
-        res: List[DBModel] = []
-
-        async for document in cls.collection.find(query):
-            res.append(cls.load(document))
-
-        return res
-
-    async def delete(self) -> None:
-        await type(self).collection.delete_one(dict(_id=self._id))
-
-
-class UserConfig(NamedTuple):
-    language: Language
-    dubbed: bool
-
-    update_status: bool
-    watch_percentage_tolerance: float
-    replace_paid_streams: bool
-
-    @property
-    def query_params(self) -> SearchFilter:
-        return SearchFilter(self.language, self.dubbed)
-
-
-class User(DBModel):
-    COLLECTION = "users"
-
-    _id: ObjectId
-    api_key: uuid.UUID
-
-    config: UserConfig
-    load_config = lambda doc: UserConfig(**doc)
-
-
-class Query(DBModel):
-    COLLECTION = "queries"
-
-    _id: ObjectId
-    user_id: ObjectId
-    query: str
-    uid: UID
-
-    language: Language
-    dubbed: bool
-
-    @cached_property
-    async def anime(self) -> Anime:
-        return await sources.get_anime(self.uid)
 
 
 class AnimeQuery(metaclass=abc.ABCMeta):
@@ -181,29 +79,6 @@ class AnimeQuery(metaclass=abc.ABCMeta):
             else:
                 raise UIDUnknown(self.uid)
 
-    class UserQuery(_Generic):
-        anime: str
-        user: str
-
-        async def get_user(self) -> User:
-            user = await User.find(dict(api_key=self.user))
-            if user is None:
-                raise UserNotFound(self.user)
-            return user
-
-        async def search_params(self) -> SearchFilter:
-            user = await self.get_user()
-            return user.config.query_params
-
-        async def resolve(self) -> Anime:
-            user = await self.get_user()
-            query = await Query.find(dict(query=self.anime, user={"$in": [user._id, None]}, **user.config.query_params.as_dict()),
-                                     sort=[("user", -1)])
-            if not query:
-                raise AnimeNotFound(self.anime, user=user._id)
-
-            return await query.anime
-
     class Query(_Generic):
         anime: str
 
@@ -217,7 +92,7 @@ class AnimeQuery(metaclass=abc.ABCMeta):
             return SearchFilter(self.language or Language.ENGLISH, bool(self.dubbed))
 
         async def resolve(self) -> Anime:
-            filters = dict(query=self.anime, user=None)
+            filters = dict()
 
             if self.dubbed is not None:
                 filters["dubbed"] = self.dubbed
@@ -225,21 +100,21 @@ class AnimeQuery(metaclass=abc.ABCMeta):
             if self.language:
                 filters["language"] = self.language.value
 
-            query = await Query.find(filters)
-            if not query:
+            anime = await sources.get_anime_by_title(self.anime, **filters)
+            if not anime:
                 raise AnimeNotFound(self.anime, dubbed=self.dubbed, language=self.language)
 
-            return await query.anime
+            return anime
 
     @staticmethod
     def build(**kwargs) -> _Generic:
-        for query_type in (AnimeQuery.UID, AnimeQuery.UserQuery, AnimeQuery.Query):
+        for query_type in (AnimeQuery.UID, AnimeQuery.Query):
             query = query_type.try_build(**kwargs)
             if query:
                 return query
 
         raise InvalidRequest("Please specify the anime using either its uid, "
-                             "or a query, language and dubbed value")
+                             "or a title (anime), language and dubbed value")
 
 
 def _get_int_param(name: str, default: Any = _DEFAULT) -> int:

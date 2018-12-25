@@ -4,11 +4,10 @@ import inspect
 import logging
 import re
 import sys
-from collections import namedtuple
 from difflib import SequenceMatcher
 from itertools import groupby
 from operator import attrgetter
-from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Iterable, List, MutableSequence, NewType, Optional, TypeVar, Union
+from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Iterable, List, MutableSequence, NamedTuple, NewType, Optional, TypeVar, Union
 
 from quart.routing import BaseConverter
 
@@ -17,6 +16,7 @@ from .exceptions import EpisodeNotFound, StreamNotFound
 from .languages import Language
 from .request import Request
 from .stateful import BsonType, Expiring
+from .utils import anext
 
 log = logging.getLogger(__name__)
 
@@ -57,7 +57,10 @@ def get_certainty(a: str, b: str) -> float:
     return round(SequenceMatcher(a=a, b=b).ratio(), 2)
 
 
-class SearchResult(namedtuple("SearchResult", ("anime", "certainty"))):
+class SearchResult(NamedTuple):
+    anime: "Anime"
+    certainty: float
+
     async def to_dict(self) -> Dict[str, Any]:
         return {"anime": await self.anime.to_dict(),
                 "certainty": self.certainty}
@@ -66,13 +69,18 @@ class SearchResult(namedtuple("SearchResult", ("anime", "certainty"))):
 VIDEO_MIME_TYPES = ("video/",)
 
 
+class Source(NamedTuple):
+    mime_type: str
+    src: str
+
+
 class Stream(Expiring, abc.ABC):
     INCLUDE_CLS = True
-    ATTRS = ("links", "poster")
+    ATTRS = ("external", "links", "poster")
     CHANGING_ATTRS = ("links",)
     EXPIRE_TIME = Expiring.HOUR
 
-    PRIORITY = 1
+    PRIORITY = 100
 
     HOST = None
 
@@ -81,11 +89,36 @@ class Stream(Expiring, abc.ABC):
 
     @classmethod
     async def can_handle(cls, req: Request) -> bool:
+        """Check whether this Stream class can handle the request.
+
+        This operation shouldn't actually perform any expensive checks.
+        It should merely check whether it's even possible for this Stream to extract
+        anything from the request.
+
+        The default implementation compares the Stream.HOST variable to the host
+        of the request url (www. is stripped!).
+
+        :param req: request to stream to check
+        :return: true if this Stream may be able to extract something from the size, false otherwise
+        """
         return (await req.yarl).host.lstrip("www.") == cls.HOST
 
     @property
     def persist(self) -> bool:
+        """Whether this stream should be stored even if there are neither poster nor links in it
+
+        :return: true to save anyway, false otherwise
+        """
         return False
+
+    @property
+    @abc.abstractmethod
+    async def external(self) -> bool:
+        """Indicate whether the links provided by this Stream may be used externally.
+
+        :return: true of the links may be used externally, false otherwise
+        """
+        ...
 
     @property
     @abc.abstractmethod
@@ -107,8 +140,8 @@ class Stream(Expiring, abc.ABC):
             return False
 
     @property
-    async def working_self(self) -> Optional["Stream"]:
-        if await self.working:
+    async def working_external_self(self) -> Optional["Stream"]:
+        if await self.external and await self.working:
             return self
         else:
             return None
@@ -155,7 +188,7 @@ class Stream(Expiring, abc.ABC):
 
 
 class Episode(Expiring, abc.ABC):
-    ATTRS = ("streams", "host_url", "stream", "poster", "host_url")
+    ATTRS = ("streams", "host_url", "raw_streams", "streams", "poster", "host_url")
     CHANGING_ATTRS = ATTRS
     EXPIRE_TIME = 6 * Expiring.HOUR
 
@@ -183,8 +216,19 @@ class Episode(Expiring, abc.ABC):
 
     @property
     @abc.abstractmethod
-    async def streams(self) -> List[Stream]:
+    async def raw_streams(self) -> List[str]:
         ...
+
+    @cached_property
+    async def streams(self) -> List[Stream]:
+        from .streams import get_stream
+
+        links = await self.raw_streams
+
+        streams = list(filter(None, await asyncio.gather(*(anext(get_stream(Request(link))) for link in links))))
+
+        streams.sort(key=attrgetter("PRIORITY"), reverse=True)
+        return streams
 
     @cached_property
     async def sources(self) -> List[str]:
@@ -202,12 +246,13 @@ class Episode(Expiring, abc.ABC):
         log.debug(f"{self} Searching for working stream...")
 
         all_streams = await self.streams
+        all_streams.sort(key=attrgetter("PRIORITY"), reverse=True)
 
         for priority, streams in groupby(all_streams, attrgetter("PRIORITY")):
             streams = list(streams)
             log.info(f"Looking at {len(streams)} stream(s) with priority {priority}")
 
-            working_stream = await get_first([stream.working_self for stream in streams])
+            working_stream = await get_first([stream.working_external_self for stream in streams])
             if working_stream:
                 log.debug(f"Found working stream: {working_stream}")
                 return working_stream
@@ -225,11 +270,6 @@ class Episode(Expiring, abc.ABC):
     async def poster(self) -> Optional[str]:
         log.debug(f"{self} searching for poster")
         return await get_first([stream.poster for stream in await self.streams])
-
-    @property
-    @abc.abstractmethod
-    async def host_url(self) -> str:
-        ...
 
     def serialise_special(self, key: str, value: Any) -> BsonType:
         if key == "streams":
@@ -257,9 +297,9 @@ class Episode(Expiring, abc.ABC):
             return cls.get_stream(value)
 
     async def to_dict(self) -> Dict[str, BsonType]:
-        host_url, stream, poster = await asyncio.gather(self.host_url, self.stream, self.poster)
+        raw_streams, stream, poster = await asyncio.gather(self.raw_streams, self.stream, self.poster)
 
-        return {"embed": host_url,
+        return {"embeds": raw_streams,
                 "stream": await stream.to_dict() if stream else None,
                 "poster": poster,
                 "updated": self.last_update.isoformat()}
@@ -402,8 +442,12 @@ class Anime(Expiring, abc.ABC):
     def serialise_special(self, key: str, value: Any) -> BsonType:
         if key == "episodes":
             return {str(i): ep.state for i, ep in value.items()}
+        elif key == "language":
+            return value.value
 
     @classmethod
     def deserialise_special(cls, key: str, value: BsonType) -> Any:
         if key == "episodes":
             return {int(i): cls.EPISODE_CLS.from_state(ep) for i, ep in value.items()}
+        elif key == "language":
+            return Language(value)

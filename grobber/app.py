@@ -44,13 +44,8 @@ def teardown_app_context(*_):
 
 @app.after_request
 async def after_request(response: Response) -> Response:
-    response.headers["grobber-version"] = __info__.__version__
+    response.headers["Grobber-Version"] = __info__.__version__
     return response
-
-
-@app.context_processor
-async def inject_jinja_globals():
-    return dict(url_for=external_url_for)
 
 
 @app.route("/dolos-info")

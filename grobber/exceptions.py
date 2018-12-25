@@ -5,14 +5,12 @@ class GrobberExceptionType(IntEnum):
     UNKNOWN = 0
     GENERAL = 1
     INVALID_REQUEST = 2
-    UID_UNKNOWN = 3
 
-    ANIME_NOT_FOUND = 101
-    EPISODE_NOT_FOUND = 102
-    STREAM_NOT_FOUND = 103
-    SOURCE_NOT_FOUND = 104
-
-    USER_NOT_FOUND = 201
+    UID_UNKNOWN = 101
+    ANIME_NOT_FOUND = 102
+    EPISODE_NOT_FOUND = 103
+    STREAM_NOT_FOUND = 104
+    SOURCE_NOT_FOUND = 105
 
 
 class GrobberException(Exception):
@@ -46,8 +44,11 @@ class AnimeNotFound(GrobberException):
 
 class EpisodeNotFound(GrobberException):
     def __init__(self, index: int, anime_length: int):
-        super().__init__(f"No episode {index} found, only {anime_length} episodes! Did you forgot that the first episode is index 0?",
-                         GrobberExceptionType.EPISODE_NOT_FOUND)
+        text = f"No episode {index} found, only {anime_length} episodes!"
+        if index == anime_length:
+            text += " Did you forgot that the first episode has index 0?"
+
+        super().__init__(text, GrobberExceptionType.EPISODE_NOT_FOUND)
 
 
 class StreamNotFound(GrobberException):
@@ -58,8 +59,3 @@ class StreamNotFound(GrobberException):
 class SourceNotFound(GrobberException):
     def __init__(self):
         super().__init__(f"Source not found", GrobberExceptionType.SOURCE_NOT_FOUND)
-
-
-class UserNotFound(GrobberException):
-    def __init__(self, token: str):
-        super().__init__(f"api token \"{token}\" rejected!", GrobberExceptionType.USER_NOT_FOUND)

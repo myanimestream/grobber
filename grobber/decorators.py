@@ -62,11 +62,11 @@ def cached_contextmanager(func: Callable[..., AsyncGenerator]) -> property:
     ref_name = f"_{func.__name__}_ref"
 
     @wraps(func)
-    def wrapper(self, *args, **kwargs):
+    def wrapper(self):
         try:
             ref = getattr(self, ref_name)
         except AttributeError:
-            ref = _RefCounter(func, self, *args, **kwargs)
+            ref = _RefCounter(func, self)
             setattr(self, ref_name, ref)
 
         return ref

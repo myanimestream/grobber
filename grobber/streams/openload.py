@@ -3,7 +3,7 @@
 import logging
 from typing import Any, Dict, List, Optional
 
-from pyppeteer.page import Page
+from pyppeteer.page import Page, PageError
 
 from . import register_stream
 from ..decorators import cached_property
@@ -29,17 +29,23 @@ EXTRACT_DATA_SCRIPT = """(element) => {
 
 class Openload(Stream):
     ATTRS = ("player_data",)
+    PRIORITY = 5
 
     HOST = "openload.co"
 
     @cached_property
     async def player_data(self) -> Dict[str, Any]:
-        page: Page
-        async with self._req.page() as page:
-            await page.click("div#videooverlay")
-            data = await page.querySelectorEval("video#olvideo_html5_api", EXTRACT_DATA_SCRIPT)
+        try:
+            page: Page
+            async with self._req.page as page:
+                await page.click("div#videooverlay")
+                data = await page.querySelectorEval("video#olvideo_html5_api", EXTRACT_DATA_SCRIPT)
 
-        return data
+            return data
+        except PageError as e:
+            log.warning(f"couldn't access {self} because {e}")
+
+        return {}
 
     @cached_property
     async def poster(self) -> Optional[str]:
@@ -50,10 +56,14 @@ class Openload(Stream):
 
     @cached_property
     async def links(self) -> List[str]:
-        source = (await self.player_data).get("sources")
+        source = (await self.player_data).get("source")
 
         if source and await Request(source).head_success:
             return [source]
+
+    @cached_property
+    async def external(self) -> bool:
+        return False
 
 
 register_stream(Openload)
