@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+aiohttp = "*"
+"beautifulsoup4" = "*"
+colorlog = "*"
+loglette = "*"
+lxml = "*"
+mistune = "*"
+motor = "*"
+pyppeteer = "*"
+quart = "*"
+raven = "*"
+yarl = "*"
+
+[requires]
+python_version = "3.7"
