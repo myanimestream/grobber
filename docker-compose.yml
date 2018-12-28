@@ -2,9 +2,9 @@ version: "3"
 
 services:
   app:
-    container_name: MyAnimeStream
+    container_name: Grobber
     build: .
-    image: myanimestream
+    image: myanimestream/grobber
     restart: always
     ports:
       - 80:80
@@ -35,7 +35,7 @@ services:
 
   proxy:
     container_name: Scylla
-    image: siku2/scylla:latest
+    image: myanimestream/scylla
     restart: always
     ports:
       - 8899:8899
