@@ -44,7 +44,7 @@ class AnimeNotFound(GrobberException):
 
 class EpisodeNotFound(GrobberException):
     def __init__(self, index: int, anime_length: int):
-        text = f"No episode {index} found, only {anime_length} episodes!"
+        text = f"No episode {index} found, only {anime_length} episode(s)!"
         if index == anime_length:
             text += " Did you forgot that the first episode has index 0?"
 

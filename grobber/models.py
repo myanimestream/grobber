@@ -188,7 +188,7 @@ class Stream(Expiring, abc.ABC):
 
 
 class Episode(Expiring, abc.ABC):
-    ATTRS = ("streams", "host_url", "raw_streams", "streams", "poster", "host_url")
+    ATTRS = ("stream", "host_url", "raw_streams", "streams", "poster", "host_url")
     CHANGING_ATTRS = ATTRS
     EXPIRE_TIME = 6 * Expiring.HOUR
 

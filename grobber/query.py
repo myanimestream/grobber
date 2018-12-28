@@ -10,7 +10,7 @@ from quart import request
 from . import languages, sources
 from .exceptions import AnimeNotFound, InvalidRequest, SourceNotFound, UIDUnknown
 from .languages import Language
-from .models import Anime, Episode, Stream, UID
+from .models import Anime, Episode, SearchResult, Stream, UID
 from .utils import fuzzy_bool
 
 log = logging.getLogger(__name__)
@@ -131,7 +131,7 @@ def _get_int_param(name: str, default: Any = _DEFAULT) -> int:
     return value
 
 
-async def search_anime() -> List[Anime]:
+async def search_anime() -> List[SearchResult]:
     query = AnimeQuery.build()
     filters = await query.search_params()
 
