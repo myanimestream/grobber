@@ -1,10 +1,8 @@
 import logging
 import os
 
-import raven
+import sentry_sdk
 from quart import Quart, Response
-from raven.conf import setup_logging
-from raven.handlers.logging import SentryHandler
 
 from . import __info__, sources
 from .blueprints import *
@@ -15,10 +13,6 @@ from .utils import *
 log = logging.getLogger(__name__)
 
 app = Quart("grobber", static_url_path="/")
-sentry_client = raven.Client(release=__info__.__version__)
-sentry_handler = SentryHandler(sentry_client)
-sentry_handler.setLevel(logging.ERROR)
-setup_logging(sentry_handler)
 
 app.url_map.converters["UID"] = UIDConverter
 
@@ -29,6 +23,7 @@ host_url = os.getenv("HOST_URL")
 if host_url:
     app.config["HOST_URL"] = add_http_scheme(host_url)
 
+sentry_sdk.init()
 log.info(f"grobber version {__info__.__version__} running!")
 
 
