@@ -23,7 +23,7 @@ host_url = os.getenv("HOST_URL")
 if host_url:
     app.config["HOST_URL"] = add_http_scheme(host_url)
 
-sentry_sdk.init()
+sentry_sdk.init(release=f"grobber@{__info__.__version__}")
 log.info(f"grobber version {__info__.__version__} running!")
 
 
