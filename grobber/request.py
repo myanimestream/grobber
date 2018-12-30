@@ -14,6 +14,7 @@ from pyppeteer.browser import Browser
 from pyppeteer.page import Page
 
 from .decorators import cached_contextmanager, cached_property
+from .telemetry import HTTP_REQUESTS
 from .utils import AsyncFormatter
 
 log = logging.getLogger(__name__)
@@ -237,6 +238,8 @@ class Request:
             log.debug(f"{self} using proxy")
             options["proxy"] = PROXY_URL
 
+        self.track_telemetry(self._raw_url, method, self._use_proxy)
+
         options.update(kwargs)
 
         url = await self.url
@@ -252,6 +255,10 @@ class Request:
             resp = await self.perform_request(method, **kwargs)
 
         return resp
+
+    def track_telemetry(self, url: str, method: str, using_proxy: bool) -> None:
+        host = yarl.URL(url).host
+        HTTP_REQUESTS.labels(host, method, using_proxy).inc()
 
     @staticmethod
     async def try_req(req: "Request", *, predicate: Callable[["Request"], Awaitable[bool]] = None) -> Optional["Request"]:

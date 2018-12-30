@@ -251,7 +251,7 @@ class Episode(Expiring, abc.ABC):
         if key == "streams":
             return list(filter(None, map(streams.load_stream, value)))
         elif key == "stream":
-            return cls.get_stream(value)
+            return streams.load_stream(value)
 
     async def to_dict(self) -> Dict[str, BsonType]:
         raw_streams, stream, poster = await asyncio.gather(self.raw_streams, self.stream, self.poster)
