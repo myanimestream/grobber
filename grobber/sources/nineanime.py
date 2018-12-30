@@ -87,7 +87,7 @@ class NineAnime(Anime):
         return (await self.raw_eps)[index]
 
 
-nineanime_pool = UrlPool("9anime", ["https://9anime.vip", "http://9anime.vip"])
+nineanime_pool = UrlPool("9Anime", ["https://9anime.vip", "http://9anime.vip"])
 DefaultUrlFormatter.add_field("9ANIME_URL", lambda: nineanime_pool.url)
 
 register_source(NineAnime)
