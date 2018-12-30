@@ -24,10 +24,16 @@ RE_UID_PARSER = re.compile(r"(.+)-(.+)-(.+)(_dub)?")
 
 
 class UID(str, BaseConverter):
-    @cached_property
+    _components: Tuple[str, str, str, str]
+
+    @property
     def parsed(self) -> Tuple[str, str, str, str]:
-        source, anime, language, dubbed = RE_UID_PARSER.match(self).groups()
-        return source, anime, language, dubbed
+        try:
+            value = self._components
+        except AttributeError:
+            self._components = value = RE_UID_PARSER.match(self).groups()
+
+        return value
 
     @property
     def source(self) -> str:
