@@ -60,7 +60,7 @@ class Stateful(abc.ABC):
 
     @property
     def qualcls(self) -> str:
-        return f"{type(self).__module__}.{type(self).__qualname__}"
+        return type(self).__qualname__
 
     def serialise_special(self, key: str, value: Any) -> BsonType:
         raise TypeError(f"Special key \"{key}\" with value {value} doesn't have a handler to serialise!")

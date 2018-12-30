@@ -4,10 +4,11 @@ import logging
 import quart
 from quart import Blueprint, Response, redirect, request
 
-from .. import query, sources
+from .. import query
+from ..anime import Anime, sources
 from ..exceptions import InvalidRequest
-from ..models import Anime, UID
-from ..utils import *
+from ..uid import UID
+from ..utils import create_response, external_url_for
 
 log = logging.getLogger(__name__)
 

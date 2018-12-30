@@ -3,11 +3,12 @@ import importlib
 import logging
 from typing import Any, AsyncIterator, Dict, List, Optional, Set, Type
 
-from ..exceptions import UIDUnknown
-from ..languages import Language
-from ..locals import anime_collection
-from ..models import Anime, SearchResult, UID
-from ..utils import anext
+from grobber.exceptions import UIDUnknown
+from grobber.languages import Language
+from grobber.locals import anime_collection
+from grobber.uid import UID
+from grobber.utils import anext
+from ..models import Anime, SearchResult
 
 log = logging.getLogger(__name__)
 
@@ -16,7 +17,7 @@ SOURCES: Dict[str, Type[Anime]] = {}
 
 
 def register_source(anime: Type[Anime]):
-    SOURCES[f"{anime.__module__}.{anime.__qualname__}"] = anime
+    SOURCES[anime.__qualname__] = anime
 
 
 def _load_sources():
@@ -25,7 +26,7 @@ def _load_sources():
 
 
 _load_sources()
-log.info(f"Using Sources: {', '.join(source.__name__ for source in SOURCES.values())}")
+log.info(f"Using Sources: {', '.join(source.__qualname__ for source in SOURCES.values())}")
 
 CACHE: Set[Anime] = set()
 
@@ -53,10 +54,12 @@ async def delete_anime(uid: str) -> None:
 
 
 async def build_anime_from_doc(uid: str, doc: Dict[str, Any]) -> Anime:
+    *_, name = doc["cls"].rsplit(".", 1)
+
     try:
-        cls = SOURCES[doc["cls"]]
+        cls = SOURCES[name]
     except KeyError:
-        log.warning(f"couldn't find source for {uid}: {doc['cls']}")
+        log.warning(f"couldn't find source for {uid}: {name}")
         await delete_anime(uid)
         raise UIDUnknown(uid)
 

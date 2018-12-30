@@ -3,11 +3,11 @@ import re
 from collections import namedtuple
 from typing import List, Match, Optional, Pattern
 
+from grobber.decorators import cached_property
+from grobber.request import Request
+from grobber.stateful import Expiring
 from . import register_stream
-from ..decorators import cached_property
 from ..models import Stream
-from ..request import Request
-from ..stateful import Expiring
 
 log = logging.getLogger(__name__)
 
@@ -48,7 +48,6 @@ def extract_player_data(text: str) -> Optional[PlayerData]:
 
 
 class Mp4Upload(Stream):
-
     ATTRS = ("player_data",)
     EXPIRE_TIME = Expiring.HOUR
 

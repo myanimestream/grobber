@@ -1,40 +1,27 @@
-__all__ = ["AsyncFormatter", "create_response", "error_response", "add_http_scheme", "parse_js_json", "external_url_for",
-           "format_available",
-           "do_later", "anext", "alist", "fuzzy_bool"]
+__all__ = ["AsyncFormatter",
+           "create_response", "error_response",
+           "add_http_scheme", "parse_js_json", "external_url_for", "format_available", "do_later",
+           "anext", "alist", "get_first",
+           "fuzzy_bool", "get_certainty"]
 
 import asyncio
 import json
 import logging
 import re
+from difflib import SequenceMatcher
 from string import Formatter
 from typing import Any, Awaitable, Dict, List, Optional, TypeVar, Union
 
-from quart import Response, jsonify, url_for
+from quart import url_for
 
 from .aiter import *
 from .async_string_formatter import AsyncFormatter
-from ..exceptions import GrobberException
+from .response import *
 
 log = logging.getLogger(__name__)
 
 T2 = TypeVar("T2")
 _DEFAULT = object()
-
-
-def create_response(data: dict = None, success: bool = True, **kwargs) -> Response:
-    data = data or {}
-    data.update(kwargs)
-    data["success"] = success
-    return jsonify(data)
-
-
-def error_response(exception: GrobberException) -> Response:
-    data = {
-        "msg": exception.msg,
-        "code": exception.code,
-        "name": exception.name
-    }
-    return create_response(data, success=False)
 
 
 def add_http_scheme(link: str, base_url: str = None, *, _scheme="http") -> str:
@@ -51,6 +38,10 @@ def fuzzy_bool(s: Optional[str]) -> bool:
     if s:
         return str(s).lower() in {"true", "t", "yes", "y", "1"}
     return False
+
+
+def get_certainty(a: str, b: str) -> float:
+    return round(SequenceMatcher(a=a, b=b).ratio(), 2)
 
 
 RE_JSON_EXPANDER = re.compile(r"(['\"])?([a-z0-9A-Z_]+)(['\"])?(\s)?:(?=(\s)?[\[\d\"'{])", re.DOTALL)
@@ -88,7 +79,7 @@ def do_later(target: Awaitable) -> None:
     async def safe_run(aw: Awaitable) -> None:
         try:
             await aw
-        except Exception as e:
+        except Exception:
             log.exception(f"Something went wrong while awaiting {target}")
 
     asyncio.ensure_future(safe_run(target))

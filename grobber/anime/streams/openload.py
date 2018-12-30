@@ -5,10 +5,10 @@ from typing import Any, Dict, List, Optional
 
 from pyppeteer.page import Page, PageError
 
+from grobber.decorators import cached_property
+from grobber.request import Request
 from . import register_stream
-from ..decorators import cached_property
 from ..models import Stream
-from ..request import Request
 
 log = logging.getLogger(__name__)
 

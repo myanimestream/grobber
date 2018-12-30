@@ -1,15 +1,16 @@
 import importlib
 import logging
 from operator import attrgetter
-from typing import AsyncIterator, List, Type
+from typing import Any, AsyncIterator, Dict, List, Optional, Type
 
+from grobber.request import Request
 from ..models import Stream
-from ..request import Request
 
 log = logging.getLogger(__name__)
 
 _STREAMS = ["generic", "mp4upload", "openload", "rapidvideo", "streamango", "vidstreaming"]
 STREAMS: List[Type[Stream]] = []
+STREAM_MAP: Dict[str, Type[Stream]] = {}
 
 _DENY_REGISTRATION = False
 
@@ -19,6 +20,19 @@ def register_stream(stream: Type[Stream]):
     if _DENY_REGISTRATION:
         raise ImportError(f"{stream} is too late to register as a stream (Already sorted)")
     STREAMS.append(stream)
+    STREAM_MAP[stream.__qualname__] = stream
+
+
+def load_stream(data: Dict[str, Any]) -> Optional[Stream]:
+    name: str = data.get("cls")
+    if name:
+        # previous versions would use fully qualified names. rsplit for backward-compatibility
+        *_, name = name.rsplit(".", 1)
+        cls = STREAM_MAP.get(name)
+        if cls:
+            return cls.from_state(data)
+
+    return None
 
 
 def _load_streams():
@@ -30,7 +44,7 @@ def _load_streams():
 
 
 _load_streams()
-log.info(f"Using Streams: {', '.join(stream.__name__ for stream in STREAMS)}")
+log.info(f"Using Streams: {', '.join(stream.__qualname__ for stream in STREAMS)}")
 
 
 async def get_stream(req: Request) -> AsyncIterator[Stream]:

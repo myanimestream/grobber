@@ -8,11 +8,12 @@ from typing import Any, List, NamedTuple, Optional, Set
 from prometheus_async.aio import time
 from quart import request
 
-from . import languages, sources
-from .exceptions import AnimeNotFound, InvalidRequest, SourceNotFound, UIDUnknown
+from . import languages
+from .anime import Anime, AnimeNotFound, Episode, SearchResult, SourceNotFound, Stream, sources
+from .exceptions import InvalidRequest, UIDUnknown
 from .languages import Language
-from .models import Anime, Episode, SearchResult, Stream, UID
-from .telemetry import ANIME_QUERY_TYPE, ANIME_SEARCH_TIME, LANGUAGE_COUNTER, SOURCE_COUNTER
+from .telemetry import ANIME_QUERY_TYPE, ANIME_RESOLVE_TIME, ANIME_SEARCH_TIME, LANGUAGE_COUNTER, SOURCE_COUNTER
+from .uid import UID
 from .utils import alist, fuzzy_bool
 
 log = logging.getLogger(__name__)
@@ -61,7 +62,7 @@ class AnimeQuery(metaclass=abc.ABCMeta):
             LANGUAGE_COUNTER.labels(language.value, "dub" if dubbed else "sub").inc()
             SOURCE_COUNTER.labels(source).inc()
 
-            query_type = type(self).__name__
+            query_type = type(self).__qualname__
             ANIME_QUERY_TYPE.labels(query_type).inc()
 
         @abc.abstractmethod
@@ -114,7 +115,7 @@ class AnimeQuery(metaclass=abc.ABCMeta):
             if not anime:
                 raise AnimeNotFound(self.anime, dubbed=self.dubbed, language=self.language)
 
-            self.track_telemetry(self.language, self.dubbed, type(anime).__name__)
+            self.track_telemetry(self.language, self.dubbed, type(anime).__qualname__)
             return anime
 
     @staticmethod
@@ -182,6 +183,7 @@ async def search_anime() -> List[SearchResult]:
     return results[:num_results]
 
 
+@time(ANIME_RESOLVE_TIME)
 async def get_anime(**kwargs) -> Anime:
     return await AnimeQuery.build(**kwargs).resolve()
 

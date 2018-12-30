@@ -1,9 +1,9 @@
 from typing import List, Optional
 
+from grobber.decorators import cached_property
+from grobber.request import Request
 from . import register_stream
-from ..decorators import cached_property
 from ..models import Stream
-from ..request import Request
 
 
 class RapidVideo(Stream):

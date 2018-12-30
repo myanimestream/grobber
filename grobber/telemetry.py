@@ -1,4 +1,4 @@
-__all__ = ["API_REQUESTS", "API_EXCEPTIONS", "LANGUAGE_COUNTER", "SOURCE_COUNTER", "ANIME_SEARCH_TIME", "ANIME_QUERY_TYPE"]
+__all__ = ["API_REQUESTS", "API_EXCEPTIONS", "LANGUAGE_COUNTER", "SOURCE_COUNTER", "ANIME_SEARCH_TIME", "ANIME_RESOLVE_TIME", "ANIME_QUERY_TYPE"]
 
 import logging
 from typing import Tuple
@@ -22,4 +22,5 @@ LANGUAGE_COUNTER = Counter("language_requests", "Langauge/Translation type chose
 SOURCE_COUNTER = Counter("source_requests", "Langauge/Translation type chosen", ("source",))
 
 ANIME_SEARCH_TIME = Histogram("anime_search_time_seconds", "Time spent searching for anime")
+ANIME_RESOLVE_TIME = Histogram("anime_resolve_time_seconds", "Time spent resolving anime")
 ANIME_QUERY_TYPE = Counter("anime_query_type", "Query used to retrieve anime data", ("type",))

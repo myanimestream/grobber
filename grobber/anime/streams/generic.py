@@ -2,11 +2,11 @@ import logging
 import re
 from typing import List, Optional, Pattern
 
+from grobber.decorators import cached_property
+from grobber.request import Request
+from grobber.utils import add_http_scheme
 from . import register_stream
-from ..decorators import cached_property
 from ..models import Stream
-from ..request import Request
-from ..utils import add_http_scheme
 
 log = logging.getLogger(__name__)
 

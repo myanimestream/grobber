@@ -1,94 +1,26 @@
+__all__ = ["SearchResult", "Anime", "Episode", "Stream"]
+
 import abc
 import asyncio
-import inspect
 import logging
 import re
-import sys
-from difflib import SequenceMatcher
 from itertools import groupby
 from operator import attrgetter
-from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Iterable, List, MutableSequence, NamedTuple, Optional, Tuple, TypeVar, Union
+from typing import Any, AsyncIterator, Dict, List, MutableSequence, NamedTuple, Optional, TypeVar, Union
 
-from quart.routing import BaseConverter
-
-from .decorators import cached_property
 from .exceptions import EpisodeNotFound, StreamNotFound
-from .languages import Language, get_lang
-from .request import Request
-from .stateful import BsonType, Expiring
-from .utils import anext
+from ..decorators import cached_property
+from ..languages import Language
+from ..request import Request
+from ..stateful import BsonType, Expiring
+from ..uid import MediaType, UID
+from ..utils import anext, get_first
 
 log = logging.getLogger(__name__)
-
-RE_UID_PARSER = re.compile(r"(.+)-(.+)-(.+)(_dub)?")
-
-
-class UID(str, BaseConverter):
-    _components: Tuple[str, str, str, str]
-
-    @property
-    def parsed(self) -> Tuple[str, str, str, str]:
-        try:
-            value = self._components
-        except AttributeError:
-            self._components = value = RE_UID_PARSER.match(self).groups()
-
-        return value
-
-    @property
-    def source(self) -> str:
-        return self.parsed[0]
-
-    @property
-    def anime_id(self) -> str:
-        return self.parsed[1]
-
-    @property
-    def language(self) -> Language:
-        return get_lang(self.parsed[2])
-
-    @property
-    def dubbed(self) -> bool:
-        return bool(self.parsed[3])
-
-    @classmethod
-    def create(cls, source: str, anime_id: str, language: Language, dubbed: bool) -> "UID":
-        lang = language.value
-        dubbed = "_dub" if dubbed else ""
-
-        return UID(f"{source}-{anime_id}-{lang}{dubbed}")
-
-    def to_python(self, value: str) -> "UID":
-        return UID(value)
-
-    def to_url(self, value: "UID") -> str:
-        return super().to_url(value)
-
 
 RE_UID_CLEANER = re.compile(r"[^a-z0-9一-龯]+")
 
 T = TypeVar("T")
-
-
-async def get_first(coros: Iterable[Awaitable[T]], predicate: Callable[[T], Union[bool, Awaitable[bool]]] = bool) -> Optional[T]:
-    while coros:
-        done, coros = await asyncio.wait(coros, return_when=asyncio.FIRST_COMPLETED)
-        if done:
-            result = next(iter(done)).result()
-            res = predicate(result)
-            if inspect.isawaitable(res):
-                res = await res
-            if res:
-                for coro in coros:
-                    coro.cancel()
-
-                return result
-
-    return None
-
-
-def get_certainty(a: str, b: str) -> float:
-    return round(SequenceMatcher(a=a, b=b).ratio(), 2)
 
 
 class SearchResult(NamedTuple):
@@ -119,7 +51,7 @@ class Stream(Expiring, abc.ABC):
     HOST = None
 
     def __repr__(self) -> str:
-        return f"{type(self).__name__} Stream: {self._req}"
+        return f"{type(self).__qualname__} Stream: {self._req}"
 
     @classmethod
     async def can_handle(cls, req: Request) -> bool:
@@ -214,7 +146,7 @@ class Stream(Expiring, abc.ABC):
     async def to_dict(self) -> Dict[str, BsonType]:
         links, poster = await asyncio.gather(self.links, self.poster)
 
-        return {"type": type(self).__name__,
+        return {"type": type(self).__qualname__,
                 "url": self._req._raw_url,
                 "links": links,
                 "poster": poster,
@@ -230,7 +162,7 @@ class Episode(Expiring, abc.ABC):
         super().__init__(req)
 
     def __repr__(self) -> str:
-        return f"{type(self).__name__} Ep.: {repr(self._req)}"
+        return f"{type(self).__qualname__} Ep.: {repr(self._req)}"
 
     @property
     def dirty(self) -> bool:
@@ -313,20 +245,11 @@ class Episode(Expiring, abc.ABC):
             return value.state
 
     @classmethod
-    def get_stream(cls, data: BsonType) -> Optional[Stream]:
-        m, c = data["cls"].rsplit(".", 1)
-        module = sys.modules.get(m)
-        if module:
-            stream_cls = getattr(module, c)
-            return stream_cls.from_state(data)
-
-    @classmethod
     def deserialise_special(cls, key: str, value: BsonType) -> Any:
+        from . import streams
+
         if key == "streams":
-            streams = []
-            for stream in value:
-                streams.append(cls.get_stream(stream))
-            return streams
+            return list(filter(None, map(streams.load_stream, value)))
         elif key == "stream":
             return cls.get_stream(value)
 
@@ -390,10 +313,12 @@ class Anime(Expiring, abc.ABC):
 
     @cached_property
     async def uid(self) -> UID:
-        source = RE_UID_CLEANER.sub("", type(self).__name__.lower())
+        source = RE_UID_CLEANER.sub("", type(self).__qualname__.lower())
         anime_id = RE_UID_CLEANER.sub("", (await self.title).lower())
 
-        return UID.create(source, anime_id, await self.language, await self.is_dub)
+        language, is_dub = await asyncio.gather(self.language, self.is_dub)
+
+        return UID.create(MediaType.ANIME, anime_id, source, language, is_dub)
 
     @property
     async def id(self) -> UID:

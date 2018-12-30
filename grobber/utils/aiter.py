@@ -1,6 +1,8 @@
-__all__ = ["anext", "alist"]
+__all__ = ["anext", "alist", "get_first"]
 
-from typing import Any, AsyncIterator, List, TypeVar
+import asyncio
+import inspect
+from typing import Any, AsyncIterator, Awaitable, Callable, Iterable, List, Optional, TypeVar, Union
 
 _DEFAULT = object()
 
@@ -24,3 +26,20 @@ async def alist(iterable: AsyncIterator[T]) -> List[T]:
         items.append(item)
 
     return items
+
+
+async def get_first(coros: Iterable[Awaitable[T]], predicate: Callable[[T], Union[bool, Awaitable[bool]]] = bool) -> Optional[T]:
+    while coros:
+        done, coros = await asyncio.wait(coros, return_when=asyncio.FIRST_COMPLETED)
+        if done:
+            result = next(iter(done)).result()
+            res = predicate(result)
+            if inspect.isawaitable(res):
+                res = await res
+            if res:
+                for coro in coros:
+                    coro.cancel()
+
+                return result
+
+    return None

@@ -4,11 +4,11 @@ import os
 import sentry_sdk
 from quart import Quart, Response, request
 
-from . import __info__, sources, telemetry
+from . import __info__, anime, telemetry
 from .blueprints import *
 from .exceptions import GrobberException
-from .models import UID
 from .telemetry import API_EXCEPTIONS, API_REQUESTS
+from .uid import UID
 from .utils import *
 
 log = logging.getLogger(__name__)
@@ -33,9 +33,15 @@ def handle_grobber_exception(exc: GrobberException) -> Response:
     return error_response(exc)
 
 
+@app.errorhandler(500)
+def handle_internal_exception(exc: Exception) -> Response:
+    log.exception("internal error")
+    return error_response(GrobberException(f"Internal Error: {type(exc).__qualname__}"), status_code=500)
+
+
 @app.teardown_appcontext
 def teardown_app_context(*_):
-    do_later(sources.save_dirty())
+    anime.teardown()
 
 
 @app.before_serving

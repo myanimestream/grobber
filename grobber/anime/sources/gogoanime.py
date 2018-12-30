@@ -3,13 +3,13 @@ import math
 import re
 from typing import AsyncIterator, List, Optional
 
+from grobber.decorators import cached_property
+from grobber.languages import Language
+from grobber.request import DefaultUrlFormatter, Request
+from grobber.url_pool import UrlPool
+from grobber.utils import add_http_scheme, get_certainty
 from . import register_source
-from ..decorators import cached_property
-from ..languages import Language
-from ..models import Anime, Episode, SearchResult, get_certainty
-from ..request import DefaultUrlFormatter, Request
-from ..url_pool import UrlPool
-from ..utils import add_http_scheme
+from ..models import Anime, Episode, SearchResult
 
 log = logging.getLogger(__name__)
 

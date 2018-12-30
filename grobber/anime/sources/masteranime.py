@@ -2,13 +2,13 @@ import json
 import logging
 from typing import Any, AsyncIterator, Dict, List, Optional
 
+from grobber import utils
+from grobber.decorators import cached_property
+from grobber.languages import Language
+from grobber.request import DefaultUrlFormatter, Request
+from grobber.url_pool import UrlPool
 from . import register_source
-from .. import utils
-from ..decorators import cached_property
-from ..languages import Language
-from ..models import Anime, Episode, SearchResult, get_certainty
-from ..request import DefaultUrlFormatter, Request
-from ..url_pool import UrlPool
+from ..models import Anime, Episode, SearchResult
 
 log = logging.getLogger(__name__)
 
@@ -104,7 +104,7 @@ class MasterAnime(Anime):
             anime._anime_slug = raw_anime["slug"]
             anime._title = title
 
-            yield SearchResult(anime, get_certainty(title, query))
+            yield SearchResult(anime, utils.get_certainty(title, query))
 
     @cached_property
     async def raw_eps(self) -> List[Episode]:
