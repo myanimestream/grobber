@@ -11,7 +11,7 @@ from ..utils import anext
 
 log = logging.getLogger(__name__)
 
-_SOURCES = ["gogoanime", "masteranime"]
+_SOURCES = ["gogoanime", "masteranime", "nineanime"]
 SOURCES: Dict[str, Type[Anime]] = {}
 
 
@@ -72,12 +72,14 @@ async def get_anime(uid: UID) -> Optional[Anime]:
     return None
 
 
-async def get_anime_by_title(title: str, *, language=Language.ENGLISH, dubbed=False) -> Optional[Anime]:
-    doc = await anime_collection.find_one({"title": title, f"language{Anime._SPECIAL_MARKER}": language.value, "is_dub": dubbed})
-    if doc:
-        return await build_anime_from_doc(doc["_id"], doc)
+async def get_animes_by_title(title: str, *, language=Language.ENGLISH, dubbed=False) -> AsyncIterator[Anime]:
+    cursor = anime_collection.find({"title": title, f"language{Anime._SPECIAL_MARKER}": language.value, "is_dub": dubbed})
+    async for doc in cursor:
+        yield await build_anime_from_doc(doc["_id"], doc)
 
-    return None
+
+async def get_anime_by_title(title: str, *, language=Language.ENGLISH, dubbed=False) -> Optional[Anime]:
+    return await anext(get_animes_by_title(title, language=language, dubbed=dubbed), None)
 
 
 async def search_anime(query: str, *, language=Language.ENGLISH, dubbed=False) -> AsyncIterator[SearchResult]:

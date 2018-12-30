@@ -19,6 +19,22 @@ services:
       - database
       - proxy
       - browserless
+  #      - prometheus
+
+  # Grobber has a prometheus integration
+  #  prometheus:
+  #    container_name: Prometheus
+  #    image: prom/prometheus
+  #    command: --config.file=/etc/prometheus/test.yml
+  #    ports:
+  #      - 9090:9090
+  #    expose:
+  #      - 9090
+  #    volumes:
+  #      - prometheus:/etc/prometheus
+  #      - .docker/prometheus.yml:/etc/prometheus/prometheus.yml
+  #    networks:
+  #      - backend
 
   database:
     container_name: MongoDB
@@ -66,6 +82,7 @@ services:
 volumes:
   database: {}
   scylla: {}
+#  prometheus: {}
 
 networks:
   backend: {}

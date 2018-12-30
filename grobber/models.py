@@ -7,27 +7,55 @@ import sys
 from difflib import SequenceMatcher
 from itertools import groupby
 from operator import attrgetter
-from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Iterable, List, MutableSequence, NamedTuple, NewType, Optional, TypeVar, Union
+from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Iterable, List, MutableSequence, NamedTuple, Optional, Tuple, TypeVar, Union
 
 from quart.routing import BaseConverter
 
 from .decorators import cached_property
 from .exceptions import EpisodeNotFound, StreamNotFound
-from .languages import Language
+from .languages import Language, get_lang
 from .request import Request
 from .stateful import BsonType, Expiring
 from .utils import anext
 
 log = logging.getLogger(__name__)
 
-UID = NewType("UID", str)
+RE_UID_PARSER = re.compile(r"(.+)-(.+)-(.+)(_dub)?")
 
 
-class UIDConverter(BaseConverter):
-    def to_python(self, value):
+class UID(str, BaseConverter):
+    @cached_property
+    def parsed(self) -> Tuple[str, str, str, str]:
+        source, anime, language, dubbed = RE_UID_PARSER.match(self).groups()
+        return source, anime, language, dubbed
+
+    @property
+    def source(self) -> str:
+        return self.parsed[0]
+
+    @property
+    def anime_id(self) -> str:
+        return self.parsed[1]
+
+    @property
+    def language(self) -> Language:
+        return get_lang(self.parsed[2])
+
+    @property
+    def dubbed(self) -> bool:
+        return bool(self.parsed[3])
+
+    @classmethod
+    def create(cls, source: str, anime_id: str, language: Language, dubbed: bool) -> "UID":
+        lang = language.value
+        dubbed = "_dub" if dubbed else ""
+
+        return UID(f"{source}-{anime_id}-{lang}{dubbed}")
+
+    def to_python(self, value: str) -> "UID":
         return UID(value)
 
-    def to_url(self, value):
+    def to_url(self, value: "UID") -> str:
         return super().to_url(value)
 
 
@@ -356,13 +384,10 @@ class Anime(Expiring, abc.ABC):
 
     @cached_property
     async def uid(self) -> UID:
-        name = RE_UID_CLEANER.sub("", type(self).__name__.lower())
-        anime = RE_UID_CLEANER.sub("", (await self.title).lower())
+        source = RE_UID_CLEANER.sub("", type(self).__name__.lower())
+        anime_id = RE_UID_CLEANER.sub("", (await self.title).lower())
 
-        lang = (await self.language).value
-        dubbed = "_dub" if await self.is_dub else ""
-
-        return UID(f"{name}-{anime}-{lang}{dubbed}")
+        return UID.create(source, anime_id, await self.language, await self.is_dub)
 
     @property
     async def id(self) -> UID:

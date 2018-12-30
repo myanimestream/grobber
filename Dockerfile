@@ -29,6 +29,9 @@ COPY grobber grobber
 COPY .docker/gunicorn.py ./
 
 COPY .docker/nginx.conf /etc/nginx/conf.d/
+COPY .docker/run_gunicorn.sh /usr/bin/run_gunicorn.sh
 COPY .docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+RUN chmod +x /usr/bin/run_gunicorn.sh
 
 CMD ["/usr/bin/supervisord"]

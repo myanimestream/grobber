@@ -3,15 +3,17 @@ import asyncio
 import logging
 import typing
 from operator import attrgetter
-from typing import Any, List, NamedTuple, Optional
+from typing import Any, List, NamedTuple, Optional, Set
 
+from prometheus_async.aio import time
 from quart import request
 
 from . import languages, sources
 from .exceptions import AnimeNotFound, InvalidRequest, SourceNotFound, UIDUnknown
 from .languages import Language
 from .models import Anime, Episode, SearchResult, Stream, UID
-from .utils import fuzzy_bool
+from .telemetry import ANIME_QUERY_TYPE, ANIME_SEARCH_TIME, LANGUAGE_COUNTER, SOURCE_COUNTER
+from .utils import alist, fuzzy_bool
 
 log = logging.getLogger(__name__)
 
@@ -55,6 +57,13 @@ class AnimeQuery(metaclass=abc.ABCMeta):
             except (ValueError, KeyError):
                 return None
 
+        def track_telemetry(self, language: Language, dubbed: bool, source: str):
+            LANGUAGE_COUNTER.labels(language.value, "dub" if dubbed else "sub").inc()
+            SOURCE_COUNTER.labels(source).inc()
+
+            query_type = type(self).__name__
+            ANIME_QUERY_TYPE.labels(query_type).inc()
+
         @abc.abstractmethod
         async def search_params(self) -> SearchFilter:
             ...
@@ -74,10 +83,11 @@ class AnimeQuery(metaclass=abc.ABCMeta):
                 raise InvalidRequest("")
 
             anime = await sources.get_anime(self.uid)
-            if anime:
-                return anime
-            else:
+            if not anime:
                 raise UIDUnknown(self.uid)
+
+            self.track_telemetry(self.uid.language, self.uid.dubbed, self.uid.source)
+            return anime
 
     class Query(_Generic):
         anime: str
@@ -104,6 +114,7 @@ class AnimeQuery(metaclass=abc.ABCMeta):
             if not anime:
                 raise AnimeNotFound(self.anime, dubbed=self.dubbed, language=self.language)
 
+            self.track_telemetry(self.language, self.dubbed, type(anime).__name__)
             return anime
 
     @staticmethod
@@ -131,13 +142,12 @@ def _get_int_param(name: str, default: Any = _DEFAULT) -> int:
     return value
 
 
+@time(ANIME_SEARCH_TIME)
 async def search_anime() -> List[SearchResult]:
     query = AnimeQuery.build()
     filters = await query.search_params()
 
-    args = request.args
-
-    query = args.get("anime")
+    query = request.args.get("anime")
     if not query:
         raise InvalidRequest("No query specified")
 
@@ -145,16 +155,26 @@ async def search_anime() -> List[SearchResult]:
     if not (0 < num_results <= 20):
         raise InvalidRequest(f"Can only request up to 20 results (not {num_results})")
 
-    consider_results = max(num_results, 3)
+    results_pool: Set[SearchResult] = set()
 
-    result_iter = sources.search_anime(query, language=filters.language, dubbed=filters.dubbed)
+    try:
+        anime = await alist(sources.get_animes_by_title(query, language=filters.language, dubbed=filters.dubbed))
+    except Exception:
+        log.exception("Couldn't search anime in database, moving on...")
+    else:
+        if anime:
+            log.info(f"found {len(anime)}/{num_results} anime in database with matching query")
+            results_pool.update(map(lambda a: SearchResult(a, 1), anime))
 
-    results_pool = []
-    async for result in result_iter:
-        if len(results_pool) >= consider_results:
-            break
+    if len(results_pool) < num_results:
+        result_iter = sources.search_anime(query, language=filters.language, dubbed=filters.dubbed)
+        consider_results = max(num_results, min(int(len(sources.SOURCES) * 1.5), 5))
 
-        results_pool.append(result)
+        async for result in result_iter:
+            if len(results_pool) >= consider_results:
+                break
+
+            results_pool.add(result)
 
     results = sorted(results_pool, key=attrgetter("certainty"), reverse=True)[:num_results]
     await asyncio.gather(*(result.anime.preload_attrs(*(set(Anime.ATTRS) - {"episodes"})) for result in results))

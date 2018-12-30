@@ -22,6 +22,10 @@ class GrobberException(Exception):
         self.msg = msg or "Unknown Error"
         self.code = code or GrobberExceptionType.UNKNOWN
 
+    @property
+    def name(self) -> str:
+        return type(self).__name__
+
 
 class InvalidRequest(GrobberException):
     def __init__(self, msg: str = None):

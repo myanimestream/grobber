@@ -1,22 +1,22 @@
 __all__ = ["AsyncFormatter", "create_response", "error_response", "add_http_scheme", "parse_js_json", "external_url_for",
            "format_available",
-           "do_later", "anext", "fuzzy_bool"]
+           "do_later", "anext", "alist", "fuzzy_bool"]
 
 import asyncio
 import json
 import logging
 import re
 from string import Formatter
-from typing import Any, AsyncIterator, Awaitable, Dict, List, Optional, TypeVar, Union
+from typing import Any, Awaitable, Dict, List, Optional, TypeVar, Union
 
 from quart import Response, jsonify, url_for
 
+from .aiter import *
 from .async_string_formatter import AsyncFormatter
 from ..exceptions import GrobberException
 
 log = logging.getLogger(__name__)
 
-T = TypeVar("T")
 T2 = TypeVar("T2")
 _DEFAULT = object()
 
@@ -32,7 +32,7 @@ def error_response(exception: GrobberException) -> Response:
     data = {
         "msg": exception.msg,
         "code": exception.code,
-        "name": type(exception).__name__
+        "name": exception.name
     }
     return create_response(data, success=False)
 
@@ -92,13 +92,3 @@ def do_later(target: Awaitable) -> None:
             log.exception(f"Something went wrong while awaiting {target}")
 
     asyncio.ensure_future(safe_run(target))
-
-
-async def anext(iterable: AsyncIterator[T], default: Any = _DEFAULT) -> T:
-    try:
-        return await iterable.__anext__()
-    except StopAsyncIteration:
-        if default is _DEFAULT:
-            raise
-        else:
-            return default

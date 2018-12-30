@@ -91,7 +91,9 @@ class Request:
     _json: Dict[str, Any]
     _bs: BeautifulSoup
 
-    def __init__(self, url: str, params: Any = None, headers: Any = None, timeout: int = None, use_proxy: bool = False, **request_kwargs) -> None:
+    def __init__(self, url: str, params: Any = None, headers: Any = None,
+                 timeout: int = None, max_retries: int = 5, use_proxy: bool = False,
+                 **request_kwargs) -> None:
         self._raw_url = url
         self._params = params
         self._headers = headers
@@ -102,6 +104,8 @@ class Request:
         self._formatter = DefaultUrlFormatter
         self._session = AIOSESSION
         self._use_proxy = use_proxy or self._formatter.should_use_proxy(self._raw_url)
+        self._max_retries = max_retries
+        self._retry_count = 0
 
     def __hash__(self) -> int:
         return hash(self._raw_url)
@@ -238,9 +242,13 @@ class Request:
         url = await self.url
         resp = await self._session.request(method, url, **options)
 
-        if resp.status == 403 and not self._use_proxy:
-            log.info(f"{self} request blocked (403 forbidden). Trying again with proxy")
+        if resp.status == 403 and self._retry_count <= self._max_retries:
+            log.info(f"{self} request blocked (403 forbidden). " +
+                     ("Already using proxy, trying again" if self._use_proxy else "Trying again with proxy") +
+                     f" try {self._retry_count}/{self._max_retries}")
+
             self._use_proxy = True
+            self._retry_count += 1
             resp = await self.perform_request(method, **kwargs)
 
         return resp
