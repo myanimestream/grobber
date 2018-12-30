@@ -1,4 +1,6 @@
 # Grobber
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FMyAnimeStream%2Fgrobber.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FMyAnimeStream%2Fgrobber?ref=badge_shield)
+
 
 A [quart] api server serving Anime data.
 
@@ -28,3 +30,6 @@ a [MongoDB] database, a slightly modified version of [Scylla]
 
 [quart]: https://pgjones.gitlab.io/quart/ "Basically Flask, but async"
 [scylla]: https://github.com/MyAnimeStream/scylla
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FMyAnimeStream%2Fgrobber.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FMyAnimeStream%2Fgrobber?ref=badge_large)
