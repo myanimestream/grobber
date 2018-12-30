@@ -1,5 +1,5 @@
 # Grobber
-[![FOSSA Status][fossa-status-shield]][fossa-status-link]
+[![FOSSA Status][fossa-status-info]][fossa-status-link]
 
 
 A [quart] api server serving Anime data.
@@ -29,7 +29,7 @@ a [MongoDB] database, a slightly modified version of [Scylla]
 
 
 ## License
-[![FOSSA Status][fossa-status-shield]][fossa-status-link]
+[![FOSSA Status][fossa-status-info]][fossa-status-link]
 
 [browserless]: https://www.browserless.io/ "Browserless website"
 [nginx]: https://www.nginx.com/ "NginX website"
@@ -40,5 +40,6 @@ a [MongoDB] database, a slightly modified version of [Scylla]
 
 [grobber-documentation]: https://grobber.docs.apiary.io
 
-[fossa-status-shield]: https://app.fossa.io/api/projects/git%2Bgithub.com%2FMyAnimeStream%2Fgrobber.svg?type=large
+[fossa-status-info]: https://app.fossa.io/api/projects/git%2Bgithub.com%2FMyAnimeStream%2Fgrobber.svg?type=shield
+[fossa-status-info]: https://app.fossa.io/api/projects/git%2Bgithub.com%2FMyAnimeStream%2Fgrobber.svg?type=large
 [fossa-status-link]: https://app.fossa.io/projects/git%2Bgithub.com%2FMyAnimeStream%2Fgrobber?ref=badge_large
