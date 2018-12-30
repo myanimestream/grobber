@@ -1,8 +1,13 @@
 # Grobber
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FMyAnimeStream%2Fgrobber.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FMyAnimeStream%2Fgrobber?ref=badge_shield)
+[![FOSSA Status][fossa-status-shield]][fossa-status-link]
 
 
 A [quart] api server serving Anime data.
+
+# API Documentation
+You can find a somewhat detailed documentation [here][grobber-documentation]
+
+# Hosting it yourself
 
 ## Docker
 
@@ -23,6 +28,8 @@ a [MongoDB] database, a slightly modified version of [Scylla]
     If you want some sweet error reports, there's a [Sentry] integration.
 
 
+## License
+[![FOSSA Status][fossa-status-shield]][fossa-status-link]
 
 [browserless]: https://www.browserless.io/ "Browserless website"
 [nginx]: https://www.nginx.com/ "NginX website"
@@ -31,5 +38,7 @@ a [MongoDB] database, a slightly modified version of [Scylla]
 [quart]: https://pgjones.gitlab.io/quart/ "Basically Flask, but async"
 [scylla]: https://github.com/MyAnimeStream/scylla
 
-## License
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FMyAnimeStream%2Fgrobber.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FMyAnimeStream%2Fgrobber?ref=badge_large)
+[grobber-documentation]: https://grobber.docs.apiary.io
+
+[fossa-status-shield]: https://app.fossa.io/api/projects/git%2Bgithub.com%2FMyAnimeStream%2Fgrobber.svg?type=large
+[fossa-status-link]: https://app.fossa.io/projects/git%2Bgithub.com%2FMyAnimeStream%2Fgrobber?ref=badge_large
