@@ -31,17 +31,28 @@ log.info(f"Using Sources: {', '.join(source.__qualname__ for source in SOURCES.v
 CACHE: Set[Anime] = set()
 
 
+async def save_anime(anime: Anime, *, silent: bool = False) -> None:
+    try:
+        uid = await anime.uid
+        await anime_collection.update_one({"_id": uid}, {"$set": anime.state}, upsert=True)
+    except Exception as e:
+        if silent:
+            log.exception(f"Couldn't save anime {anime}: {e}")
+        else:
+            raise e
+
+
 async def save_dirty() -> None:
     if not CACHE:
         return
 
     num_saved = 0
+
     coros = []
     for anime in CACHE:
         if anime.dirty:
             num_saved += 1
-            coro = anime_collection.update_one({"_id": await anime.uid}, {"$set": anime.state}, upsert=True)
-            coros.append(coro)
+            coros.append(save_anime(anime, silent=True))
 
     await asyncio.gather(*coros)
     log.debug(f"Saved {num_saved} dirty out of {len(CACHE)} cached anime")

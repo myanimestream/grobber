@@ -6,6 +6,7 @@ import os
 from typing import Any, Awaitable, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 import pyppeteer
+import sentry_sdk
 import yarl
 from aiohttp import ClientResponse, ClientSession
 from aiohttp.client_exceptions import ClientError
@@ -153,8 +154,15 @@ class Request:
 
     @cached_property
     async def url(self) -> str:
-        raw_url = await self._formatter.format(self._raw_url)
-        return yarl.URL(raw_url).update_query(self._params).human_repr()
+        url = yarl.URL(await self._formatter.format(self._raw_url))
+        url = url.update_query(self._params)
+
+        sentry_sdk.add_breadcrumb(category="request",
+                                  message="Prepared url",
+                                  data=dict(raw_url=self._raw_url, url=url.human_repr()),
+                                  level="debug")
+
+        return url.human_repr()
 
     @cached_property
     async def yarl(self):
@@ -162,6 +170,10 @@ class Request:
 
     @cached_property
     async def response(self) -> ClientResponse:
+        sentry_sdk.add_breadcrumb(category="request",
+                                  message="Getting Response",
+                                  data=dict(url=self._raw_url),
+                                  level="info")
         return await self.perform_request("get")
 
     @cached_property
@@ -176,6 +188,10 @@ class Request:
 
     @cached_property
     async def head_response(self) -> ClientResponse:
+        sentry_sdk.add_breadcrumb(category="request",
+                                  message="Getting Head Response",
+                                  data=dict(url=self._raw_url),
+                                  level="info")
         if hasattr(self, "_response"):
             return self._response
 
@@ -201,6 +217,10 @@ class Request:
     @cached_property
     async def json(self) -> Dict[str, Any]:
         text = await self.text
+        sentry_sdk.add_breadcrumb(category="request",
+                                  message="Loading json",
+                                  data=dict(url=self._raw_url, text=text),
+                                  level="info")
         try:
             return json.loads(text)
         except json.JSONDecodeError:
@@ -208,7 +228,12 @@ class Request:
 
     @cached_property
     async def bs(self) -> BeautifulSoup:
-        return self.create_soup(await self.text)
+        text = await self.text
+        sentry_sdk.add_breadcrumb(category="request",
+                                  message="Creating BeautifulSoup",
+                                  data=dict(url=self._raw_url, text=text),
+                                  level="info")
+        return self.create_soup(text)
 
     @cached_contextmanager
     async def browser(self, **options) -> Browser:
@@ -248,7 +273,7 @@ class Request:
         if resp.status == 403 and self._retry_count <= self._max_retries:
             log.info(f"{self} request blocked (403 forbidden). " +
                      ("Already using proxy, trying again" if self._use_proxy else "Trying again with proxy") +
-                     f" try {self._retry_count}/{self._max_retries}")
+                     f" try {self._retry_count + 1}/{self._max_retries}")
 
             self._use_proxy = True
             self._retry_count += 1
