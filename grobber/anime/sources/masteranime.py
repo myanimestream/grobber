@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Any, AsyncIterator, Dict, List, Optional
+from typing import Any, AsyncIterator, Dict, List, Optional, Union
 
 from grobber import utils
 from grobber.decorators import cached_property
@@ -16,6 +16,22 @@ BASE_URL = "{MASTERANIME_URL}"
 SEARCH_URL = BASE_URL + "/api/anime/filter"
 ANIME_URL = BASE_URL + "/api/anime/{anime_id}/detailed"
 EPISODE_URL = BASE_URL + "/anime/watch/{anime_slug}/{episode}"
+
+masteranime_pool = UrlPool("MasterAnime", ["https://www.masterani.me"])
+DefaultUrlFormatter.add_field("MASTERANIME_URL", lambda: masteranime_pool.url)
+
+masteranime_cdn_pool = UrlPool("MasterAnime CDN", ["https://cdn.masterani.me"])
+
+
+async def get_poster_url(poster_data: Union[Dict[str, Any], str]) -> str:
+    base = await masteranime_cdn_pool.url
+
+    if isinstance(poster_data, str):
+        path = f"poster/{poster_data}"
+    else:
+        path = poster_data["path"] + poster_data["file"]
+
+    return f"{base}/{path}"
 
 
 class MasterEpisode(Episode):
@@ -69,6 +85,15 @@ class MasterAnime(Anime):
         return (await self.info_data)["title"]
 
     @cached_property
+    async def thumbnail(self) -> Optional[str]:
+        try:
+            poster = (await self._req.json)["poster"]
+        except KeyError:
+            return None
+        else:
+            return await get_poster_url(poster)
+
+    @cached_property
     async def is_dub(self) -> bool:
         return False
 
@@ -98,11 +123,7 @@ class MasterAnime(Anime):
             title = raw_anime["title"]
 
             req = Request(utils.format_available(ANIME_URL, anime_id=anime_id))
-            anime = cls(req)
-
-            anime._anime_id = anime_id
-            anime._anime_slug = raw_anime["slug"]
-            anime._title = title
+            anime = cls(req, data=dict(anime_id=anime_id, anime_slug=raw_anime["slug"], title=title, thumbail=get_poster_url(raw_anime["poster"])))
 
             yield SearchResult(anime, utils.get_certainty(title, query))
 
@@ -125,8 +146,5 @@ class MasterAnime(Anime):
     async def get_episodes(self) -> List[Episode]:
         return await self.raw_eps
 
-
-masteranime_pool = UrlPool("MasterAnime", ["https://www.masterani.me"])
-DefaultUrlFormatter.add_field("MASTERANIME_URL", lambda: masteranime_pool.url)
 
 register_source(MasterAnime)

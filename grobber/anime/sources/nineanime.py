@@ -1,5 +1,5 @@
 import re
-from typing import Iterator, List
+from typing import Iterator, List, Optional
 
 from pyppeteer.page import Page
 
@@ -38,6 +38,10 @@ class NineAnime(Anime):
         return RE_DUB_STRIPPER.sub("", await self.raw_title, 1)
 
     @cached_property
+    async def thumbnail(self) -> Optional[str]:
+        return (await self._req.bs).select_one("div.thumb img")["src"]
+
+    @cached_property
     async def is_dub(self) -> bool:
         return (await self.raw_title).endswith("(Dub)")
 
@@ -69,8 +73,7 @@ class NineAnime(Anime):
             link = result.select_one("a.poster")["href"]
             similarity = get_certainty(query, title)
 
-            anime = cls(Request(link))
-            anime._episode_count = ep_count
+            anime = cls(Request(link), data=dict(title=title, episode_count=ep_count))
             yield SearchResult(anime, similarity)
 
     @cached_property

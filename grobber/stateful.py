@@ -44,11 +44,15 @@ class Stateful(abc.ABC):
     _req: Request
     _dirty: bool
 
-    def __init__(self, req):
+    def __init__(self, req, *, data: Dict[str, Any] = None):
         self._req = req
 
         self.ATTRS = set(attr for base in type(self).__mro__ for attr in getattr(base, "ATTRS", []))
         self._dirty = False
+
+        if data:
+            for key, value in data.items():
+                setattr(self, key, value)
 
     @property
     def dirty(self) -> bool:

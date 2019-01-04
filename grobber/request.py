@@ -118,26 +118,29 @@ class Request:
     def __repr__(self) -> str:
         props: Tuple[str, ...] = (
             hasattr(self, "_response") and "REQ",
+            hasattr(self, "_head_response") and "HEAD",
             hasattr(self, "_text") and "TXT",
-            hasattr(self, "_bs") and "BS"
+            hasattr(self, "_json") and "JSON",
+            hasattr(self, "_bs") and "BS",
+            hasattr(self, "_browser") and "BROWSER",
+            hasattr(self, "_page") and "PG",
         )
         cached = ",".join(filter(None, props))
 
+        resp = getattr(self, "_response", None) or getattr(self, "_head_response", None)
+        resp = f"{resp.status}" if resp else "ONGOING"
+
         url = self._url if hasattr(self, "_url") else self._raw_url
-        return f"<{url} ({cached})>"
+        return f"<{url} [{resp}] ({cached})>"
 
     @property
     def state(self) -> dict:
-        data = {"url": self._raw_url}
-        if self._params:
-            data["params"] = self._params
-        if self._headers:
-            data["headers"] = self._params
-        if self._timeout:
-            data["timeout"] = self._timeout
-        if self.request_kwargs:
-            data["options"] = self.request_kwargs
-        return data
+        data = {"url": self._raw_url,
+                "params": self._params,
+                "headers": self._headers,
+                "timeout": self._timeout,
+                "options": self.request_kwargs}
+        return {key: value for key, value in data.items() if value}
 
     @classmethod
     def from_state(cls, state: dict) -> "Request":

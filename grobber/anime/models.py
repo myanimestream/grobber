@@ -266,7 +266,7 @@ class Anime(Expiring, abc.ABC):
     EPISODE_CLS = Episode
 
     INCLUDE_CLS = True
-    ATTRS = ("id", "is_dub", "language", "title", "episode_count", "episodes", "last_update")
+    ATTRS = ("id", "is_dub", "language", "title", "thumbnail", "episode_count", "episodes", "last_update")
     CHANGING_ATTRS = ("episode_count",)
     EXPIRE_TIME = 30 * Expiring.MINUTE  # 30 mins should be fine, right?
 
@@ -343,6 +343,11 @@ class Anime(Expiring, abc.ABC):
     async def title(self) -> str:
         ...
 
+    @property
+    @abc.abstractmethod
+    async def thumbnail(self) -> Optional[str]:
+        ...
+
     @cached_property
     async def episode_count(self) -> int:
         return len(await self.get_episodes())
@@ -381,10 +386,12 @@ class Anime(Expiring, abc.ABC):
         ...
 
     async def to_dict(self) -> Dict[str, BsonType]:
-        uid, title, episode_count, is_dub, language = await asyncio.gather(self.uid, self.title, self.episode_count, self.is_dub, self.language)
+        uid, title, thumbnail, episode_count, is_dub, language = await asyncio.gather(
+            self.uid, self.title, self.thumbnail, self.episode_count, self.is_dub, self.language)
 
         return {"uid": uid,
                 "title": title,
+                "thumbnail": thumbnail,
                 "episodes": episode_count,
                 "dubbed": is_dub,
                 "language": language.value,

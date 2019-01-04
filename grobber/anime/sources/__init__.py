@@ -12,7 +12,7 @@ from ..models import Anime, SearchResult
 
 log = logging.getLogger(__name__)
 
-_SOURCES = ["gogoanime", "masteranime", "nineanime"]
+_SOURCES = ["gogoanime", "masteranime", "nineanime", "vidstreaming"]
 SOURCES: Dict[str, Type[Anime]] = {}
 
 
@@ -120,7 +120,7 @@ async def search_anime(query: str, *, language=Language.ENGLISH, dubbed=False) -
         if isinstance(result, StopAsyncIteration):
             log.debug(f"{source} exhausted")
         elif isinstance(result, Exception):
-            log.exception(f"{source} failed to yield a search result!")
+            log.error(f"{source} failed to yield a search result", exc_info=result)
         else:
             waiting_sources.add(waiter(source))
             CACHE.add(result.anime)

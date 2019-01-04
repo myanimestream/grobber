@@ -68,6 +68,10 @@ class GogoAnime(Anime):
         return RE_DUB_STRIPPER.sub("", await self.raw_title, 1)
 
     @cached_property
+    async def thumbnail(self) -> Optional[str]:
+        return None
+
+    @cached_property
     async def is_dub(self) -> bool:
         return (await self.raw_title).endswith("(Dub)")
 
@@ -112,9 +116,13 @@ class GogoAnime(Anime):
             if dubbed != title.endswith("(Dub)"):
                 continue
 
+            thumbnail = image_link.find("img")["src"]
+
             link = BASE_URL + image_link["href"]
+            anime = cls(Request(link), data=dict(title=title, thumbnail=thumbnail))
+
             similarity = get_certainty(query, title)
-            yield SearchResult(cls(Request(link)), similarity)
+            yield SearchResult(anime, similarity)
 
     @cached_property
     async def raw_eps(self) -> List[GogoEpisode]:
