@@ -37,7 +37,7 @@ async def save_anime(anime: Anime, *, silent: bool = False) -> None:
         await anime_collection.update_one({"_id": uid}, {"$set": anime.state}, upsert=True)
     except Exception as e:
         if silent:
-            log.exception(f"Couldn't save anime {anime}: {e}")
+            log.exception(f"Couldn't save anime {anime!r}: {e}")
         else:
             raise e
 

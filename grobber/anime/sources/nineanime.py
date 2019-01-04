@@ -1,3 +1,4 @@
+import logging
 import re
 from typing import Iterator, List, Optional
 
@@ -10,6 +11,8 @@ from grobber.url_pool import UrlPool
 from grobber.utils import get_certainty
 from . import register_source
 from ..models import Anime, Episode, SearchResult
+
+log = logging.getLogger(__name__)
 
 BASE_URL = "{9ANIME_URL}"
 SEARCH_URL = BASE_URL + "/search"
@@ -66,7 +69,13 @@ class NineAnime(Anime):
 
             ep_text_container = result.select_one("div.ep")
             if ep_text_container:
-                ep_count = int(ep_text_container.text.split("/", 1)[0][4:])
+                ep_text = ep_text_container.text.split("/", 1)[0][4:]
+
+                if ep_text.isnumeric():
+                    ep_count = int(ep_text)
+                else:
+                    log.warning(f"{cls} {req} Couldn't tell episode count {ep_text}")
+                    ep_count = 0
             else:
                 ep_count = 1
 

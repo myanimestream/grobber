@@ -93,20 +93,21 @@ class Request:
     _json: Dict[str, Any]
     _bs: BeautifulSoup
 
-    def __init__(self, url: str, params: Any = None, headers: Any = None,
+    def __init__(self, url: str, params: Any = None, headers: Any = None, *,
                  timeout: int = None, max_retries: int = 5, use_proxy: bool = False,
                  **request_kwargs) -> None:
         self._raw_url = url
         self._params = params
         self._headers = headers
+
         self._timeout = timeout
+        self._use_proxy = use_proxy or self._formatter.should_use_proxy(self._raw_url)
+        self._max_retries = max_retries
 
         self.request_kwargs = request_kwargs
 
         self._formatter = DefaultUrlFormatter
         self._session = AIOSESSION
-        self._use_proxy = use_proxy or self._formatter.should_use_proxy(self._raw_url)
-        self._max_retries = max_retries
         self._retry_count = 0
 
     def __hash__(self) -> int:
@@ -135,16 +136,23 @@ class Request:
 
     @property
     def state(self) -> dict:
+        """Get a json serializable dictionary containing the state of this request.
+
+        :return: Dict
+        """
         data = {"url": self._raw_url,
                 "params": self._params,
                 "headers": self._headers,
                 "timeout": self._timeout,
+                "use_proxy": self._use_proxy,
                 "options": self.request_kwargs}
         return {key: value for key, value in data.items() if value}
 
     @classmethod
     def from_state(cls, state: dict) -> "Request":
-        inst = cls(state["url"], state.get("params"), state.get("headers"), state.get("timeout"), **state.get("options", {}))
+        inst = cls(state["url"], state.get("params"), state.get("headers"),
+                   timeout=state.get("timeout"), use_proxy=state.get("use_proxy"),
+                   **state.get("options", {}))
         return inst
 
     @classmethod
@@ -227,7 +235,7 @@ class Request:
         try:
             return json.loads(text)
         except json.JSONDecodeError:
-            log.exception(f"Couldn't parse json:\n\n{text}\n\n")
+            log.exception(f"Couldn't parse json {self}:\n\n{text}\n\n")
 
     @cached_property
     async def bs(self) -> BeautifulSoup:
