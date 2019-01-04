@@ -96,6 +96,10 @@ class Request:
     def __init__(self, url: str, params: Any = None, headers: Any = None, *,
                  timeout: int = None, max_retries: int = 5, use_proxy: bool = False,
                  **request_kwargs) -> None:
+        self._session = AIOSESSION
+        self._formatter = DefaultUrlFormatter
+        self._retry_count = 0
+
         self._raw_url = url
         self._params = params
         self._headers = headers
@@ -105,10 +109,6 @@ class Request:
         self._max_retries = max_retries
 
         self.request_kwargs = request_kwargs
-
-        self._formatter = DefaultUrlFormatter
-        self._session = AIOSESSION
-        self._retry_count = 0
 
     def __hash__(self) -> int:
         return hash(self._raw_url)
