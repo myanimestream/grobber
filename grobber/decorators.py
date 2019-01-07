@@ -77,7 +77,7 @@ def cached_property(func: Callable[..., Awaitable]) -> property:
         return val
 
     @wrapper.setter
-    def setter(self, value):
+    def wrapper(self, value):
         lock = get_lock(self)
         if lock.locked():
             log.warning(f"Lock {lock_name} already acquired for {func}")
@@ -91,7 +91,22 @@ def cached_property(func: Callable[..., Awaitable]) -> property:
         else:
             self._dirty = True
 
-    return setter
+    @wrapper.deleter
+    def wrapper(self):
+        lock = get_lock(self)
+        if lock.locked():
+            log.warning(f"Lock {lock_name} already acquired for {func}")
+
+        delattr(self, cache_name)
+
+        try:
+            func.__name__ in self.ATTRS
+        except AttributeError:
+            pass
+        else:
+            self._dirty = True
+
+    return wrapper
 
 
 class _RefCounter(_AsyncGeneratorContextManager):

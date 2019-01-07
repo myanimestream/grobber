@@ -88,7 +88,9 @@ async def get_browser(*, args: List[str] = None, **options) -> Browser:
             "--window-size=1920x1080",
         ]
         if PROXY_URL:
-            args.append(f"--proxy-server={PROXY_URL}")
+            scheme = yarl.URL(PROXY_URL).scheme
+            host = PROXY_URL[len(scheme) + 3:]
+            args.append(f"--proxy-server=\"http={host};https={host}\"")
 
     if CHROME_WS:
         qs = "?" + "&".join(args) if args else ""
@@ -98,7 +100,8 @@ async def get_browser(*, args: List[str] = None, **options) -> Browser:
 
 
 class Request:
-    RESET_ATTRS = ("_response", "_head_response", "_success", "_head_success", "_text", "_json", "_bs", "_browser", "_page")
+    RESET_ATTRS = ("response", "head_response", "success", "head_success", "text", "json", "bs", "browser", "page")
+    RELOAD_ATTRS = RESET_ATTRS
 
     _url: str
     _yarl: yarl.URL
@@ -330,6 +333,10 @@ class Request:
     def track_telemetry(self, url: str, method: str, using_proxy: bool) -> None:
         host = yarl.URL(url).host
         HTTP_REQUESTS.labels(host, method, using_proxy).inc()
+
+    def reload(self):
+        log.debug(f"{self} reloading...")
+        self.reset(self.RELOAD_ATTRS)
 
     def reset(self, attrs: Iterable[str] = None) -> None:
         attrs = attrs or self.RESET_ATTRS

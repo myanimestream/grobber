@@ -1,5 +1,7 @@
 from typing import List, Optional
 
+from bs4 import BeautifulSoup
+
 from grobber.decorators import cached_property
 from grobber.request import Request
 from . import register_stream
@@ -10,8 +12,17 @@ class RapidVideo(Stream):
     HOST = "rapidvideo.com"
 
     @cached_property
+    async def bs(self) -> BeautifulSoup:
+        # get the cookie
+        await self._req.response
+        self._req.reload()
+        # hopefully use the cookie?
+        bs = await self._req.bs
+        return bs
+
+    @cached_property
     async def poster(self) -> Optional[str]:
-        link_container = (await self._req.bs).select_one("video#videojs")
+        link_container = (await self.bs).select_one("video#videojs")
         if not link_container:
             return None
         link = link_container.attrs.get("poster")
@@ -20,7 +31,9 @@ class RapidVideo(Stream):
 
     @cached_property
     async def links(self) -> List[str]:
-        sources = [Request(source["src"], timeout=5) for source in (await self._req.bs).select("video source")]
+        bs = await self.bs
+
+        sources = [Request(source["src"], timeout=10) for source in bs.select("video#videojs source")]
         return await Stream.get_successful_links(sources)
 
     @cached_property
