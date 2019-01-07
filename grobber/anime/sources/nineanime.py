@@ -26,7 +26,12 @@ class NineEpisode(Episode):
     async def raw_streams(self) -> List[str]:
         async with self._req.page as page:
             page: Page
-            return [await page.evaluate("""document.querySelector("div#player iframe").src""", force_expr=True)]
+            await page.waitFor("div#player .cover")
+            await page.evaluate("""document.querySelector("div#player .cover").click();""")
+            await page.waitFor("div#player iframe")
+            src = await page.evaluate("""document.querySelector("div#player iframe").src""", force_expr=True)
+
+            return [src]
 
 
 class NineAnime(Anime):
@@ -100,7 +105,7 @@ class NineAnime(Anime):
         return (await self.raw_eps)[index]
 
 
-nineanime_pool = UrlPool("9Anime", ["https://9anime.vip", "http://9anime.vip"])
+nineanime_pool = UrlPool("9Anime", ["https://9anime.to", "https://www2.9anime.to"])
 DefaultUrlFormatter.add_field("9ANIME_URL", lambda: nineanime_pool.url)
 
 register_source(NineAnime)

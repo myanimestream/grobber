@@ -68,4 +68,4 @@ class UrlPool:
             log.debug(f"{req} successful, moving to front! ({self._url})")
             self.urls.insert(0, self.urls.pop(requests.index(req)))
         else:
-            raise GrobberException(f"{self} No working url found")
+            raise GrobberException(f"{self} No working url found {requests}")

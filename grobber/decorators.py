@@ -2,11 +2,43 @@ import asyncio
 import logging
 from contextlib import _AsyncGeneratorContextManager
 from functools import wraps
-from typing import AsyncGenerator, Awaitable, Callable
+from typing import AsyncGenerator, Awaitable, Callable, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .stateful import Stateful
 
 log = logging.getLogger(__name__)
 
 _DEFAULT = object()
+
+
+def retry_with_proxy(*exceptions: Exception, attempts: int = 5):
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(self: "Stateful", *args, **kwargs):
+            last_exception = None
+
+            for attempt in range(attempts):
+                try:
+                    return await func(self, *args, **kwargs)
+                except exceptions as e:
+                    if last_exception:
+                        e.__origin__ = last_exception
+
+                    last_exception = e
+                    request = self._req
+                    request._use_proxy = True
+                    request.reset()
+                    log.info(f"{func.__qualname__} failed, trying again with proxy {attempt + 1}/{attempts}")
+
+            if last_exception:
+                raise last_exception
+            else:
+                raise ValueError("There wasn't even an attempt lel")
+
+        return wrapper
+
+    return decorator
 
 
 def cached_property(func: Callable[..., Awaitable]) -> property:

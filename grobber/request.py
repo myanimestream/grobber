@@ -12,6 +12,7 @@ from aiohttp import ClientResponse, ClientSession
 from aiohttp.client_exceptions import ClientError
 from bs4 import BeautifulSoup
 from pyppeteer.browser import Browser
+from pyppeteer.errors import TimeoutError as PyppeteerTimeoutError
 from pyppeteer.page import Page
 
 from .decorators import cached_contextmanager, cached_property
@@ -76,22 +77,40 @@ CHROME_WS = os.getenv("CHROME_WS")
 PROXY_URL = os.getenv("PROXY_URL")
 
 
-async def get_browser(**options) -> Browser:
+async def get_browser(*, args: List[str] = None, **options) -> Browser:
+    if args is None:
+        args = [
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-accelerated-2d-canvas",
+            "--disable-gpu",
+            "--window-size=1920x1080",
+        ]
+        if PROXY_URL:
+            args.append(f"--proxy-server={PROXY_URL}")
+
     if CHROME_WS:
-        return await pyppeteer.connect(browserWSEndpoint=CHROME_WS, **options)
+        qs = "?" + "&".join(args) if args else ""
+        return await pyppeteer.connect(browserWSEndpoint=CHROME_WS + qs, **options)
     else:
-        return await pyppeteer.launch(**options)
+        return await pyppeteer.launch(args=args, **options)
 
 
 class Request:
-    ATTRS = ()
+    RESET_ATTRS = ("_response", "_head_response", "_success", "_head_success", "_text", "_json", "_bs", "_browser", "_page")
 
     _url: str
+    _yarl: yarl.URL
     _response: ClientResponse
+    _head_response: ClientResponse
     _success: bool
+    _head_success: bool
     _text: str
     _json: Dict[str, Any]
     _bs: BeautifulSoup
+    _browser: Browser
+    _page: Page
 
     def __init__(self, url: str, params: Any = None, headers: Any = None, *,
                  timeout: int = None, max_retries: int = 5, use_proxy: bool = False,
@@ -259,7 +278,23 @@ class Request:
         browser: Browser
         async with self.browser as browser:
             page = await browser.newPage()
-            await page.goto(await self.url)
+            await page.setRequestInterception(True)
+
+            @page.on("request")
+            async def on_request(request: pyppeteer.page.Request):
+                if request.resourceType in BLOCKED_RESOURCE_TYPES:
+                    await request.abort()
+                else:
+                    await request.continue_()
+
+            for attempt in range(self._max_retries):
+                try:
+                    await page.goto(await self.url, timeout=25000)
+                    break
+                except PyppeteerTimeoutError:
+                    log.info(f"{self} timed out, trying again {attempt + 1} / {self._max_retries}")
+            else:
+                raise TimeoutError("Timeout exceeded")
 
             try:
                 yield page
@@ -281,8 +316,8 @@ class Request:
         url = await self.url
         resp = await self._session.request(method, url, **options)
 
-        if resp.status == 403 and self._retry_count <= self._max_retries:
-            log.info(f"{self} request blocked (403 forbidden). " +
+        if resp.status in {403, 429, 529} and self._retry_count <= self._max_retries:
+            log.info(f"{self} request failed ({resp.status}). " +
                      ("Already using proxy, trying again" if self._use_proxy else "Trying again with proxy") +
                      f" try {self._retry_count + 1}/{self._max_retries}")
 
@@ -296,8 +331,24 @@ class Request:
         host = yarl.URL(url).host
         HTTP_REQUESTS.labels(host, method, using_proxy).inc()
 
+    def reset(self, attrs: Iterable[str] = None) -> None:
+        attrs = attrs or self.RESET_ATTRS
+        for attr in attrs:
+            try:
+                delattr(self, attr)
+            except AttributeError:
+                pass
+            except Exception as e:
+                log.warning(f"{self} couldn't delete attr {attr} {e}")
+
     @staticmethod
     async def try_req(req: "Request", *, predicate: Callable[["Request"], Awaitable[bool]] = None) -> Optional["Request"]:
+        """Return request if it passes predicate, otherwise None
+
+        :param req: Request to check
+        :param predicate: Predicate to check on req, defaults to head_success
+        :return: req if it passes predicate, else None
+        """
         if predicate is None:
             if await req.head_success:
                 return req
@@ -314,7 +365,13 @@ class Request:
     @staticmethod
     async def first(requests: Iterable["Request"], *, timeout: float = None,
                     predicate: Callable[["Request"], Awaitable[bool]] = None) -> Optional["Request"]:
+        """Get first request that fulfills predicate (or None)
 
+        :param requests: Iterable of requests
+        :param timeout: Timeout for ALL requests together
+        :param predicate: Predicate to fulfill (defaults to head_success)
+        :return: Optional Request instance
+        """
         coros = {Request.try_req(request, predicate=predicate) for request in requests}
 
         while coros:
@@ -334,6 +391,13 @@ class Request:
 
     @staticmethod
     async def all(requests: Iterable["Request"], *, timeout: float = None, predicate: Callable[["Request"], Awaitable[bool]] = None) -> ["Request"]:
+        """Get all requests that fulfill predicate
+
+        :param requests: Iterable of Request instances
+        :param timeout: timeout for ALL requests together
+        :param predicate: condition for a Request to pass (defaults to head_success)
+        :return: List of Requests that fulfilled predicate
+        """
         wrapped = {Request.try_req(request, predicate=predicate) for request in requests}
         if not wrapped:
             return []
@@ -341,3 +405,15 @@ class Request:
         done, _ = await asyncio.wait(wrapped, timeout=timeout,
                                      return_when=asyncio.ALL_COMPLETED)
         return list(filter(None, (task.result() for task in done)))
+
+
+BLOCKED_RESOURCE_TYPES = {
+    "image",
+    "media",
+    "font",
+    "texttrack",
+    "object",
+    "beacon",
+    "csp_report",
+    "imageset",
+}

@@ -3,7 +3,7 @@ import logging
 from typing import Any, AsyncIterator, Dict, List, Optional, Union
 
 from grobber import utils
-from grobber.decorators import cached_property
+from grobber.decorators import cached_property, retry_with_proxy
 from grobber.languages import Language
 from grobber.request import DefaultUrlFormatter, Request
 from grobber.url_pool import UrlPool
@@ -65,10 +65,12 @@ class MasterAnime(Anime):
     EPISODE_CLS = MasterEpisode
 
     @cached_property
+    @retry_with_proxy(KeyError, TypeError)
     async def info_data(self) -> Dict[str, Any]:
         return (await self._req.json)["info"]
 
     @cached_property
+    @retry_with_proxy(KeyError, TypeError)
     async def episode_data(self) -> List[Dict[str, Any]]:
         return (await self._req.json)["episodes"]
 
@@ -123,7 +125,8 @@ class MasterAnime(Anime):
             title = raw_anime["title"]
 
             req = Request(utils.format_available(ANIME_URL, anime_id=anime_id))
-            anime = cls(req, data=dict(anime_id=anime_id, anime_slug=raw_anime["slug"], title=title, thumbail=get_poster_url(raw_anime["poster"])))
+            anime = cls(req,
+                        data=dict(anime_id=anime_id, anime_slug=raw_anime["slug"], title=title, thumbail=await get_poster_url(raw_anime["poster"])))
 
             yield SearchResult(anime, utils.get_certainty(title, query))
 
