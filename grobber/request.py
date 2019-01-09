@@ -195,7 +195,7 @@ class Request:
         try:
             (await self.response).raise_for_status()
         except (ClientError, asyncio.TimeoutError) as e:
-            log.warning(f"Couldn't fetch to {self}: {e}")
+            log.warning(f"Couldn't fetch {self}: {e}")
             return False
         else:
             return True
@@ -213,10 +213,12 @@ class Request:
 
     @cached_property
     async def head_success(self) -> bool:
+        resp = None
         try:
-            (await self.head_response).raise_for_status()
+            resp = await self.head_response
+            resp.raise_for_status()
         except (ClientError, asyncio.TimeoutError) as e:
-            log.warning(f"Couldn't head to {self}: {e}")
+            log.warning(f"Couldn't head to {self} ({resp}): {e}")
             return False
         else:
             return True

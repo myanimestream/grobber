@@ -123,15 +123,17 @@ async def search_anime(query: str, *, language=Language.ENGLISH, dubbed=False) -
 
         return False
 
-    log.debug("searching fist batch")
+    log.debug("searching first batch")
+    batch_results = 0
     # give 3 seconds for the first batch. This should stop results from being dominated by one source only.
     done_sources, waiting_sources = await asyncio.wait(waiting_sources, return_when=asyncio.ALL_COMPLETED, timeout=3)
     for done in done_sources:
         result, source = done.result()
         if handle_result(result, source):
+            batch_results += 1
             yield result
 
-    log.debug("entering free for all")
+    log.debug(f"entering free for all after {batch_results} result(s) from first batch")
 
     # and from here on out it's free for all
     while waiting_sources:

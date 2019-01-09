@@ -18,6 +18,7 @@ RE_URL_SLUG_EXTRACTOR: Pattern = re.compile(r"([^/]+-)\d+$")
 
 vidstreaming_pool = UrlPool("Vidstreaming", ["https://vidstreaming.io"])
 DefaultUrlFormatter.add_field("VIDSTREAMING_URL", lambda: vidstreaming_pool.url)
+DefaultUrlFormatter.use_proxy("VIDSTREAMING_URL")
 
 
 class VidstreamingEpisode(Episode):
