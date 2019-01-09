@@ -84,19 +84,22 @@ class Stateful(abc.ABC):
                 value = await value
 
             if recursive:
-                stack = deque()
-                stack.append(value)
+                coros = []
 
+                stack = deque([value])
                 while stack:
                     v = stack.pop()
 
                     if isinstance(v, Stateful):
-                        await v.preload_attrs(recursive=recursive)
+                        coro = v.preload_attrs(recursive=recursive)
+                        coros.append(asyncio.ensure_future(coro))
                     elif isinstance(v, Mapping):
                         stack.extend(v.keys())
                         stack.extend(v.values())
                     elif isinstance(v, Iterable) and not isinstance(v, str):
                         stack.extend(v)
+
+                await asyncio.gather(*coros)
 
             return value
 

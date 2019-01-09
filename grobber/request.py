@@ -133,13 +133,14 @@ class Request:
         self.request_kwargs = request_kwargs
 
     def __hash__(self) -> int:
-        return hash(self._raw_url)
+        return hash(self.raw_finalised_url)
 
     def __eq__(self, other: "Request") -> bool:
-        return self._raw_url == other._raw_url and self._params == other._params
+        return hash(self) == hash(other)
 
     def __repr__(self) -> str:
         props: Tuple[str, ...] = (
+            hasattr(self, "_url") and "URL",
             hasattr(self, "_response") and "REQ",
             hasattr(self, "_head_response") and "HEAD",
             hasattr(self, "_text") and "TXT",
@@ -153,7 +154,7 @@ class Request:
         resp = getattr(self, "_response", None) or getattr(self, "_head_response", None)
         resp = f"{resp.status}" if resp else "ONGOING"
 
-        url = self._url if hasattr(self, "_url") else self._raw_url
+        url = self._url if hasattr(self, "_url") else self.raw_finalised_url
         return f"<{url} [{resp}] ({cached})>"
 
     @property
@@ -184,6 +185,10 @@ class Request:
     @property
     def headers(self):
         return self._headers
+
+    @property
+    def raw_finalised_url(self) -> str:
+        return yarl.URL(self._raw_url).update_query(self._params).human_repr()
 
     @cached_property
     async def url(self) -> str:

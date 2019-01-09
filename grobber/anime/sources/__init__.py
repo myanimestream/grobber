@@ -111,12 +111,7 @@ async def search_anime(query: str, *, language=Language.ENGLISH, dubbed=False) -
 
     waiting_sources = {waiter(source) for source in sources}
 
-    while waiting_sources:
-        done: asyncio.Future
-        (done, *_), waiting_sources = await asyncio.wait(waiting_sources, return_when=asyncio.FIRST_COMPLETED)
-
-        result, source = done.result()
-
+    def handle_result(result, source) -> bool:
         if isinstance(result, StopAsyncIteration):
             log.debug(f"{source} exhausted")
         elif isinstance(result, Exception):
@@ -124,4 +119,28 @@ async def search_anime(query: str, *, language=Language.ENGLISH, dubbed=False) -
         else:
             waiting_sources.add(waiter(source))
             CACHE.add(result.anime)
+            return True
+
+        return False
+
+    log.debug("searching fist batch")
+    # give 3 seconds for the first batch. This should stop results from being dominated by one source only.
+    done_sources, waiting_sources = await asyncio.wait(waiting_sources, return_when=asyncio.ALL_COMPLETED, timeout=3)
+    for done in done_sources:
+        result, source = done.result()
+        if handle_result(result, source):
             yield result
+
+    log.debug("entering free for all with")
+
+    # and from here on out it's free for all
+    while waiting_sources:
+        # not sure whether FIRST_COMPLETED ever returns more than one future in the done set, but just in case!
+        # at least it seems like there can be multiple futures in the done set!
+        done_sources, waiting_sources = await asyncio.wait(waiting_sources, return_when=asyncio.FIRST_COMPLETED)
+        for done in done_sources:
+            result, source = done.result()
+            if handle_result(result, source):
+                yield result
+
+    log.info("All sources exhausted")

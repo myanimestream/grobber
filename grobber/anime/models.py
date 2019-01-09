@@ -27,6 +27,9 @@ class SearchResult(NamedTuple):
     anime: "Anime"
     certainty: float
 
+    def __hash__(self) -> int:
+        return hash(self.anime)
+
     async def to_dict(self) -> Dict[str, Any]:
         return {"anime": await self.anime.to_dict(),
                 "certainty": self.certainty}

@@ -12,8 +12,8 @@ from ..models import Anime, Episode, SearchResult
 
 log = logging.getLogger(__name__)
 
-RE_TITLE_EXTRACTOR: Pattern = re.compile(r"\s*(.+?)( \(Dub\))? Episode \d+\s*$")
-RE_HEADER_EXTRACTOR: Pattern = re.compile(r"\s*(.+?)( \(Dub\))? Episode \d+(?: English Subbed)?\s*$")
+RE_TITLE_EXTRACTOR: Pattern = re.compile(r"\s*(.+?)( \(Dub\))? Episode (\d+)\s*$")
+RE_HEADER_EXTRACTOR: Pattern = re.compile(r"\s*(.+?)( \(Dub\))? Episode (\d+)(?: English Subbed)?\s*$")
 RE_URL_SLUG_EXTRACTOR: Pattern = re.compile(r"([^/]+-)\d+$")
 
 vidstreaming_pool = UrlPool("Vidstreaming", ["https://vidstreaming.io"])
@@ -67,9 +67,9 @@ class VidstreamingAnime(Anime):
 
     async def get_episodes(self) -> List[EPISODE_CLS]:
         bs = await self._req.bs
-        links = bs.select("ul.items li.video-block a")
+        links = bs.select("div.video-info-left ul.items li.video-block a")
         episodes = []
-        for link in links:
+        for link in reversed(links):
             href = link["href"]
             req = Request(f"{{VIDSTREAMING_URL}}{href}")
             episode = self.EPISODE_CLS(req)
@@ -106,9 +106,10 @@ class VidstreamingAnime(Anime):
             if dubbed != is_dub:
                 continue
 
+            ep_count = int(match.group(3))
             thumbnail = link.select_one("div.picture img")["src"]
 
-            anime = cls(Request(url), data=dict(title=title, thumbnail=thumbnail, is_dub=is_dub))
+            anime = cls(Request(url), data=dict(title=title, thumbnail=thumbnail, is_dub=is_dub, episode_count=ep_count))
 
             similarity = get_certainty(query, title)
             yield SearchResult(anime, similarity)
@@ -119,6 +120,7 @@ class VidstreamingAnime(Anime):
         match = RE_HEADER_EXTRACTOR.match(header)
         self.title = match.group(1)
         self.is_dub = bool(match.group(2))
+        self.episode_count = int(match.group(3))
 
 
 register_source(VidstreamingAnime)

@@ -27,12 +27,16 @@ class UrlPool:
         return f"<Pool {self.name}: {self._url}>"
 
     @property
+    def needs_update(self) -> bool:
+        return (not self._next_update) or datetime.now() > self._next_update
+
+    @property
     async def url(self) -> str:
         async with self._lock:
-            if (not self._next_update) or datetime.now() > self._next_update:
+            if self.needs_update:
                 await self.fetch()
 
-            if (not self._next_update) or datetime.now() > self._next_update:
+            if self.needs_update:
                 log.debug(f"searching new url for {self}")
                 await self.update_url()
                 self._next_update = datetime.now() + self.ttl
