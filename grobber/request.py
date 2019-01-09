@@ -5,16 +5,15 @@ import logging
 import os
 from typing import Any, Awaitable, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
-import pyppeteer
 import sentry_sdk
 import yarl
 from aiohttp import ClientResponse, ClientSession
 from aiohttp.client_exceptions import ClientError
 from bs4 import BeautifulSoup
 from pyppeteer.browser import Browser
-from pyppeteer.errors import TimeoutError as PyppeteerTimeoutError
 from pyppeteer.page import Page
 
+from .browser import get_browser, load_page
 from .decorators import cached_contextmanager, cached_property
 from .telemetry import HTTP_REQUESTS
 from .utils import AsyncFormatter
@@ -73,30 +72,7 @@ DefaultUrlFormatter = UrlFormatter()
 
 AIOSESSION = ClientSession(headers=DEFAULT_HEADERS)
 
-CHROME_WS = os.getenv("CHROME_WS")
 PROXY_URL = os.getenv("PROXY_URL")
-
-
-async def get_browser(*, args: List[str] = None, **options) -> Browser:
-    if args is None:
-        args = [
-            "--no-sandbox",
-            "--disable-setuid-sandbox",
-            "--disable-dev-shm-usage",
-            "--disable-accelerated-2d-canvas",
-            "--disable-gpu",
-            "--window-size=1920x1080",
-        ]
-        if PROXY_URL:
-            scheme = yarl.URL(PROXY_URL).scheme
-            host = PROXY_URL[len(scheme) + 3:]
-            args.append(f"--proxy-server=\"http={host};https={host}\"")
-
-    if CHROME_WS:
-        qs = "?" + "&".join(args) if args else ""
-        return await pyppeteer.connect(browserWSEndpoint=CHROME_WS + qs, **options)
-    else:
-        return await pyppeteer.launch(args=args, **options)
 
 
 class Request:
@@ -285,24 +261,7 @@ class Request:
     async def page(self) -> Page:
         browser: Browser
         async with self.browser as browser:
-            page = await browser.newPage()
-            await page.setRequestInterception(True)
-
-            @page.on("request")
-            async def on_request(request: pyppeteer.page.Request):
-                if request.resourceType in BLOCKED_RESOURCE_TYPES:
-                    await request.abort()
-                else:
-                    await request.continue_()
-
-            for attempt in range(self._max_retries):
-                try:
-                    await page.goto(await self.url, timeout=25000)
-                    break
-                except PyppeteerTimeoutError:
-                    log.info(f"{self} timed out, trying again {attempt + 1} / {self._max_retries}")
-            else:
-                raise TimeoutError("Timeout exceeded")
+            page = await load_page(browser, await self.url, self._max_retries)
 
             try:
                 yield page
@@ -417,15 +376,3 @@ class Request:
         done, _ = await asyncio.wait(wrapped, timeout=timeout,
                                      return_when=asyncio.ALL_COMPLETED)
         return list(filter(None, (task.result() for task in done)))
-
-
-BLOCKED_RESOURCE_TYPES = {
-    "image",
-    "media",
-    "font",
-    "texttrack",
-    "object",
-    "beacon",
-    "csp_report",
-    "imageset",
-}

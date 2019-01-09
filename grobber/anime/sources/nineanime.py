@@ -21,17 +21,31 @@ RE_DUB_STRIPPER = re.compile(r"\s\(Dub\)$")
 
 
 class NineEpisode(Episode):
-    # TODO: automatically switch episode if no stream found! But also start with the most likely stream!
     @cached_property
     async def raw_streams(self) -> List[str]:
+        raw_streams = []
         async with self._req.page as page:
             page: Page
             await page.waitFor("div#player .cover")
             await page.evaluate("""document.querySelector("div#player .cover").click();""")
-            await page.waitFor("div#player iframe")
-            src = await page.evaluate("""document.querySelector("div#player iframe").src""", force_expr=True)
 
-            return [src]
+            episode_base = await page.evaluate("""document.querySelector("ul.episodes a.active").getAttribute("data-base");""")
+            servers = await page.querySelectorAll(f"ul.episodes a[data-base=\"{episode_base}\"]")
+
+            for server in servers:
+                try:
+                    await page.evaluate("""(el) => el.click()""", server)
+                    await page.bringToFront()
+                    await page.waitFor("div#player iframe")
+                    src = await page.evaluate("""document.querySelector("div#player iframe").src;""", force_expr=True)
+                    raw_streams.append(src)
+                except Exception as e:
+                    log.exception("Couldn't get src of server")
+                finally:
+                    await server.dispose()
+
+        log.debug(f"extracted {len(raw_streams)} raw streams from page")
+        return raw_streams
 
 
 class NineAnime(Anime):
@@ -74,7 +88,7 @@ class NineAnime(Anime):
 
             ep_text_container = result.select_one("div.ep")
             if ep_text_container:
-                ep_text = ep_text_container.text.split("/", 1)[0][4:]
+                ep_text = ep_text_container.text.split("/", 1)[0].strip()[3:]
 
                 if ep_text.isnumeric():
                     ep_count = int(ep_text)

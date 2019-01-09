@@ -131,7 +131,7 @@ async def search_anime(query: str, *, language=Language.ENGLISH, dubbed=False) -
         if handle_result(result, source):
             yield result
 
-    log.debug("entering free for all with")
+    log.debug("entering free for all")
 
     # and from here on out it's free for all
     while waiting_sources:

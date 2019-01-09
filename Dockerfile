@@ -25,6 +25,7 @@ RUN pipenv install --system --deploy
 
 WORKDIR /app
 
+COPY data data
 COPY grobber grobber
 COPY .docker/gunicorn.py ./
 
