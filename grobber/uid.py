@@ -69,6 +69,13 @@ class UID(str, BaseConverter):
 
         return uid
 
+    @classmethod
+    def create_media_id(cls, name: str) -> str:
+        name = name.strip().lower() \
+            .replace(" ", "")
+
+        return "".join((c if c.isalnum() else f"_{ord(c):x}_") for c in name)
+
     def to_python(self, value: str) -> "UID":
         return UID(value)
 

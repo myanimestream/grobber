@@ -3,7 +3,6 @@ __all__ = ["SearchResult", "Anime", "Episode", "Stream"]
 import abc
 import asyncio
 import logging
-import re
 from itertools import groupby
 from operator import attrgetter
 from typing import Any, AsyncIterator, Dict, List, MutableSequence, NamedTuple, Optional, TypeVar, Union
@@ -17,8 +16,6 @@ from ..uid import MediaType, UID
 from ..utils import anext, get_first
 
 log = logging.getLogger(__name__)
-
-RE_UID_CLEANER = re.compile(r"[^a-z0-9一-龯]+")
 
 T = TypeVar("T")
 
@@ -316,8 +313,8 @@ class Anime(Expiring, abc.ABC):
 
     @cached_property
     async def uid(self) -> UID:
-        source = RE_UID_CLEANER.sub("", type(self).__qualname__.lower())
-        anime_id = RE_UID_CLEANER.sub("", (await self.title).lower())
+        source = type(self).__qualname__.lower()
+        anime_id = UID.create_media_id(await self.title)
 
         language, is_dub = await asyncio.gather(self.language, self.is_dub)
 
