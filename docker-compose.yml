@@ -11,30 +11,33 @@ services:
     networks:
       - backend
     environment:
+      - ARIAS_URL=http://arias:7200
       - MONGO_URI=mongodb://database:27017
       - CHROME_WS=ws://browserless:3000
       - PROXY_URL=http://proxy:8081
       - SENTRY_DSN
     depends_on:
+      - arias
+      - browserless
       - database
       - proxy
-      - browserless
-  #      - prometheus
 
-  # Grobber has a prometheus integration
-  #  prometheus:
-  #    container_name: Prometheus
-  #    image: prom/prometheus
-  #    command: --config.file=/etc/prometheus/test.yml
-  #    ports:
-  #      - 9090:9090
-  #    expose:
-  #      - 9090
-  #    volumes:
-  #      - prometheus:/etc/prometheus
-  #      - .docker/prometheus.yml:/etc/prometheus/prometheus.yml
-  #    networks:
-  #      - backend
+  arias:
+    container_name: Arias
+    image: myanimestream/arias
+    restart: always
+    environment:
+      - AWS_REGION
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - STORAGETYPE
+      - DEFAULTBUCKET
+    expose:
+      - 7200
+    volumes:
+      - downloads:/downloads
+    networks:
+      - backend
 
   database:
     container_name: MongoDB
@@ -72,8 +75,6 @@ services:
       - MAX_QUEUE_LENGTH=10
       - PREBOOT_CHROME=true
       - CONNECTION_TIMEOUT=300000
-    ports:
-      - 3000:3000
     expose:
       - 3000
     networks:
@@ -81,8 +82,8 @@ services:
 
 volumes:
   database: {}
+  downloads: {}
   scylla: {}
-#  prometheus: {}
 
 networks:
   backend: {}

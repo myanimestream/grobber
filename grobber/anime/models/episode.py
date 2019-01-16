@@ -110,6 +110,8 @@ class Episode(Expiring, abc.ABC):
         elif key == "stream":
             return value.state
 
+        return super().serialise_special(key, value)
+
     @classmethod
     def deserialise_special(cls, key: str, value: BsonType) -> Any:
         from .. import streams
@@ -118,6 +120,8 @@ class Episode(Expiring, abc.ABC):
             return list(filter(None, map(streams.load_stream, value)))
         elif key == "stream":
             return streams.load_stream(value)
+
+        return super().deserialise_special(key, value)
 
     async def to_dict(self) -> Dict[str, BsonType]:
         raw_streams, stream, poster = await asyncio.gather(self.raw_streams, self.stream, self.poster)

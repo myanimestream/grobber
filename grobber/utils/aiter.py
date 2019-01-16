@@ -28,13 +28,14 @@ async def alist(iterable: AsyncIterator[T]) -> List[T]:
     return items
 
 
-async def get_first(coros: Iterable[Awaitable[T]], predicate: Callable[[T], Union[bool, Awaitable[bool]]] = bool) -> Optional[T]:
+async def get_first(coros: Iterable[Awaitable[T]],
+                    predicate: Callable[[T], Union[bool, Awaitable[bool]]] = bool, *,
+                    cancel_running: bool = True) -> Optional[T]:
     """Return the result of the first coroutine from coros that finishes with a result that passes predicate.
-
-    All other coroutines are cancelled.
 
     :param coros: coroutines to wait for
     :param predicate: predicate to check for a positive result (defaults to a truthy check)
+    :param cancel_running:  Whether or not to cancel coroutines that are still running
     :return: first result or None
     """
     while coros:
@@ -44,10 +45,14 @@ async def get_first(coros: Iterable[Awaitable[T]], predicate: Callable[[T], Unio
             res = predicate(result)
             if inspect.isawaitable(res):
                 res = await res
-            if res:
+
+            if not res:
+                continue
+
+            if cancel_running:
                 for coro in coros:
                     coro.cancel()
 
-                return result
+            return result
 
     return None

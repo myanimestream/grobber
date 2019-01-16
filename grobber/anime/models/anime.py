@@ -128,10 +128,15 @@ class Anime(Expiring, abc.ABC):
             ep = self._episodes.get(index)
             if ep is not None:
                 return ep
+        else:
+            self._episodes = {}
+
         try:
-            return (await self.episodes)[index]
+            episode = self._episodes[index] = await self.get_episode(index)
         except KeyError:
             raise EpisodeNotFound(index, await self.episode_count)
+        else:
+            return episode
 
     @abc.abstractmethod
     async def get_episodes(self) -> List[EPISODE_CLS]:
@@ -164,9 +169,13 @@ class Anime(Expiring, abc.ABC):
         elif key == "language":
             return value.value
 
+        return super().serialise_special(key, value)
+
     @classmethod
     def deserialise_special(cls, key: str, value: BsonType) -> Any:
         if key == "episodes":
             return {int(i): cls.EPISODE_CLS.from_state(ep) for i, ep in value.items()}
         elif key == "language":
             return Language(value)
+
+        return super().deserialise_special(key, value)
