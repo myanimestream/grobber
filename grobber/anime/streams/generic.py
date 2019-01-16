@@ -26,6 +26,10 @@ class Generic(Stream):
         return True
 
     async def get_links(self, pattern: Pattern) -> List[Request]:
+        url = await self._req.url
+        if pattern.match(url):
+            return [self._req]
+
         if not await self._req.success:
             log.warning(f"couldn't access {self}")
             return []

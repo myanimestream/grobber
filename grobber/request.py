@@ -213,9 +213,17 @@ class Request:
 
     @cached_property
     async def head_success(self) -> bool:
-        resp = None
         try:
             resp = await self.head_response
+        except (ClientError, asyncio.TimeoutError) as e:
+            log.warning(f"Couldn't head to {self}: {e}")
+            return False
+
+        if resp.status == 405:
+            log.info(f"{self} HEAD forbidden, using GET")
+            return await self.head_success
+
+        try:
             resp.raise_for_status()
         except (ClientError, asyncio.TimeoutError) as e:
             log.warning(f"Couldn't head to {self} ({resp}): {e}")

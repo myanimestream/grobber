@@ -1,8 +1,9 @@
 import logging
 import os
+from typing import cast
 
 import sentry_sdk
-from quart import Quart, Response, request
+from quart import Quart, Request, Response, request
 
 from . import __info__, anime, telemetry
 from .blueprints import *
@@ -10,6 +11,8 @@ from .exceptions import GrobberException
 from .telemetry import API_EXCEPTIONS, API_REQUESTS
 from .uid import UID
 from .utils import *
+
+request = cast(Request, request)
 
 log = logging.getLogger(__name__)
 
@@ -70,3 +73,8 @@ async def get_dolos_info() -> Response:
 async def get_metrics() -> Response:
     metrics, content_type = telemetry.get_metrics()
     return Response(metrics, content_type=content_type)
+
+
+@app.route("/arias")
+async def arias_callback() -> None:
+    request.args
