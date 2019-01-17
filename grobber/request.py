@@ -92,7 +92,7 @@ class Request:
     _page: Page
 
     def __init__(self, url: str, params: Any = None, headers: Any = None, *,
-                 timeout: int = None, max_retries: int = 5, use_proxy: bool = False,
+                 timeout: int = 30, max_retries: int = 5, use_proxy: bool = False,
                  **request_kwargs) -> None:
         self._session = AIOSESSION
         self._formatter = DefaultUrlFormatter
