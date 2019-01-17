@@ -112,14 +112,16 @@ class GogoAnime(Anime):
 
         for result in search_results:
             image_link = result.find("a")
-            title = image_link["title"]
-            if dubbed != title.endswith("(Dub)"):
+            raw_title = image_link["title"]
+            if dubbed != raw_title.endswith("(Dub)"):
                 continue
+
+            title = RE_DUB_STRIPPER.sub("", raw_title, 1)
 
             thumbnail = image_link.find("img")["src"]
 
             link = BASE_URL + image_link["href"]
-            anime = cls(Request(link), data=dict(title=title, thumbnail=thumbnail))
+            anime = cls(Request(link), data=dict(raw_title=raw_title, title=title, is_dub=dubbed, thumbnail=thumbnail))
 
             similarity = get_certainty(query, title)
             yield SearchResult(anime, similarity)

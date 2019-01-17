@@ -20,9 +20,10 @@ log = logging.getLogger(__name__)
 
 class Anime(Expiring, abc.ABC):
     EPISODE_CLS = Episode
+    PRELOAD_ATTRS = ("id", "is_dub", "language", "title", "thumbnail", "episode_count")
 
     INCLUDE_CLS = True
-    ATTRS = ("id", "is_dub", "language", "title", "thumbnail", "episode_count", "episodes", "last_update")
+    ATTRS = PRELOAD_ATTRS + ("episodes", "last_update")
     CHANGING_ATTRS = ("episode_count",)
     EXPIRE_TIME = 30 * Expiring.MINUTE  # 30 mins should be fine, right?
 

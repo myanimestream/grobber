@@ -8,7 +8,7 @@ from typing import Any, Awaitable, Callable, Dict, Iterable, List, Optional, Tup
 import sentry_sdk
 import yarl
 from aiohttp import ClientResponse, ClientSession
-from aiohttp.client_exceptions import ClientError
+from aiohttp.client_exceptions import ClientError, ClientProxyConnectionError
 from bs4 import BeautifulSoup
 from pyppeteer.browser import Browser
 from pyppeteer.page import Page
@@ -281,26 +281,34 @@ class Request:
     async def perform_request(self, method: str, **kwargs) -> ClientResponse:
         options = self.request_kwargs.copy()
         options.update(headers=self.headers, timeout=self._timeout)
-
-        if self._use_proxy:
-            log.debug(f"{self} using proxy")
-            options["proxy"] = PROXY_URL
-
-        self.track_telemetry(self._raw_url, method, self._use_proxy)
-
         options.update(kwargs)
 
         url = await self.url
-        resp = await self._session.request(method, url, **options)
+        resp = None
 
-        if resp.status in {403, 429, 529} and self._retry_count <= self._max_retries:
-            log.info(f"{self} request failed ({resp.status}). " +
-                     ("Already using proxy, trying again" if self._use_proxy else "Trying again with proxy") +
-                     f" try {self._retry_count + 1}/{self._max_retries}")
-
-            self._use_proxy = True
+        while self._retry_count <= self._max_retries:
             self._retry_count += 1
-            resp = await self.perform_request(method, **kwargs)
+
+            if self._use_proxy:
+                options["proxy"] = PROXY_URL
+
+            self.track_telemetry(self._raw_url, method, self._use_proxy)
+
+            try:
+                resp = await self._session.request(method, url, **options)
+            except ClientProxyConnectionError as e:
+                log.info(f"{self} proxy error: {e}, trying again try {self._retry_count}/{self._max_retries}")
+                continue
+
+            if resp.status in {403, 429, 529} and self._retry_count <= self._max_retries:
+                log.info(f"{self} request failed ({resp.status}). " +
+                         ("Already using proxy, trying again" if self._use_proxy else "Trying again with proxy") +
+                         f" try {self._retry_count}/{self._max_retries}")
+
+                self._use_proxy = True
+                continue
+
+            break
 
         return resp
 

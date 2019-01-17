@@ -82,9 +82,11 @@ class NineAnime(Anime):
         search_results = container.select("div.item")
 
         for result in search_results:
-            title = result.select_one("a.name").text
-            if dubbed != title.endswith("(Dub)"):
+            raw_title = result.select_one("a.name").text
+            if dubbed != raw_title.endswith("(Dub)"):
                 continue
+
+            title = RE_DUB_STRIPPER.sub("", raw_title, 1)
 
             ep_text_container = result.select_one("div.ep")
             if ep_text_container:
@@ -99,9 +101,10 @@ class NineAnime(Anime):
                 ep_count = 1
 
             link = result.select_one("a.poster")["href"]
+            thumbnail = result.select_one("a.poster img")["src"]
             similarity = get_certainty(query, title)
 
-            anime = cls(Request(link), data=dict(title=title, episode_count=ep_count))
+            anime = cls(Request(link), data=dict(raw_title=raw_title, title=title, is_dub=dubbed, episode_count=ep_count, thumbnail=thumbnail))
             yield SearchResult(anime, similarity)
 
     @cached_property

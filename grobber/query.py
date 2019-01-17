@@ -180,13 +180,14 @@ async def search_anime() -> List[SearchResult]:
             else:
                 log.debug(f"ignoring {result} because it's already in the pool")
 
+    log.info(f"found {len(results_pool)}/{num_results}")
     results = sorted(results_pool, key=attrgetter("certainty"), reverse=True)[:num_results]
-    await asyncio.gather(*(result.anime.preload_attrs(*(set(Anime.ATTRS) - {"episodes"})) for result in results))
+    await asyncio.gather(*(result.anime.preload_attrs(*Anime.PRELOAD_ATTRS) for result in results))
 
     # certainty, title, episode count
     results.sort(key=lambda sr: (sr.certainty, getattr(sr.anime, "_title", None), getattr(sr.anime, "_episode_count", None)), reverse=True)
 
-    return results[:num_results]
+    return results
 
 
 @time(ANIME_RESOLVE_TIME)

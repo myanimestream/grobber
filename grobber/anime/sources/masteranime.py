@@ -123,10 +123,15 @@ class MasterAnime(Anime):
         for raw_anime in json_data["data"]:
             anime_id = raw_anime["id"]
             title = raw_anime["title"]
+            ep_count = raw_anime["episode_count"]
+            thumbnail = await get_poster_url(raw_anime["poster"])
 
             req = Request(utils.format_available(ANIME_URL, anime_id=anime_id))
-            anime = cls(req,
-                        data=dict(anime_id=anime_id, anime_slug=raw_anime["slug"], title=title, thumbail=await get_poster_url(raw_anime["poster"])))
+            anime = cls(req, data=dict(anime_id=anime_id,
+                                       anime_slug=raw_anime["slug"],
+                                       title=title,
+                                       thumbail=thumbnail,
+                                       episode_count=ep_count))
 
             yield SearchResult(anime, utils.get_certainty(title, query))
 

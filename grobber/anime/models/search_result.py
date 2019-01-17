@@ -12,6 +12,9 @@ class SearchResult(NamedTuple):
     anime: Anime
     certainty: float
 
+    def __str__(self) -> str:
+        return f"<{round(100 * self.certainty)}% {self.anime}>"
+
     def __hash__(self) -> int:
         return hash(self.anime)
 

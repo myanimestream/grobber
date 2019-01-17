@@ -105,6 +105,9 @@ async def search_anime(query: str, *, language=Language.ENGLISH, dubbed=False) -
                 res = await anext(src)
             except Exception as e:
                 res = e
+            else:
+                log.debug(f"got search result from {src.__qualname__}: {res}")
+
             return res, src
 
         return asyncio.ensure_future(wrapped())
@@ -113,9 +116,9 @@ async def search_anime(query: str, *, language=Language.ENGLISH, dubbed=False) -
 
     def handle_result(result, source) -> bool:
         if isinstance(result, StopAsyncIteration):
-            log.debug(f"{source} exhausted")
+            log.debug(f"{source.__qualname__} exhausted")
         elif isinstance(result, Exception):
-            log.error(f"{source} failed to yield a search result", exc_info=result)
+            log.error(f"{source.__qualname__} failed to yield a search result", exc_info=result)
         else:
             waiting_sources.add(waiter(source))
             CACHE.add(result.anime)
@@ -123,17 +126,17 @@ async def search_anime(query: str, *, language=Language.ENGLISH, dubbed=False) -
 
         return False
 
-    log.debug("searching first batch")
+    log.info(f"searching first batch: {query} {language.value}_{'dub' if dubbed else 'sub'}")
     batch_results = 0
     # give 3 seconds for the first batch. This should stop results from being dominated by one source only.
-    done_sources, waiting_sources = await asyncio.wait(waiting_sources, return_when=asyncio.ALL_COMPLETED, timeout=3)
+    done_sources, waiting_sources = await asyncio.wait(waiting_sources, return_when=asyncio.ALL_COMPLETED, timeout=5)
     for done in done_sources:
         result, source = done.result()
         if handle_result(result, source):
             batch_results += 1
             yield result
 
-    log.debug(f"entering free for all after {batch_results} result(s) from first batch")
+    log.info(f"entering free for all after {batch_results} result(s) from first batch")
 
     # and from here on out it's free for all
     while waiting_sources:
