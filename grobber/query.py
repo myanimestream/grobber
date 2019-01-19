@@ -158,6 +158,7 @@ async def search_anime() -> List[SearchResult]:
 
     results_pool: Set[SearchResult] = set()
 
+    # first try to find animes matching the query in the database
     try:
         anime = await alist(sources.get_animes_by_title(query, language=filters.language, dubbed=filters.dubbed))
     except Exception:
@@ -167,24 +168,43 @@ async def search_anime() -> List[SearchResult]:
             log.info(f"found {len(anime)}/{num_results} anime in database with matching query")
             results_pool.update(map(lambda a: SearchResult(a, 1), anime))
 
+    # if we didn't get enough use the actual search
     if len(results_pool) < num_results:
-        result_iter = sources.search_anime(query, language=filters.language, dubbed=filters.dubbed)
+        # look at a sensible amount of search results (at least 1.5 times the amount of sources up to 5 and then just use the requested amount)
         consider_results = max(num_results, min(int(len(sources.SOURCES) * 1.5), 5))
 
+        # use a separate pool for this so we can manipulate them later
+        search_results: Set[SearchResult] = set()
+
+        result_iter = sources.search_anime(query, language=filters.language, dubbed=filters.dubbed)
         async for result in result_iter:
-            if len(results_pool) >= consider_results:
+            if len(results_pool) + len(search_results) >= consider_results:
                 break
 
-            if result not in results_pool:
-                results_pool.add(result)
+            if result not in search_results and result not in results_pool:
+                search_results.add(result)
             else:
                 log.debug(f"ignoring {result} because it's already in the pool")
+
+        # preload all uids
+        uids: List[UID] = await asyncio.gather(*(res.anime.uid for res in search_results))
+        stored_animes = await sources.get_animes(uids)
+
+        # try to find these results in the database and if they exist, use them instead of the newly created ones
+        for res in search_results:
+            uid = await res.anime.uid
+            stored_anime = stored_animes.get(uid)
+            if stored_anime:
+                log.debug(f"found {res} in database")
+                res.anime = stored_anime
+
+        results_pool.update(search_results)
 
     log.info(f"found {len(results_pool)}/{num_results}")
     results = sorted(results_pool, key=attrgetter("certainty"), reverse=True)[:num_results]
     await asyncio.gather(*(result.anime.preload_attrs(*Anime.PRELOAD_ATTRS) for result in results))
 
-    # certainty, title, episode count
+    # sort by certainty, title, episode count
     results.sort(key=lambda sr: (sr.certainty, getattr(sr.anime, "_title", None), getattr(sr.anime, "_episode_count", None)), reverse=True)
 
     return results

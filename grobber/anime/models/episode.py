@@ -20,12 +20,12 @@ T = TypeVar("T")
 
 
 class Episode(Expiring, abc.ABC):
-    ATTRS = ("stream", "host_url", "raw_streams", "streams", "poster", "host_url")
+    ATTRS = ("stream", "raw_streams", "streams", "poster")
     CHANGING_ATTRS = ATTRS
     EXPIRE_TIME = 6 * Expiring.HOUR
 
-    def __init__(self, req: Request):
-        super().__init__(req)
+    def __init__(self, req: Request, *args, **kwargs):
+        super().__init__(req, *args, **kwargs)
 
     def __repr__(self) -> str:
         return f"{type(self).__qualname__} Ep.: {repr(self._req)}"

@@ -50,7 +50,7 @@ async def get_anime_info() -> Response:
 @anime_blueprint.route("/preload/")
 async def preload_anime() -> Response:
     anime = await query.get_anime()
-    await anime.preload_attrs(recursive=False)
+    await anime.preload_attrs(recursive=True)
     return create_response()
 
 

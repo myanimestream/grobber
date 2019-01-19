@@ -1,14 +1,16 @@
 __all__ = ["SearchResult"]
 
 import logging
-from typing import Any, Dict, NamedTuple
+from dataclasses import dataclass
+from typing import Any, Dict
 
 from .anime import Anime
 
 log = logging.getLogger(__name__)
 
 
-class SearchResult(NamedTuple):
+@dataclass
+class SearchResult:
     anime: Anime
     certainty: float
 

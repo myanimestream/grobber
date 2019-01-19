@@ -92,7 +92,7 @@ class Request:
     _page: Page
 
     def __init__(self, url: str, params: Any = None, headers: Any = None, *,
-                 timeout: int = 30, max_retries: int = 5, use_proxy: bool = False,
+                 timeout: int = None, max_retries: int = 5, use_proxy: bool = False,
                  **request_kwargs) -> None:
         self._session = AIOSESSION
         self._formatter = DefaultUrlFormatter
@@ -188,7 +188,7 @@ class Request:
                                   message="Getting Response",
                                   data=dict(url=self._raw_url),
                                   level="info")
-        return await self.perform_request("get")
+        return await self.perform_request("get", timeout=self._timeout or 30)
 
     @cached_property
     async def success(self) -> bool:
@@ -209,7 +209,7 @@ class Request:
         if hasattr(self, "_response"):
             return self._response
 
-        return await self.perform_request("head", timeout=self._timeout or 7)
+        return await self.perform_request("head", timeout=self._timeout or 10)
 
     @cached_property
     async def head_success(self) -> bool:

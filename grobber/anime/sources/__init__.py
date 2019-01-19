@@ -1,7 +1,7 @@
 import asyncio
 import importlib
 import logging
-from typing import Any, AsyncIterator, Dict, List, Optional, Set, Type
+from typing import Any, AsyncIterator, Dict, Iterable, List, Optional, Set, Type, cast
 
 from grobber.exceptions import UIDUnknown
 from grobber.languages import Language
@@ -86,6 +86,19 @@ async def get_anime(uid: UID) -> Optional[Anime]:
     return None
 
 
+async def get_animes(uids: Iterable[UID]) -> Dict[UID, Anime]:
+    cursor = anime_collection.find({"_id": {"$in": list(uids)}})
+    documents = await cursor.to_list(None)
+
+    res = {}
+    for doc in documents:
+        uid = doc["_id"]
+        anime = await build_anime_from_doc(uid, doc)
+        res[uid] = anime
+
+    return res
+
+
 async def get_animes_by_title(title: str, *, language=Language.ENGLISH, dubbed=False) -> AsyncIterator[Anime]:
     cursor = anime_collection.find({"title": title, f"language{Anime._SPECIAL_MARKER}": language.value, "is_dub": dubbed})
     async for doc in cursor:
@@ -104,9 +117,10 @@ async def search_anime(query: str, *, language=Language.ENGLISH, dubbed=False) -
             try:
                 res = await anext(src)
             except Exception as e:
-                res = e
-            else:
-                log.debug(f"got search result from {src.__qualname__}: {res}")
+                return e, src
+
+            res = cast(SearchResult, res)
+            log.debug(f"got search result from {src.__qualname__}: {res}")
 
             return res, src
 

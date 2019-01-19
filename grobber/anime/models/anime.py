@@ -48,8 +48,6 @@ class Anime(Expiring, abc.ABC):
         return hash(self) == hash(other)
 
     def __hash__(self) -> int:
-        if hasattr(self, "_uid"):
-            return hash(self._uid)
         return hash(self._req)
 
     @property

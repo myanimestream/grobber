@@ -54,7 +54,8 @@ async def before_serving():
 
 @app.before_request
 async def before_request():
-    log.info(f"{request.method} {request.endpoint or request.path}")
+    args = " ".join(f"{key}={value}" for key, value in request.args.items())
+    log.info(f"{request.method} {request.endpoint or request.path} {args}")
     API_REQUESTS.labels(request.method, request.endpoint).inc()
 
 
