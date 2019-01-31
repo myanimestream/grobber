@@ -8,7 +8,7 @@ from quart import Quart, Request, Response, request
 from . import __info__, anime, arias, telemetry
 from .blueprints import *
 from .exceptions import GrobberException
-from .telemetry import API_EXCEPTIONS, API_REQUESTS
+from .telemetry import API_EXCEPTIONS, API_REQUESTS, INTERNAL_EXCEPTIONS
 from .uid import UID
 from .utils import *
 
@@ -39,6 +39,7 @@ def handle_grobber_exception(exc: GrobberException) -> Response:
 @app.errorhandler(500)
 def handle_internal_exception(exc: Exception) -> Response:
     log.exception("internal error")
+    INTERNAL_EXCEPTIONS.labels(type(exc).__name__).inc()
     return error_response(GrobberException(f"Internal Error: {type(exc).__qualname__}"), status_code=500)
 
 

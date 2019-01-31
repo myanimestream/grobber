@@ -51,6 +51,10 @@ class Anime(Expiring, abc.ABC):
         return hash(self._req)
 
     @property
+    def source_id(self) -> str:
+        return type(self).__qualname__.lower()
+
+    @property
     def dirty(self) -> bool:
         if self._dirty:
             return True
@@ -68,12 +72,11 @@ class Anime(Expiring, abc.ABC):
 
     @cached_property
     async def uid(self) -> UID:
-        source = type(self).__qualname__.lower()
         anime_id = UID.create_media_id(await self.title)
 
         language, is_dub = await asyncio.gather(self.language, self.is_dub)
 
-        return UID.create(MediaType.ANIME, anime_id, source, language, is_dub)
+        return UID.create(MediaType.ANIME, anime_id, self.source_id, language, is_dub)
 
     @property
     async def id(self) -> UID:

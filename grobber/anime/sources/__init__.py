@@ -6,6 +6,7 @@ from typing import Any, AsyncIterator, Dict, Iterable, List, Optional, Set, Type
 from grobber.exceptions import UIDUnknown
 from grobber.languages import Language
 from grobber.locals import anime_collection
+from grobber.telemetry import SEARCH_SOURCE_COUNTER
 from grobber.uid import UID
 from grobber.utils import anext
 from ..models import Anime, SearchResult
@@ -120,6 +121,7 @@ async def search_anime(query: str, *, language=Language.ENGLISH, dubbed=False) -
                 return e, src
 
             res = cast(SearchResult, res)
+            SEARCH_SOURCE_COUNTER.labels(res.anime.source_id).inc()
             log.debug(f"got search result from {src.__qualname__}: {res}")
 
             return res, src
