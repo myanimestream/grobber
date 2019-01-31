@@ -178,13 +178,13 @@ async def search_anime() -> List[SearchResult]:
 
         result_iter = sources.search_anime(query, language=filters.language, dubbed=filters.dubbed)
         async for result in result_iter:
-            if len(results_pool) + len(search_results) >= consider_results:
-                break
-
             if result not in search_results and result not in results_pool:
                 search_results.add(result)
             else:
                 log.debug(f"ignoring {result} because it's already in the pool")
+
+            if len(results_pool) + len(search_results) >= consider_results:
+                break
 
         # preload all uids
         uids: List[UID] = await asyncio.gather(*(res.anime.uid for res in search_results))
