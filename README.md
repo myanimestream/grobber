@@ -1,8 +1,10 @@
 # Grobber
 [![FOSSA Status][fossa-status-info]][fossa-status-link]
 
-
 A [quart] api server serving Anime data.
+
+# Deprecation notice
+Grobber will (hopefully) soon be rewritten in **Go**.
 
 # API Documentation
 You can find a somewhat detailed documentation [here][grobber-documentation]
