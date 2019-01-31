@@ -12,6 +12,7 @@ from aiohttp.client_exceptions import ClientError, ClientProxyConnectionError
 from bs4 import BeautifulSoup
 from pyppeteer.browser import Browser
 from pyppeteer.page import Page
+from quart.local import LocalProxy
 
 from .browser import get_browser, load_page
 from .decorators import cached_contextmanager, cached_property
@@ -70,7 +71,17 @@ class UrlFormatter(AsyncFormatter):
 
 DefaultUrlFormatter = UrlFormatter()
 
-AIOSESSION = ClientSession(headers=DEFAULT_HEADERS)
+_AIOSESSION = None
+
+
+def _get_aiosession():
+    global _AIOSESSION
+    if not _AIOSESSION:
+        _AIOSESSION = ClientSession(headers=DEFAULT_HEADERS)
+    return _AIOSESSION
+
+
+AIOSESSION: ClientSession = LocalProxy(_get_aiosession)
 
 PROXY_URL = os.getenv("PROXY_URL")
 

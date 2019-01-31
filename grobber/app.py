@@ -5,7 +5,7 @@ from typing import cast
 import sentry_sdk
 from quart import Quart, Request, Response, request
 
-from . import __info__, anime, arias, telemetry
+from . import __info__, anime, arias, locals, telemetry
 from .blueprints import *
 from .exceptions import GrobberException
 from .telemetry import API_EXCEPTIONS, API_REQUESTS, INTERNAL_EXCEPTIONS
@@ -51,6 +51,7 @@ def teardown_app_context(*_):
 @app.before_serving
 async def before_serving():
     log.info(f"grobber version {__info__.__version__} running!")
+    locals.before_serving()
 
 
 @app.before_request

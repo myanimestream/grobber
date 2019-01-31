@@ -31,15 +31,20 @@ class Arias:
     url: str
     callback_url: str
 
-    aiosession: aiohttp.ClientSession
     downloads: Dict[str, asyncio.Future]
 
-    def __init__(self, url: str, callback_url: str) -> None:
+    def __init__(self, url: str, callback_url: str, *, aiosession: aiohttp.ClientSession = None) -> None:
         self.url = url
         self.callback_url = callback_url
 
-        self.aiosession = aiohttp.ClientSession()
+        self._aiosession = aiosession
         self.downloads = {}
+
+    @property
+    def aiosession(self) -> aiohttp.ClientSession:
+        if not self._aiosession:
+            self._aiosession = aiohttp.ClientSession()
+        return self._aiosession
 
     def get_download(self, download_id: str) -> AriasDownload:
         return AriasDownload(self, download_id)
