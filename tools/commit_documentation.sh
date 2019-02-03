@@ -16,5 +16,5 @@ git fetch upstream
 git reset upstream/gh-pages
 
 git add --force .
-git commit --message "chore: deploy ${rev}"
+git commit --message "chore: deploy ${rev} [ci skip]"
 git push --quiet upstream HEAD:gh-pages > /dev/null 2>&1
