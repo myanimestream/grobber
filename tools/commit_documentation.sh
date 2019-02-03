@@ -1,17 +1,11 @@
 #!/usr/bin/env bash
 set -e
 
-mv docs/build /tmp/
-mv .git /tmp/
-
-rm -rf *
-# delete hidden files
-rm -rf ./.* 2> /dev/null
-
-mv /tmp/build/* .
-mv /tmp/.git .
-
 rev=$(git rev-parse --short HEAD)
+
+cd docs/build/
+
+git init --quiet
 
 git config credential.helper "cache --timeout=120"
 git config user.email "$GH_EMAIL"
