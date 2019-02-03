@@ -7,8 +7,8 @@ from typing import Any, Awaitable, Callable, Dict, Iterable, List, Optional, Tup
 
 import sentry_sdk
 import yarl
-from aiohttp import ClientResponse, ClientSession
-from aiohttp.client_exceptions import ClientError, ClientProxyConnectionError
+from aiohttp import ClientResponse, ClientSession, TCPConnector
+from aiohttp.client_exceptions import ClientError, ClientHttpProxyError, ClientProxyConnectionError
 from bs4 import BeautifulSoup
 from pyppeteer.browser import Browser
 from pyppeteer.page import Page
@@ -77,7 +77,7 @@ _AIOSESSION = None
 def _get_aiosession():
     global _AIOSESSION
     if not _AIOSESSION:
-        _AIOSESSION = ClientSession(headers=DEFAULT_HEADERS)
+        _AIOSESSION = ClientSession(headers=DEFAULT_HEADERS, connector=TCPConnector(verify_ssl=False))
     return _AIOSESSION
 
 
@@ -289,6 +289,30 @@ class Request:
             finally:
                 await page.close()
 
+    async def staggered_request(self, method: str, url: str, **kwargs) -> ClientResponse:
+        requests = set()
+
+        timeout = 1
+        timeout_mult = 1.5
+
+        while True:
+            req = self._session.request(method, url, **kwargs)
+            requests.add(req)
+
+            done_fs, requests = await asyncio.wait(requests, timeout=timeout, return_when=asyncio.FIRST_COMPLETED)
+
+            done = next(iter(done_fs), None)
+            if done:
+                resp = done.result()
+                break
+
+            timeout *= timeout_mult
+
+        for req in requests:
+            req.cancel()
+
+        return resp
+
     async def perform_request(self, method: str, **kwargs) -> ClientResponse:
         options = self.request_kwargs.copy()
         options.update(headers=self.headers, timeout=self._timeout)
@@ -306,8 +330,9 @@ class Request:
             self.track_telemetry(self._raw_url, method, self._use_proxy)
 
             try:
-                resp = await self._session.request(method, url, **options)
-            except ClientProxyConnectionError as e:
+                options.pop("timeout", None)
+                resp = await self.staggered_request(method, url, **options)
+            except (ClientProxyConnectionError, ClientHttpProxyError) as e:
                 log.info(f"{self} proxy error: {e}, trying again try {self._retry_count}/{self._max_retries}")
                 continue
 

@@ -127,11 +127,16 @@ class MasterAnime(Anime):
             thumbnail = await get_poster_url(raw_anime["poster"])
 
             req = Request(utils.format_available(ANIME_URL, anime_id=anime_id))
-            anime = cls(req, data=dict(anime_id=anime_id,
-                                       anime_slug=raw_anime["slug"],
-                                       title=title,
-                                       thumbail=thumbnail,
-                                       episode_count=ep_count))
+            data = dict(anime_id=anime_id,
+                        anime_slug=raw_anime["slug"],
+                        title=title,
+                        thumbail=thumbnail)
+
+            # ep_count can be None which severely breaks Grobber... So let's just not, kay?
+            if ep_count is not None:
+                data["episode_count"] = ep_count
+
+            anime = cls(req, data=data)
 
             yield SearchResult(anime, utils.get_certainty(title, query))
 
