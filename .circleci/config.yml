@@ -1,0 +1,86 @@
+version: 2.1
+
+
+orbs:
+  docker-publish: circleci/docker-publish@0.1.4
+
+
+references:
+  dep_cache_key: &dep_cache_key
+                   deps-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
+
+  restore_dependencies: &restore_dependencies
+    restore_cache:
+      key: *dep_cache_key
+
+
+jobs:
+  install-dependencies:
+    docker:
+      - image: circleci/python:3.7
+
+    steps:
+      - run: sudo chown -R circleci:circleci /usr/local/bin
+      - run: sudo chown -R circleci:circleci /usr/local/lib/python3.6/site-packages
+      - *restore_dependencies
+      - run:
+          name: Installing Dependencies
+          command: |
+            sudo pip install pipenv
+            pipenv install
+      - save_cache:
+          key: *dep_cache_key
+          paths:
+            - ".venv"
+            - "/usr/local/bin"
+            - "/usr/local/lib/python3.7/site-packages"
+
+  documentation:
+    docker:
+      - image: circleci/python:3.7
+
+    steps:
+      - checkout
+      - *restore_dependencies
+      - run:
+          name: Build Documentation
+          command: pipenv run sphinx-build -b html docs/source docs/build
+      - run:
+          name: Commit Documentation
+          command: bash tools/commit_documentation.sh
+
+
+workflows:
+  version: 2
+  main:
+    jobs:
+      - install-dependencies
+
+      - documentation:
+          requires:
+            - install-dependencies
+          filters:
+            branch:
+              only: master
+
+  publish-commit-image:
+    jobs:
+      - docker-publish/publish
+
+  publish-latest-image:
+    jobs:
+      - docker-publish/publish:
+          tag: latest
+          filters:
+            branches:
+              only: master
+
+  publish-tag-image:
+    jobs:
+      - docker-publish/publish:
+          tag: CIRCLE_TAG
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v.*/

@@ -26,7 +26,7 @@ import grobber
 # -- Project information -----------------------------------------------------
 
 project = "Grobber"
-copyright = "2019, Simon Berger"
+copyright = "2018, MyAnimeStream"
 author = "Simon Berger"
 
 # The short X.Y version
