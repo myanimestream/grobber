@@ -1,6 +1,9 @@
 API Reference
 =============
 
+If you find the lack of documentation appalling please help
+me rectify the situation by contributing to this project!
+
 .. toctree::
     :glob:
     :maxdepth: 2
