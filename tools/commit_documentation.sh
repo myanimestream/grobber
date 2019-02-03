@@ -1,7 +1,15 @@
 #!/usr/bin/env bash
 set -e
 
-cd docs/build/
+mv docs/build /tmp/
+mv .git /tmp/
+
+rm -rf *
+# delete hidden files
+rm -rf ./.* 2> /dev/null
+
+mv /tmp/build/* .
+mv /tmp/.git .
 
 rev=$(git rev-parse --short HEAD)
 
