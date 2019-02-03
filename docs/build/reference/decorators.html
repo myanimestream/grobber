@@ -1,0 +1,187 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Decorators &#8212; Grobber 3.0.15 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Exceptions" href="exceptions.html" />
+    <link rel="prev" title="Browser" href="browser.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="decorators">
+<h1>Decorators<a class="headerlink" href="#decorators" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<span class="target" id="module-grobber.decorators"></span><dl class="function">
+<dt id="grobber.decorators.cached_contextmanager">
+<code class="descname">cached_contextmanager</code><span class="sig-paren">(</span><em>func</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/decorators.html#cached_contextmanager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.decorators.cached_contextmanager" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#property" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">property</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="grobber.decorators.cached_property">
+<code class="descname">cached_property</code><span class="sig-paren">(</span><em>func</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/decorators.html#cached_property"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.decorators.cached_property" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#property" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">property</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="grobber.decorators.retry_with_proxy">
+<code class="descname">retry_with_proxy</code><span class="sig-paren">(</span><em>*exceptions</em>, <em>attempts=5</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/decorators.html#retry_with_proxy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.decorators.retry_with_proxy" title="Permalink to this definition">¶</a></dt>
+<dd><p>When the underlying method of a <a class="reference internal" href="stateful.html#grobber.stateful.Stateful" title="grobber.stateful.Stateful"><code class="xref py py-class docutils literal notranslate"><span class="pre">grobber.stateful.Stateful</span></code></a> object
+throws an exceptions that is a subtype of <code class="docutils literal notranslate"><span class="pre">exceptions</span></code> it reloads the
+<a class="reference internal" href="request.html#grobber.request.Request" title="grobber.request.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">grobber.request.Request</span></code></a> and re-runs the method until it either succeeds,
+or the amount of retries exceeds <code class="docutils literal notranslate"><span class="pre">attempts</span></code>.</p>
+<p>Example:</p>
+<p>When calling the <code class="docutils literal notranslate"><span class="pre">Key.get_key</span></code> method it will re-run when it raises a <cite>KeyError</cite>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Key</span><span class="p">(</span><span class="n">Stateful</span><span class="p">):</span>
+<span class="hll">    <span class="nd">@retry_with_proxy</span><span class="p">(</span><span class="ne">KeyError</span><span class="p">)</span>
+</span>    <span class="n">async</span> <span class="k">def</span> <span class="nf">get_key</span><span class="p">():</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_req</span><span class="o">.</span><span class="n">json</span>
+        <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;key&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Decorator which applies the retry logic to the decorated method.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Grobber</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../guides/index.html">Guides</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="anime/index.html">Anime</a></li>
+<li class="toctree-l2"><a class="reference internal" href="blueprints/index.html">Blueprints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="app.html">App</a></li>
+<li class="toctree-l2"><a class="reference internal" href="arias.html">Arias</a></li>
+<li class="toctree-l2"><a class="reference internal" href="browser.html">Browser</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Decorators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="languages.html">Languages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="locals.html">Locals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="query.html">Query</a></li>
+<li class="toctree-l2"><a class="reference internal" href="request.html">Request</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stateful.html">Stateful</a></li>
+<li class="toctree-l2"><a class="reference internal" href="telemetry.html">Telemetry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="uid.html">UID</a></li>
+<li class="toctree-l2"><a class="reference internal" href="url_pool.html">UrlPool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">Utils</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API Reference</a><ul>
+      <li>Previous: <a href="browser.html" title="previous chapter">Browser</a></li>
+      <li>Next: <a href="exceptions.html" title="next chapter">Exceptions</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, MyAnimeStream.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/reference/decorators.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

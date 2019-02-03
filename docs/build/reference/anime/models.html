@@ -1,0 +1,878 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Models &#8212; Grobber 3.0.15 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Sources" href="sources.html" />
+    <link rel="prev" title="Exceptions" href="exceptions.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="models">
+<h1>Models<a class="headerlink" href="#models" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<dl class="class">
+<dt id="grobber.anime.models.Anime">
+<em class="property">class </em><code class="descname">Anime</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/models/anime.html#Anime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.models.Anime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../stateful.html#grobber.stateful.Expiring" title="grobber.stateful.Expiring"><code class="xref py py-class docutils literal notranslate"><span class="pre">grobber.stateful.Expiring</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
+<dl class="attribute">
+<dt id="grobber.anime.models.Anime.ATTRS">
+<code class="descname">ATTRS</code><em class="property"> = ('id', 'is_dub', 'language', 'title', 'thumbnail', 'episode_count', 'episodes', 'last_update')</em><a class="headerlink" href="#grobber.anime.models.Anime.ATTRS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Anime.CHANGING_ATTRS">
+<code class="descname">CHANGING_ATTRS</code><em class="property"> = ('episode_count',)</em><a class="headerlink" href="#grobber.anime.models.Anime.CHANGING_ATTRS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Anime.EPISODE_CLS">
+<code class="descname">EPISODE_CLS</code><a class="headerlink" href="#grobber.anime.models.Anime.EPISODE_CLS" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">grobber.anime.models.episode.Episode</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Anime.EXPIRE_TIME">
+<code class="descname">EXPIRE_TIME</code><em class="property"> = 1800</em><a class="headerlink" href="#grobber.anime.models.Anime.EXPIRE_TIME" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Anime.INCLUDE_CLS">
+<code class="descname">INCLUDE_CLS</code><em class="property"> = True</em><a class="headerlink" href="#grobber.anime.models.Anime.INCLUDE_CLS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Anime.PRELOAD_ATTRS">
+<code class="descname">PRELOAD_ATTRS</code><em class="property"> = ('id', 'is_dub', 'language', 'title', 'thumbnail', 'episode_count')</em><a class="headerlink" href="#grobber.anime.models.Anime.PRELOAD_ATTRS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Anime.__abstractmethods__">
+<code class="descname">__abstractmethods__</code><em class="property"> = frozenset({'language', 'title', 'thumbnail', 'get_episodes', 'search', 'is_dub', 'get_episode'})</em><a class="headerlink" href="#grobber.anime.models.Anime.__abstractmethods__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Anime.__annotations__">
+<code class="descname">__annotations__</code><em class="property"> = {'_episodes': typing.Dict[int, grobber.anime.models.episode.Episode]}</em><a class="headerlink" href="#grobber.anime.models.Anime.__annotations__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="grobber.anime.models.Anime.__bool__">
+<code class="descname">__bool__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/models/anime.html#Anime.__bool__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.models.Anime.__bool__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="grobber.anime.models.Anime.__eq__">
+<code class="descname">__eq__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/models/anime.html#Anime.__eq__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.models.Anime.__eq__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return self==value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="grobber.anime.models.Anime.__hash__">
+<code class="descname">__hash__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/models/anime.html#Anime.__hash__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.models.Anime.__hash__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return hash(self).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Anime.__module__">
+<code class="descname">__module__</code><em class="property"> = 'grobber.anime.models.anime'</em><a class="headerlink" href="#grobber.anime.models.Anime.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="grobber.anime.models.Anime.__repr__">
+<code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/models/anime.html#Anime.__repr__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.models.Anime.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return repr(self).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="grobber.anime.models.Anime.__str__">
+<code class="descname">__str__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/models/anime.html#Anime.__str__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.models.Anime.__str__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return str(self).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="grobber.anime.models.Anime.deserialise_special">
+<em class="property">classmethod </em><code class="descname">deserialise_special</code><span class="sig-paren">(</span><em>key</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/models/anime.html#Anime.deserialise_special"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.models.Anime.deserialise_special" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Anime.dirty">
+<code class="descname">dirty</code><a class="headerlink" href="#grobber.anime.models.Anime.dirty" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Anime.episode_count">
+<code class="descname">episode_count</code><a class="headerlink" href="#grobber.anime.models.Anime.episode_count" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Anime.episodes">
+<code class="descname">episodes</code><a class="headerlink" href="#grobber.anime.models.Anime.episodes" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Episode</span></code>]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="grobber.anime.models.Anime.get">
+<em class="property">coroutine </em><code class="descname">get</code><span class="sig-paren">(</span><em>self</em>, <em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/models/anime.html#Anime.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.models.Anime.get" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">Episode</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="grobber.anime.models.Anime.get_episode">
+<em class="property">coroutine </em><code class="descname">get_episode</code><span class="sig-paren">(</span><em>self</em>, <em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/models/anime.html#Anime.get_episode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.models.Anime.get_episode" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">Episode</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="grobber.anime.models.Anime.get_episodes">
+<em class="property">coroutine </em><code class="descname">get_episodes</code><span class="sig-paren">(</span><em>self</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/models/anime.html#Anime.get_episodes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.models.Anime.get_episodes" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Episode</span></code>]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Anime.id">
+<code class="descname">id</code><a class="headerlink" href="#grobber.anime.models.Anime.id" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="../uid.html#grobber.uid.UID" title="grobber.uid.UID"><code class="xref py py-class docutils literal notranslate"><span class="pre">UID</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Anime.is_dub">
+<code class="descname">is_dub</code><a class="headerlink" href="#grobber.anime.models.Anime.is_dub" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Anime.language">
+<code class="descname">language</code><a class="headerlink" href="#grobber.anime.models.Anime.language" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="../languages.html#grobber.languages.Language" title="grobber.languages.Language"><code class="xref py py-class docutils literal notranslate"><span class="pre">Language</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="grobber.anime.models.Anime.search">
+<em class="property">coroutine </em><code class="descname">search</code><span class="sig-paren">(</span><em>query</em>, <em>*</em>, <em>dubbed=False</em>, <em>language=&lt;Language.ENGLISH: 'en'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/models/anime.html#Anime.search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.models.Anime.search" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">Asynciterator</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Forwardref</span></code>]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="grobber.anime.models.Anime.serialise_special">
+<code class="descname">serialise_special</code><span class="sig-paren">(</span><em>key</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/models/anime.html#Anime.serialise_special"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.models.Anime.serialise_special" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">~BsonType</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Anime.source_id">
+<code class="descname">source_id</code><a class="headerlink" href="#grobber.anime.models.Anime.source_id" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Anime.thumbnail">
+<code class="descname">thumbnail</code><a class="headerlink" href="#grobber.anime.models.Anime.thumbnail" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Anime.title">
+<code class="descname">title</code><a class="headerlink" href="#grobber.anime.models.Anime.title" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="grobber.anime.models.Anime.to_dict">
+<em class="property">coroutine </em><code class="descname">to_dict</code><span class="sig-paren">(</span><em>self</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/models/anime.html#Anime.to_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.models.Anime.to_dict" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, ~BsonType]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Anime.uid">
+<code class="descname">uid</code><a class="headerlink" href="#grobber.anime.models.Anime.uid" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="../uid.html#grobber.uid.UID" title="grobber.uid.UID"><code class="xref py py-class docutils literal notranslate"><span class="pre">UID</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="grobber.anime.models.Episode">
+<em class="property">class </em><code class="descname">Episode</code><span class="sig-paren">(</span><em>req</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/models/episode.html#Episode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.models.Episode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../stateful.html#grobber.stateful.Expiring" title="grobber.stateful.Expiring"><code class="xref py py-class docutils literal notranslate"><span class="pre">grobber.stateful.Expiring</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
+<dl class="attribute">
+<dt id="grobber.anime.models.Episode.ATTRS">
+<code class="descname">ATTRS</code><em class="property"> = ('stream', 'raw_streams', 'streams', 'poster')</em><a class="headerlink" href="#grobber.anime.models.Episode.ATTRS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Episode.CHANGING_ATTRS">
+<code class="descname">CHANGING_ATTRS</code><em class="property"> = ('stream', 'raw_streams', 'streams', 'poster')</em><a class="headerlink" href="#grobber.anime.models.Episode.CHANGING_ATTRS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Episode.EXPIRE_TIME">
+<code class="descname">EXPIRE_TIME</code><em class="property"> = 21600</em><a class="headerlink" href="#grobber.anime.models.Episode.EXPIRE_TIME" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Episode.__abstractmethods__">
+<code class="descname">__abstractmethods__</code><em class="property"> = frozenset({'raw_streams'})</em><a class="headerlink" href="#grobber.anime.models.Episode.__abstractmethods__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="grobber.anime.models.Episode.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>req</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/models/episode.html#Episode.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.models.Episode.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Episode.__module__">
+<code class="descname">__module__</code><em class="property"> = 'grobber.anime.models.episode'</em><a class="headerlink" href="#grobber.anime.models.Episode.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="grobber.anime.models.Episode.__repr__">
+<code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/models/episode.html#Episode.__repr__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.models.Episode.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return repr(self).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="grobber.anime.models.Episode.deserialise_special">
+<em class="property">classmethod </em><code class="descname">deserialise_special</code><span class="sig-paren">(</span><em>key</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/models/episode.html#Episode.deserialise_special"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.models.Episode.deserialise_special" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Episode.dirty">
+<code class="descname">dirty</code><a class="headerlink" href="#grobber.anime.models.Episode.dirty" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="grobber.anime.models.Episode.get">
+<em class="property">coroutine </em><code class="descname">get</code><span class="sig-paren">(</span><em>self</em>, <em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/models/episode.html#Episode.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.models.Episode.get" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">Stream</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Episode.poster">
+<code class="descname">poster</code><a class="headerlink" href="#grobber.anime.models.Episode.poster" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Episode.raw_streams">
+<code class="descname">raw_streams</code><a class="headerlink" href="#grobber.anime.models.Episode.raw_streams" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="grobber.anime.models.Episode.serialise_special">
+<code class="descname">serialise_special</code><span class="sig-paren">(</span><em>key</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/models/episode.html#Episode.serialise_special"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.models.Episode.serialise_special" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">~BsonType</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Episode.sources">
+<code class="descname">sources</code><a class="headerlink" href="#grobber.anime.models.Episode.sources" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Episode.stream">
+<code class="descname">stream</code><a class="headerlink" href="#grobber.anime.models.Episode.stream" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Stream</span></code>]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Episode.streams">
+<code class="descname">streams</code><a class="headerlink" href="#grobber.anime.models.Episode.streams" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Stream</span></code>]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="grobber.anime.models.Episode.to_dict">
+<em class="property">coroutine </em><code class="descname">to_dict</code><span class="sig-paren">(</span><em>self</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/models/episode.html#Episode.to_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.models.Episode.to_dict" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, ~BsonType]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="grobber.anime.models.Stream">
+<em class="property">class </em><code class="descname">Stream</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/models/stream.html#Stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.models.Stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../stateful.html#grobber.stateful.Expiring" title="grobber.stateful.Expiring"><code class="xref py py-class docutils literal notranslate"><span class="pre">grobber.stateful.Expiring</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
+<dl class="attribute">
+<dt id="grobber.anime.models.Stream.ATTRS">
+<code class="descname">ATTRS</code><em class="property"> = ('external', 'links', 'poster')</em><a class="headerlink" href="#grobber.anime.models.Stream.ATTRS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Stream.CHANGING_ATTRS">
+<code class="descname">CHANGING_ATTRS</code><em class="property"> = ('links',)</em><a class="headerlink" href="#grobber.anime.models.Stream.CHANGING_ATTRS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Stream.EXPIRE_TIME">
+<code class="descname">EXPIRE_TIME</code><em class="property"> = 3600</em><a class="headerlink" href="#grobber.anime.models.Stream.EXPIRE_TIME" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Stream.HOST">
+<code class="descname">HOST</code><em class="property"> = None</em><a class="headerlink" href="#grobber.anime.models.Stream.HOST" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Stream.INCLUDE_CLS">
+<code class="descname">INCLUDE_CLS</code><em class="property"> = True</em><a class="headerlink" href="#grobber.anime.models.Stream.INCLUDE_CLS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Stream.PRIORITY">
+<code class="descname">PRIORITY</code><em class="property"> = 100</em><a class="headerlink" href="#grobber.anime.models.Stream.PRIORITY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Stream.__abstractmethods__">
+<code class="descname">__abstractmethods__</code><em class="property"> = frozenset({'links', 'external'})</em><a class="headerlink" href="#grobber.anime.models.Stream.__abstractmethods__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Stream.__module__">
+<code class="descname">__module__</code><em class="property"> = 'grobber.anime.models.stream'</em><a class="headerlink" href="#grobber.anime.models.Stream.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="grobber.anime.models.Stream.__repr__">
+<code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/models/stream.html#Stream.__repr__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.models.Stream.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return repr(self).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="grobber.anime.models.Stream.can_handle">
+<em class="property">coroutine </em><code class="descname">can_handle</code><span class="sig-paren">(</span><em>req</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/models/stream.html#Stream.can_handle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.models.Stream.can_handle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check whether this Stream class can handle the request.</p>
+<p>This operation shouldn’t actually perform any expensive checks.
+It should merely check whether it’s even possible for this Stream to extract
+anything from the request.</p>
+<p>The default implementation compares the Stream.HOST variable to the host
+of the request url (www. is stripped!).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>req</strong> (<a class="reference internal" href="../request.html#grobber.request.Request" title="grobber.request.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a>) – request to stream to check</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">true if this Stream may be able to extract something from the size, false otherwise</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Stream.external">
+<code class="descname">external</code><a class="headerlink" href="#grobber.anime.models.Stream.external" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicate whether the links provided by this Stream may be used externally.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">true of the links may be used externally, false otherwise</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="grobber.anime.models.Stream.get_successful_links">
+<em class="property">coroutine </em><code class="descname">get_successful_links</code><span class="sig-paren">(</span><em>sources</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/models/stream.html#Stream.get_successful_links"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.models.Stream.get_successful_links" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Stream.links">
+<code class="descname">links</code><a class="headerlink" href="#grobber.anime.models.Stream.links" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Stream.persist">
+<code class="descname">persist</code><a class="headerlink" href="#grobber.anime.models.Stream.persist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether this stream should be stored even if there are neither poster nor links in it</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">true to save anyway, false otherwise</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Stream.poster">
+<code class="descname">poster</code><a class="headerlink" href="#grobber.anime.models.Stream.poster" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="grobber.anime.models.Stream.to_dict">
+<em class="property">coroutine </em><code class="descname">to_dict</code><span class="sig-paren">(</span><em>self</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/models/stream.html#Stream.to_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.models.Stream.to_dict" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, ~BsonType]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Stream.working">
+<code class="descname">working</code><a class="headerlink" href="#grobber.anime.models.Stream.working" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.models.Stream.working_external_self">
+<code class="descname">working_external_self</code><a class="headerlink" href="#grobber.anime.models.Stream.working_external_self" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Stream</span></code>]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="grobber.anime.models.Source">
+<em class="property">class </em><code class="descname">Source</code><span class="sig-paren">(</span><em>mime_type</em>, <em>src</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/models/source.html#Source"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.models.Source" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="grobber.anime.models.SearchResult">
+<em class="property">class </em><code class="descname">SearchResult</code><span class="sig-paren">(</span><em>anime</em>, <em>certainty</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/models/search_result.html#SearchResult"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.models.SearchResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="grobber.anime.models.SearchResult.to_dict">
+<em class="property">coroutine </em><code class="descname">to_dict</code><span class="sig-paren">(</span><em>self</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/models/search_result.html#SearchResult.to_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.models.SearchResult.to_dict" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">Grobber</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../guides/index.html">Guides</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Anime</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../blueprints/index.html">Blueprints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../app.html">App</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../arias.html">Arias</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../browser.html">Browser</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../decorators.html">Decorators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../languages.html">Languages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../locals.html">Locals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../query.html">Query</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../request.html">Request</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stateful.html">Stateful</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../telemetry.html">Telemetry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../uid.html">UID</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../url_pool.html">UrlPool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../utils.html">Utils</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">API Reference</a><ul>
+  <li><a href="index.html">Anime</a><ul>
+      <li>Previous: <a href="exceptions.html" title="previous chapter">Exceptions</a></li>
+      <li>Next: <a href="sources.html" title="next chapter">Sources</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, MyAnimeStream.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/reference/anime/models.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

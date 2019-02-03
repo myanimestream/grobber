@@ -1,0 +1,271 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>grobber.anime.sources.masteranime &#8212; Grobber 3.0.15 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for grobber.anime.sources.masteranime</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">AsyncIterator</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">from</span> <span class="nn">grobber</span> <span class="k">import</span> <span class="n">utils</span>
+<span class="kn">from</span> <span class="nn">grobber.decorators</span> <span class="k">import</span> <span class="n">cached_property</span><span class="p">,</span> <span class="n">retry_with_proxy</span>
+<span class="kn">from</span> <span class="nn">grobber.languages</span> <span class="k">import</span> <span class="n">Language</span>
+<span class="kn">from</span> <span class="nn">grobber.request</span> <span class="k">import</span> <span class="n">DefaultUrlFormatter</span><span class="p">,</span> <span class="n">Request</span>
+<span class="kn">from</span> <span class="nn">grobber.url_pool</span> <span class="k">import</span> <span class="n">UrlPool</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">register_source</span>
+<span class="kn">from</span> <span class="nn">..models</span> <span class="k">import</span> <span class="n">Anime</span><span class="p">,</span> <span class="n">Episode</span><span class="p">,</span> <span class="n">SearchResult</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">BASE_URL</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{MASTERANIME_URL}</span><span class="s2">&quot;</span>
+<span class="n">SEARCH_URL</span> <span class="o">=</span> <span class="n">BASE_URL</span> <span class="o">+</span> <span class="s2">&quot;/api/anime/filter&quot;</span>
+<span class="n">ANIME_URL</span> <span class="o">=</span> <span class="n">BASE_URL</span> <span class="o">+</span> <span class="s2">&quot;/api/anime/</span><span class="si">{anime_id}</span><span class="s2">/detailed&quot;</span>
+<span class="n">EPISODE_URL</span> <span class="o">=</span> <span class="n">BASE_URL</span> <span class="o">+</span> <span class="s2">&quot;/anime/watch/</span><span class="si">{anime_slug}</span><span class="s2">/</span><span class="si">{episode}</span><span class="s2">&quot;</span>
+
+<span class="n">masteranime_pool</span> <span class="o">=</span> <span class="n">UrlPool</span><span class="p">(</span><span class="s2">&quot;MasterAnime&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;https://www.masterani.me&quot;</span><span class="p">])</span>
+<span class="n">DefaultUrlFormatter</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="s2">&quot;MASTERANIME_URL&quot;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">masteranime_pool</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+
+<span class="n">masteranime_cdn_pool</span> <span class="o">=</span> <span class="n">UrlPool</span><span class="p">(</span><span class="s2">&quot;MasterAnime CDN&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;https://cdn.masterani.me&quot;</span><span class="p">])</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">get_poster_url</span><span class="p">(</span><span class="n">poster_data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">base</span> <span class="o">=</span> <span class="k">await</span> <span class="n">masteranime_cdn_pool</span><span class="o">.</span><span class="n">url</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">poster_data</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;poster/</span><span class="si">{poster_data}</span><span class="s2">&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">poster_data</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">poster_data</span><span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{base}</span><span class="s2">/</span><span class="si">{path}</span><span class="s2">&quot;</span>
+
+
+<span class="k">class</span> <span class="nc">MasterEpisode</span><span class="p">(</span><span class="n">Episode</span><span class="p">):</span>
+    <span class="n">ATTRS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;mirror_data&quot;</span><span class="p">,)</span>
+
+    <span class="nd">@cached_property</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">mirror_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+        <span class="n">bs</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_req</span><span class="o">.</span><span class="n">bs</span>
+        <span class="n">element</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">select_one</span><span class="p">(</span><span class="s2">&quot;video-mirrors&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">element</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">element</span><span class="p">[</span><span class="s2">&quot;:mirrors&quot;</span><span class="p">])</span>
+
+    <span class="nd">@cached_property</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">raw_streams</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="n">links</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">mirror</span> <span class="ow">in</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">mirror_data</span><span class="p">:</span>
+            <span class="n">host_data</span> <span class="o">=</span> <span class="n">mirror</span><span class="p">[</span><span class="s2">&quot;host&quot;</span><span class="p">]</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="n">host_data</span><span class="p">[</span><span class="s2">&quot;embed_prefix&quot;</span><span class="p">]</span>
+            <span class="n">suffix</span> <span class="o">=</span> <span class="n">host_data</span><span class="p">[</span><span class="s2">&quot;embed_suffix&quot;</span><span class="p">]</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span>
+            <span class="n">embed_id</span> <span class="o">=</span> <span class="n">mirror</span><span class="p">[</span><span class="s2">&quot;embed_id&quot;</span><span class="p">]</span>
+            <span class="n">links</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{prefix}{embed_id}{suffix}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">links</span>
+
+
+<div class="viewcode-block" id="MasterAnime"><a class="viewcode-back" href="../../../../reference/anime/sources.html#grobber.anime.sources.masteranime.MasterAnime">[docs]</a><span class="k">class</span> <span class="nc">MasterAnime</span><span class="p">(</span><span class="n">Anime</span><span class="p">):</span>
+    <span class="n">ATTRS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;anime_id&quot;</span><span class="p">,</span> <span class="s2">&quot;anime_slug&quot;</span><span class="p">)</span>
+    <span class="n">EPISODE_CLS</span> <span class="o">=</span> <span class="n">MasterEpisode</span>
+
+    <span class="nd">@cached_property</span>
+    <span class="nd">@retry_with_proxy</span><span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">)</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">info_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_req</span><span class="o">.</span><span class="n">json</span><span class="p">)[</span><span class="s2">&quot;info&quot;</span><span class="p">]</span>
+
+    <span class="nd">@cached_property</span>
+    <span class="nd">@retry_with_proxy</span><span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">)</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">episode_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_req</span><span class="o">.</span><span class="n">json</span><span class="p">)[</span><span class="s2">&quot;episodes&quot;</span><span class="p">]</span>
+
+    <span class="nd">@cached_property</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">anime_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">info_data</span><span class="p">)[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+
+    <span class="nd">@cached_property</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">anime_slug</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">info_data</span><span class="p">)[</span><span class="s2">&quot;slug&quot;</span><span class="p">]</span>
+
+    <span class="nd">@cached_property</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">title</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">info_data</span><span class="p">)[</span><span class="s2">&quot;title&quot;</span><span class="p">]</span>
+
+    <span class="nd">@cached_property</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">thumbnail</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">poster</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_req</span><span class="o">.</span><span class="n">json</span><span class="p">)[</span><span class="s2">&quot;poster&quot;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="k">await</span> <span class="n">get_poster_url</span><span class="p">(</span><span class="n">poster</span><span class="p">)</span>
+
+    <span class="nd">@cached_property</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">is_dub</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="nd">@cached_property</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">language</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Language</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Language</span><span class="o">.</span><span class="n">ENGLISH</span>
+
+    <span class="nd">@cached_property</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">episode_count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">episode_data</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MasterAnime.search"><a class="viewcode-back" href="../../../../reference/anime/sources.html#grobber.anime.sources.masteranime.MasterAnime.search">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">search</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">language</span><span class="o">=</span><span class="n">Language</span><span class="o">.</span><span class="n">ENGLISH</span><span class="p">,</span> <span class="n">dubbed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AsyncIterator</span><span class="p">[</span><span class="n">SearchResult</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">dubbed</span> <span class="ow">or</span> <span class="n">language</span> <span class="o">!=</span> <span class="n">Language</span><span class="o">.</span><span class="n">ENGLISH</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Query limit is 45 characters!!</span>
+        <span class="n">req</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">SEARCH_URL</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;search&quot;</span><span class="p">:</span> <span class="n">query</span><span class="p">[:</span><span class="mi">45</span><span class="p">],</span> <span class="s2">&quot;order&quot;</span><span class="p">:</span> <span class="s2">&quot;relevance_desc&quot;</span><span class="p">})</span>
+        <span class="n">json_data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">req</span><span class="o">.</span><span class="n">json</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">json_data</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;couldn&#39;t get json from masteranime&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="k">for</span> <span class="n">raw_anime</span> <span class="ow">in</span> <span class="n">json_data</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]:</span>
+            <span class="n">anime_id</span> <span class="o">=</span> <span class="n">raw_anime</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="n">raw_anime</span><span class="p">[</span><span class="s2">&quot;title&quot;</span><span class="p">]</span>
+            <span class="n">ep_count</span> <span class="o">=</span> <span class="n">raw_anime</span><span class="p">[</span><span class="s2">&quot;episode_count&quot;</span><span class="p">]</span>
+            <span class="n">thumbnail</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_poster_url</span><span class="p">(</span><span class="n">raw_anime</span><span class="p">[</span><span class="s2">&quot;poster&quot;</span><span class="p">])</span>
+
+            <span class="n">req</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">format_available</span><span class="p">(</span><span class="n">ANIME_URL</span><span class="p">,</span> <span class="n">anime_id</span><span class="o">=</span><span class="n">anime_id</span><span class="p">))</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">anime_id</span><span class="o">=</span><span class="n">anime_id</span><span class="p">,</span>
+                        <span class="n">anime_slug</span><span class="o">=</span><span class="n">raw_anime</span><span class="p">[</span><span class="s2">&quot;slug&quot;</span><span class="p">],</span>
+                        <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
+                        <span class="n">thumbail</span><span class="o">=</span><span class="n">thumbnail</span><span class="p">)</span>
+
+            <span class="c1"># ep_count can be None which severely breaks Grobber... So let&#39;s just not, kay?</span>
+            <span class="k">if</span> <span class="n">ep_count</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">data</span><span class="p">[</span><span class="s2">&quot;episode_count&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ep_count</span>
+
+            <span class="n">anime</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+
+            <span class="k">yield</span> <span class="n">SearchResult</span><span class="p">(</span><span class="n">anime</span><span class="p">,</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_certainty</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">query</span><span class="p">))</span></div>
+
+    <span class="nd">@cached_property</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">raw_eps</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Episode</span><span class="p">]:</span>
+        <span class="n">episodes</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">slug</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">anime_slug</span>
+
+        <span class="k">for</span> <span class="n">ep_data</span> <span class="ow">in</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">episode_data</span><span class="p">:</span>
+            <span class="n">ep_id</span> <span class="o">=</span> <span class="n">ep_data</span><span class="p">[</span><span class="s2">&quot;info&quot;</span><span class="p">][</span><span class="s2">&quot;episode&quot;</span><span class="p">]</span>
+            <span class="n">req</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">format_available</span><span class="p">(</span><span class="n">EPISODE_URL</span><span class="p">,</span> <span class="n">anime_slug</span><span class="o">=</span><span class="n">slug</span><span class="p">,</span> <span class="n">episode</span><span class="o">=</span><span class="n">ep_id</span><span class="p">))</span>
+            <span class="n">episodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">EPISODE_CLS</span><span class="p">(</span><span class="n">req</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">episodes</span>
+
+<div class="viewcode-block" id="MasterAnime.get_episode"><a class="viewcode-back" href="../../../../reference/anime/sources.html#grobber.anime.sources.masteranime.MasterAnime.get_episode">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">get_episode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Episode</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_eps</span><span class="p">)[</span><span class="n">index</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="MasterAnime.get_episodes"><a class="viewcode-back" href="../../../../reference/anime/sources.html#grobber.anime.sources.masteranime.MasterAnime.get_episodes">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">get_episodes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Episode</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_eps</span></div></div>
+
+
+<span class="n">register_source</span><span class="p">(</span><span class="n">MasterAnime</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">Grobber</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../guides/index.html">Guides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference/index.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  <li><a href="../sources.html">grobber.anime.sources</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, MyAnimeStream.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
