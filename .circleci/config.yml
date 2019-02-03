@@ -9,6 +9,11 @@ references:
   dep_cache_key: &dep_cache_key
                    deps-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
 
+  dep_change_perms: &dep_change_perms
+    run: |
+      sudo chown -R circleci:circleci /usr/local/bin
+      sudo chown -R circleci:circleci /usr/local/lib/python3.7/site-packages
+
   restore_dependencies: &restore_dependencies
     restore_cache:
       key: *dep_cache_key
@@ -21,8 +26,7 @@ jobs:
 
     steps:
       - checkout
-      - run: sudo chown -R circleci:circleci /usr/local/bin
-      - run: sudo chown -R circleci:circleci /usr/local/lib/python3.7/site-packages
+      - *dep_change_perms
       - *restore_dependencies
       - run:
           name: Installing Dependencies
@@ -42,6 +46,7 @@ jobs:
 
     steps:
       - checkout
+      - *dep_change_perms
       - *restore_dependencies
       - run:
           name: Build Documentation
