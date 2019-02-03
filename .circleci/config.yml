@@ -60,7 +60,7 @@ workflows:
           requires:
             - install-dependencies
           filters:
-            branch:
+            branches:
               only: master
 
   publish-commit-image:
