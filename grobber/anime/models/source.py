@@ -1,8 +1,9 @@
 __all__ = ["Source"]
 
-from typing import NamedTuple
+from dataclasses import dataclass
 
 
-class Source(NamedTuple):
+@dataclass
+class Source:
     mime_type: str
     src: str

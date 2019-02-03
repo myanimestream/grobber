@@ -7,6 +7,7 @@ import yarl
 from pyppeteer.browser import Browser
 from pyppeteer.errors import TimeoutError as PyppeteerTimeoutError
 from pyppeteer.page import Page
+from quart.local import LocalProxy
 
 log = logging.getLogger(__name__)
 
@@ -47,9 +48,20 @@ BLOCKED_RESOURCE_TYPES = {
     "imageset",
 }
 
-with open("data/blocked_hosts") as file:
-    BLOCKED_HOSTS = {line.strip() for line in file.readlines()}
-    log.info(f"loaded {len(BLOCKED_HOSTS)} hosts")
+_BLOCKED_HOSTS = None
+
+
+def _load_blocked_hosts():
+    global _BLOCKED_HOSTS
+
+    if not _BLOCKED_HOSTS:
+        with open("data/blocked_hosts") as file:
+            _BLOCKED_HOSTS = {line.strip() for line in file.readlines()}
+            log.info(f"loaded {len(BLOCKED_HOSTS)} hosts")
+    return _BLOCKED_HOSTS
+
+
+BLOCKED_HOSTS = LocalProxy(_load_blocked_hosts)
 
 
 async def load_page(browser: Browser, url: str, max_retries: int) -> Page:

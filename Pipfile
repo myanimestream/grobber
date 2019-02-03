@@ -20,3 +20,8 @@ prometheus-async = "*"
 
 [requires]
 python_version = "3.7"
+
+[dev-packages]
+sphinx = "*"
+sphinx-autodoc-typehints = "*"
+sphinxcontrib-asyncio = "*"

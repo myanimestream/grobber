@@ -3,11 +3,13 @@
 
 A [quart] api server serving Anime data.
 
-# Deprecation notice
-Grobber will (hopefully) soon be rewritten in **Go**.
+# JSON API Documentation
+You can find a somewhat detailed documentation [here][grobber-documentation].
 
-# API Documentation
-You can find a somewhat detailed documentation [here][grobber-documentation]
+
+# Deprecation notice
+Grobber will (hopefully) soon be rewritten in **Go**. The API will stay
+the same!
 
 # Hosting it yourself
 
@@ -28,10 +30,8 @@ a [MongoDB] database, a slightly modified version of [Scylla]
     external chrome browser such as [Browserless]
 - `SENTRY_DSN`:
     If you want some sweet error reports, there's a [Sentry] integration.
+- `ARIAS_URL` (unused): Arias endpoint
 
-
-## License
-[![FOSSA Status][fossa-status-info]][fossa-status-link]
 
 [browserless]: https://www.browserless.io/ "Browserless website"
 [nginx]: https://www.nginx.com/ "NginX website"
@@ -43,5 +43,4 @@ a [MongoDB] database, a slightly modified version of [Scylla]
 [grobber-documentation]: https://grobber.docs.apiary.io
 
 [fossa-status-info]: https://app.fossa.io/api/projects/git%2Bgithub.com%2FMyAnimeStream%2Fgrobber.svg?type=shield
-[fossa-status-info]: https://app.fossa.io/api/projects/git%2Bgithub.com%2FMyAnimeStream%2Fgrobber.svg?type=large
 [fossa-status-link]: https://app.fossa.io/projects/git%2Bgithub.com%2FMyAnimeStream%2Fgrobber?ref=badge_large

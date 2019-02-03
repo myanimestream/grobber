@@ -13,6 +13,28 @@ _DEFAULT = object()
 
 
 def retry_with_proxy(*exceptions: Exception, attempts: int = 5):
+    """
+    When the underlying method of a :class:`grobber.stateful.Stateful` object
+    throws an exceptions that is a subtype of ``exceptions`` it reloads the
+    :class:`grobber.request.Request` and re-runs the method until it either succeeds,
+    or the amount of retries exceeds ``attempts``.
+
+    Example:
+
+    When calling the ``Key.get_key`` method it will re-run when it raises a `KeyError`.
+
+    .. code-block:: python
+        :emphasize-lines: 2
+
+        class Key(Stateful):
+            @retry_with_proxy(KeyError)
+            async def get_key():
+                data = await self._req.json
+                return data["key"]
+
+    :return: Decorator which applies the retry logic to the decorated method.
+    """
+
     def decorator(func):
         @wraps(func)
         async def wrapper(self: "Stateful", *args, **kwargs):
