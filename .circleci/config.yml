@@ -18,6 +18,13 @@ references:
     restore_cache:
       key: *dep_cache_key
 
+  install_dependencies: &install_dependencies
+    run:
+      name: Installing Dependencies
+      command: |
+        sudo pip install pipenv
+        pipenv install --dev --deploy
+
 
 jobs:
   install-dependencies:
@@ -28,11 +35,7 @@ jobs:
       - checkout
       - *dep_change_perms
       - *restore_dependencies
-      - run:
-          name: Installing Dependencies
-          command: |
-            sudo pip install pipenv
-            pipenv install --dev --deploy
+      - *install_dependencies
       - save_cache:
           key: *dep_cache_key
           paths:
@@ -48,6 +51,7 @@ jobs:
       - checkout
       - *dep_change_perms
       - *restore_dependencies
+      - *install_dependencies
       - run:
           name: Build Documentation
           command: pipenv run sphinx-build -b html docs/source docs/build
