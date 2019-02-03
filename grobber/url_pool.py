@@ -11,7 +11,6 @@ log = logging.getLogger(__name__)
 
 
 class UrlPool:
-
     def __init__(self, name: str, urls: List[str], *, strip_slash: bool = True, ttl: int = 3600) -> None:
         self._url = None
         self._next_update = None
@@ -21,10 +20,17 @@ class UrlPool:
 
         self.strip_slash = strip_slash
         self.ttl = timedelta(seconds=ttl)
-        self._lock = Lock()
+
+        self.__lock = None
 
     def __str__(self) -> str:
         return f"<Pool {self.name}: {self._url}>"
+
+    @property
+    def _lock(self) -> Lock:
+        if not self.__lock:
+            self.__lock = Lock()
+        return self.__lock
 
     @property
     def needs_update(self) -> bool:
