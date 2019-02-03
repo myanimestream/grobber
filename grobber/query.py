@@ -205,7 +205,7 @@ async def search_anime() -> List[SearchResult]:
     await asyncio.gather(*(result.anime.preload_attrs(*Anime.PRELOAD_ATTRS) for result in results))
 
     # sort by certainty, title, episode count
-    results.sort(key=lambda sr: (sr.certainty, getattr(sr.anime, "_title", None), getattr(sr.anime, "_episode_count", None)), reverse=True)
+    results.sort(key=lambda sr: (sr.certainty, getattr(sr.anime, "_title", ""), getattr(sr.anime, "_episode_count", 0)), reverse=True)
 
     return results
 
