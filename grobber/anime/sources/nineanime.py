@@ -2,6 +2,7 @@ import logging
 import re
 from typing import Iterator, List, Optional
 
+import yarl
 from pyppeteer.page import Page
 
 from grobber.decorators import cached_property
@@ -100,11 +101,15 @@ class NineAnime(Anime):
             else:
                 ep_count = 1
 
-            link = result.select_one("a.poster")["href"]
+            link = yarl.URL(result.select_one("a.poster")["href"])
             thumbnail = result.select_one("a.poster img")["src"]
             similarity = get_certainty(query, title)
 
-            anime = cls(Request(link), data=dict(raw_title=raw_title, title=title, is_dub=dubbed, episode_count=ep_count, thumbnail=thumbnail))
+            anime = cls(Request(BASE_URL + link.path), data=dict(raw_title=raw_title,
+                                                                 title=title,
+                                                                 is_dub=dubbed,
+                                                                 episode_count=ep_count,
+                                                                 thumbnail=thumbnail))
             yield SearchResult(anime, similarity)
 
     @cached_property
@@ -113,7 +118,8 @@ class NineAnime(Anime):
             page: Page
             episodes = await page.evaluate(
                 """Array.from(document.querySelectorAll("div.server:not(.hidden) ul.episodes a")).map(epLink => epLink.href);""", force_expr=True)
-            return list(map(lambda url: self.EPISODE_CLS(Request(url)), episodes))
+
+            return list(map(lambda url: self.EPISODE_CLS(Request(BASE_URL + yarl.URL(url).path)), episodes))
 
     async def get_episodes(self) -> List[NineEpisode]:
         return await self.raw_eps
