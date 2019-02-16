@@ -34,5 +34,6 @@ def before_serving():
 
     search_results_collection.create_indexes([
         IndexModel([("query", TEXT)], name="Query Search"),
-        IndexModel([("created", ASCENDING)], name="Expire after a month", expireAfterSeconds=60 * 60 * 24 * 30)
+        IndexModel([("created", ASCENDING)], name="Expire after a month", expireAfterSeconds=60 * 60 * 24 * 30 * 3),
+        IndexModel([("query", ASCENDING), ("requested_results", ASCENDING)], name="Exact search request"),
     ])

@@ -184,7 +184,7 @@ async def search_anime() -> List[SearchResult]:
             results_pool.add(SearchResult(search_result, certainty))
             cached_added += 1
 
-    log.info(f"found {cached_added}/{num_results} in cached search results")
+    log.info(f"found {cached_added}/{num_results} in cached search results ({len(anime_search_results) - cached_added} discarded)")
 
     log.debug(f"current total: {len(results_pool)}/{num_results}")
 
