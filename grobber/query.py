@@ -12,9 +12,10 @@ from . import languages
 from .anime import Anime, AnimeNotFound, Episode, SearchResult, SourceNotFound, Stream, sources
 from .exceptions import InvalidRequest, UIDUnknown
 from .languages import Language
+from .search_results import find_cached_searches, get_cached_searches, store_cached_search
 from .telemetry import ANIME_QUERY_TYPE, ANIME_RESOLVE_TIME, ANIME_SEARCH_TIME, LANGUAGE_COUNTER, SOURCE_COUNTER
-from .uid import UID
-from .utils import alist, fuzzy_bool
+from .uid import MediaType, UID
+from .utils import alist, fuzzy_bool, get_certainty
 
 log = logging.getLogger(__name__)
 
@@ -156,6 +157,12 @@ async def search_anime() -> List[SearchResult]:
     if not (0 < num_results <= 20):
         raise InvalidRequest(f"Can only request up to 20 results (not {num_results})")
 
+    exact_search_results = await get_cached_searches(MediaType.ANIME, query, num_results)
+    if exact_search_results:
+        log.info("Found exact search result")
+        exact_anime_results: List[Anime] = await asyncio.gather(*(sources.build_anime_from_doc(sr["_id"], sr) for sr in exact_search_results))
+        return [SearchResult(anime, get_certainty(await anime.title, query)) for anime in exact_anime_results]
+
     results_pool: Set[SearchResult] = set()
 
     # first try to find animes matching the query in the database
@@ -165,8 +172,21 @@ async def search_anime() -> List[SearchResult]:
         log.exception("Couldn't search anime in database, moving on...")
     else:
         if anime:
-            log.info(f"found {len(anime)}/{num_results} anime in database with matching query")
+            log.info(f"found {len(anime)}/{num_results} anime in database with matching title")
             results_pool.update(map(lambda a: SearchResult(a, 1), anime))
+
+    cached_search_results = await find_cached_searches(MediaType.ANIME, query, max_results=num_results)
+    anime_search_results: List[Anime] = await asyncio.gather(*(sources.build_anime_from_doc(sr["_id"], sr) for sr in cached_search_results))
+    cached_added = 0
+    for search_result in anime_search_results:
+        certainty = get_certainty(await search_result.title, query)
+        if certainty >= .5:
+            results_pool.add(SearchResult(search_result, certainty))
+            cached_added += 1
+
+    log.info(f"found {cached_added}/{num_results} in cached search results")
+
+    log.debug(f"current total: {len(results_pool)}/{num_results}")
 
     # if we didn't get enough use the actual search
     if len(results_pool) < num_results:
@@ -199,6 +219,11 @@ async def search_anime() -> List[SearchResult]:
                 res.anime = stored_anime
 
         results_pool.update(search_results)
+
+        # cache the search results for this search
+        uids = await asyncio.gather(*(result.anime.uid for result in results_pool))
+        await store_cached_search(MediaType.ANIME, query, num_results, uids)
+        log.info(f"cached {len(uids)} search results for \"{query}\"")
 
     log.info(f"found {len(results_pool)}/{num_results}")
     results = sorted(results_pool, key=attrgetter("certainty"), reverse=True)[:num_results]

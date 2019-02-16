@@ -5,7 +5,7 @@ from typing import cast
 import sentry_sdk
 from quart import Quart, Request, Response, request
 
-from . import __info__, anime, arias, locals, telemetry
+from . import __info__, anime, locals, telemetry
 from .blueprints import *
 from .exceptions import GrobberException
 from .telemetry import API_EXCEPTIONS, API_REQUESTS, INTERNAL_EXCEPTIONS
@@ -76,11 +76,3 @@ async def get_dolos_info() -> Response:
 async def get_metrics() -> Response:
     metrics, content_type = telemetry.get_metrics()
     return Response(metrics, content_type=content_type)
-
-
-@app.route("/arias", methods=["POST"])
-async def arias_callback() -> None:
-    try:
-        arias.receive_callback(request.args)
-    except Exception as e:
-        log.warning(f"Received malformed arias callback: {e}")
