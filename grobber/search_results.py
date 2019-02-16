@@ -6,6 +6,7 @@ from grobber.uid import MediaType
 
 
 async def find_cached_searches(media_type: MediaType, query: str, max_results: int = None) -> List[Dict[str, Any]]:
+    """Return search results that loosely match the search request"""
     collection_name = anime_collection.name if media_type == MediaType.ANIME else "mango"
 
     search_pipeline = [
@@ -44,6 +45,10 @@ async def find_cached_searches(media_type: MediaType, query: str, max_results: i
 
 
 async def get_cached_searches(media_type: MediaType, query: str, requested_results: int = None) -> Optional[List[Dict[str, Any]]]:
+    """Return the documents which match the search request exactly.
+
+    Use :func:`find_cached_searches` to loosely search for cached results.
+    """
     collection_name = anime_collection.name if media_type == MediaType.ANIME else "mango"
 
     pipeline = [
@@ -75,6 +80,7 @@ async def get_cached_searches(media_type: MediaType, query: str, requested_resul
 
 
 async def store_cached_search(media_type: MediaType, query: str, requested_results: int, uids: List[str]):
+    """Store the provided search request such that it can be retrieved later on"""
     await search_results_collection.insert_one({
         "type": media_type.value,
         "query": query,
