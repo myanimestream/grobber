@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>grobber.locals &#8212; Grobber 3.0.15 documentation</title>
+    <title>grobber.locals &#8212; Grobber 3.0.16 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -36,7 +36,7 @@
 <span></span><span class="kn">import</span> <span class="nn">os</span>
 
 <span class="kn">from</span> <span class="nn">motor.motor_asyncio</span> <span class="k">import</span> <span class="n">AsyncIOMotorClient</span><span class="p">,</span> <span class="n">AsyncIOMotorCollection</span><span class="p">,</span> <span class="n">AsyncIOMotorDatabase</span>
-<span class="kn">from</span> <span class="nn">pymongo</span> <span class="k">import</span> <span class="n">ASCENDING</span><span class="p">,</span> <span class="n">IndexModel</span>
+<span class="kn">from</span> <span class="nn">pymongo</span> <span class="k">import</span> <span class="n">ASCENDING</span><span class="p">,</span> <span class="n">IndexModel</span><span class="p">,</span> <span class="n">TEXT</span>
 <span class="kn">from</span> <span class="nn">quart.local</span> <span class="k">import</span> <span class="n">LocalProxy</span>
 
 <span class="n">_MONGO_URI</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MONGO_URI&quot;</span><span class="p">,</span> <span class="s2">&quot;mongodb://localhost:27017&quot;</span><span class="p">)</span>
@@ -57,12 +57,19 @@
 <span class="n">db</span><span class="p">:</span> <span class="n">AsyncIOMotorDatabase</span> <span class="o">=</span> <span class="n">LocalProxy</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">mongo_client</span><span class="p">[</span><span class="n">_MONGO_DB_NAME</span><span class="p">])</span>
 
 <span class="n">anime_collection</span><span class="p">:</span> <span class="n">AsyncIOMotorCollection</span> <span class="o">=</span> <span class="n">LocalProxy</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">db</span><span class="p">[</span><span class="s2">&quot;anime&quot;</span><span class="p">])</span>
+<span class="n">search_results_collection</span><span class="p">:</span> <span class="n">AsyncIOMotorCollection</span> <span class="o">=</span> <span class="n">LocalProxy</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">db</span><span class="p">[</span><span class="s2">&quot;search_results&quot;</span><span class="p">])</span>
+
 <span class="n">url_pool_collection</span><span class="p">:</span> <span class="n">AsyncIOMotorCollection</span> <span class="o">=</span> <span class="n">LocalProxy</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">db</span><span class="p">[</span><span class="s2">&quot;url_pool&quot;</span><span class="p">])</span>
 
 
 <div class="viewcode-block" id="before_serving"><a class="viewcode-back" href="../../reference/locals.html#grobber.locals.before_serving">[docs]</a><span class="k">def</span> <span class="nf">before_serving</span><span class="p">():</span>
     <span class="n">anime_collection</span><span class="o">.</span><span class="n">create_indexes</span><span class="p">([</span>
         <span class="n">IndexModel</span><span class="p">([(</span><span class="s2">&quot;title&quot;</span><span class="p">,</span> <span class="n">ASCENDING</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;language&quot;</span><span class="p">,</span> <span class="n">ASCENDING</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;is_dub&quot;</span><span class="p">,</span> <span class="n">ASCENDING</span><span class="p">)],</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Query Index&quot;</span><span class="p">)</span>
+    <span class="p">])</span>
+
+    <span class="n">search_results_collection</span><span class="o">.</span><span class="n">create_indexes</span><span class="p">([</span>
+        <span class="n">IndexModel</span><span class="p">([(</span><span class="s2">&quot;query&quot;</span><span class="p">,</span> <span class="n">TEXT</span><span class="p">)],</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Query Search&quot;</span><span class="p">),</span>
+        <span class="n">IndexModel</span><span class="p">([(</span><span class="s2">&quot;created&quot;</span><span class="p">,</span> <span class="n">ASCENDING</span><span class="p">)],</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Expire after a month&quot;</span><span class="p">,</span> <span class="n">expireAfterSeconds</span><span class="o">=</span><span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="mi">30</span><span class="p">)</span>
     <span class="p">])</span></div>
 </pre></div>
 

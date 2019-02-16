@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>grobber.app &#8212; Grobber 3.0.15 documentation</title>
+    <title>grobber.app &#8212; Grobber 3.0.16 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -40,7 +40,7 @@
 <span class="kn">import</span> <span class="nn">sentry_sdk</span>
 <span class="kn">from</span> <span class="nn">quart</span> <span class="k">import</span> <span class="n">Quart</span><span class="p">,</span> <span class="n">Request</span><span class="p">,</span> <span class="n">Response</span><span class="p">,</span> <span class="n">request</span>
 
-<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">__info__</span><span class="p">,</span> <span class="n">anime</span><span class="p">,</span> <span class="n">arias</span><span class="p">,</span> <span class="nb">locals</span><span class="p">,</span> <span class="n">telemetry</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">__info__</span><span class="p">,</span> <span class="n">anime</span><span class="p">,</span> <span class="nb">locals</span><span class="p">,</span> <span class="n">telemetry</span>
 <span class="kn">from</span> <span class="nn">.blueprints</span> <span class="k">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">.exceptions</span> <span class="k">import</span> <span class="n">GrobberException</span>
 <span class="kn">from</span> <span class="nn">.telemetry</span> <span class="k">import</span> <span class="n">API_EXCEPTIONS</span><span class="p">,</span> <span class="n">API_REQUESTS</span><span class="p">,</span> <span class="n">INTERNAL_EXCEPTIONS</span>
@@ -111,14 +111,6 @@
 <span class="k">async</span> <span class="k">def</span> <span class="nf">get_metrics</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Response</span><span class="p">:</span>
     <span class="n">metrics</span><span class="p">,</span> <span class="n">content_type</span> <span class="o">=</span> <span class="n">telemetry</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">metrics</span><span class="p">,</span> <span class="n">content_type</span><span class="o">=</span><span class="n">content_type</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="arias_callback"><a class="viewcode-back" href="../../reference/app.html#grobber.app.arias_callback">[docs]</a><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/arias&quot;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;POST&quot;</span><span class="p">])</span>
-<span class="k">async</span> <span class="k">def</span> <span class="nf">arias_callback</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">arias</span><span class="o">.</span><span class="n">receive_callback</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Received malformed arias callback: </span><span class="si">{e}</span><span class="s2">&quot;</span><span class="p">)</span></div>
 </pre></div>
 
           </div>
