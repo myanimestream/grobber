@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Index &#8212; Grobber 3.0.16 documentation</title>
+    <title>Index &#8212; Grobber 3.0.17 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -66,44 +66,40 @@
 <h2 id="_">_</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.__abstractmethods__">__abstractmethods__ (Anime attribute)</a>
+      <li><a href="reference/anime/models.html#grobber.anime.models.SourceAnime.__abstractmethods__">__abstractmethods__ (SourceAnime attribute)</a>
 
       <ul>
-        <li><a href="reference/anime/models.html#grobber.anime.models.Episode.__abstractmethods__">(Episode attribute)</a>
+        <li><a href="reference/anime/models.html#grobber.anime.models.SourceEpisode.__abstractmethods__">(SourceEpisode attribute)</a>
 </li>
         <li><a href="reference/anime/models.html#grobber.anime.models.Stream.__abstractmethods__">(Stream attribute)</a>
 </li>
       </ul></li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.__annotations__">__annotations__ (Anime attribute)</a>
+      <li><a href="reference/anime/models.html#grobber.anime.models.SourceAnime.__annotations__">__annotations__ (SourceAnime attribute)</a>
 </li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.__bool__">__bool__() (Anime method)</a>
+      <li><a href="reference/anime/models.html#grobber.anime.models.SourceAnime.__eq__">__eq__() (SourceAnime method)</a>
 </li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.__eq__">__eq__() (Anime method)</a>
-</li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.__hash__">__hash__() (Anime method)</a>
+      <li><a href="reference/anime/models.html#grobber.anime.models.SourceAnime.__hash__">__hash__() (SourceAnime method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Episode.__init__">__init__() (Episode method)</a>
+      <li><a href="reference/anime/models.html#grobber.anime.models.SourceEpisode.__init__">__init__() (SourceEpisode method)</a>
 </li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.__module__">__module__ (Anime attribute)</a>
+      <li><a href="reference/anime/models.html#grobber.anime.models.SourceAnime.__module__">__module__ (SourceAnime attribute)</a>
 
       <ul>
-        <li><a href="reference/anime/models.html#grobber.anime.models.Episode.__module__">(Episode attribute)</a>
+        <li><a href="reference/anime/models.html#grobber.anime.models.SourceEpisode.__module__">(SourceEpisode attribute)</a>
 </li>
         <li><a href="reference/anime/models.html#grobber.anime.models.Stream.__module__">(Stream attribute)</a>
 </li>
       </ul></li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.__repr__">__repr__() (Anime method)</a>
+      <li><a href="reference/anime/models.html#grobber.anime.models.SourceAnime.__repr__">__repr__() (SourceAnime method)</a>
 
       <ul>
-        <li><a href="reference/anime/models.html#grobber.anime.models.Episode.__repr__">(Episode method)</a>
+        <li><a href="reference/anime/models.html#grobber.anime.models.SourceEpisode.__repr__">(SourceEpisode method)</a>
 </li>
         <li><a href="reference/anime/models.html#grobber.anime.models.Stream.__repr__">(Stream method)</a>
 </li>
       </ul></li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.__str__">__str__() (Anime method)</a>
-</li>
   </ul></td>
 </tr></table>
 
@@ -116,15 +112,19 @@
 </li>
       <li><a href="reference/utils.html#grobber.utils.add_http_scheme">add_http_scheme() (in module grobber.utils)</a>
 </li>
+      <li><a href="reference/utils.html#grobber.utils.afilter">afilter() (in module grobber.utils)</a>
+</li>
       <li><a href="reference/app.html#grobber.app.after_request">after_request() (in module grobber.app)</a>
+</li>
+      <li><a href="reference/utils.html#grobber.utils.aiter">aiter() (in module grobber.utils)</a>
 </li>
       <li><a href="reference/utils.html#grobber.utils.alist">alist() (in module grobber.utils)</a>
 </li>
       <li><a href="reference/request.html#grobber.request.Request.all">all() (Request method)</a>
 </li>
-      <li><a href="reference/utils.html#grobber.utils.anext">anext() (in module grobber.utils)</a>
+      <li><a href="reference/utils.html#grobber.utils.amap">amap() (in module grobber.utils)</a>
 </li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime">Anime (class in grobber.anime.models)</a>
+      <li><a href="reference/utils.html#grobber.utils.anext">anext() (in module grobber.utils)</a>
 </li>
       <li><a href="reference/uid.html#grobber.uid.MediaType.ANIME">ANIME (MediaType attribute)</a>
 </li>
@@ -136,27 +136,19 @@
       </ul></li>
       <li><a href="reference/anime/sources.html#grobber.anime.sources.masteranime.MasterAnime.anime_slug">anime_slug (MasterAnime attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/anime/exceptions.html#grobber.anime.exceptions.AnimeNotFound">AnimeNotFound</a>
 </li>
       <li><a href="reference/query.html#grobber.query.AnimeQuery">AnimeQuery (class in grobber.query)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/query.html#grobber.query.AnimeQuery.Query">AnimeQuery.Query (class in grobber.query)</a>
-</li>
-      <li><a href="reference/query.html#grobber.query.AnimeQuery.UID">AnimeQuery.UID (class in grobber.query)</a>
 </li>
       <li><a href="reference/query.html#grobber.query.SearchFilter.as_dict">as_dict() (SearchFilter method)</a>
 </li>
       <li><a href="reference/utils.html#grobber.utils.AsyncFormatter">AsyncFormatter (class in grobber.utils)</a>
 </li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.ATTRS">ATTRS (Anime attribute)</a>
+      <li><a href="reference/stateful.html#grobber.stateful.Expiring.ATTRS">ATTRS (Expiring attribute)</a>
 
       <ul>
-        <li><a href="reference/anime/models.html#grobber.anime.models.Episode.ATTRS">(Episode attribute)</a>
-</li>
-        <li><a href="reference/stateful.html#grobber.stateful.Expiring.ATTRS">(Expiring attribute)</a>
-</li>
         <li><a href="reference/anime/sources.html#grobber.anime.sources.gogoanime.GogoAnime.ATTRS">(GogoAnime attribute)</a>
 </li>
         <li><a href="reference/anime/sources.html#grobber.anime.sources.masteranime.MasterAnime.ATTRS">(MasterAnime attribute)</a>
@@ -164,6 +156,10 @@
         <li><a href="reference/anime/streams.html#grobber.anime.streams.mp4upload.Mp4Upload.ATTRS">(Mp4Upload attribute)</a>
 </li>
         <li><a href="reference/anime/streams.html#grobber.anime.streams.openload.Openload.ATTRS">(Openload attribute)</a>
+</li>
+        <li><a href="reference/anime/models.html#grobber.anime.models.SourceAnime.ATTRS">(SourceAnime attribute)</a>
+</li>
+        <li><a href="reference/anime/models.html#grobber.anime.models.SourceEpisode.ATTRS">(SourceEpisode attribute)</a>
 </li>
         <li><a href="reference/stateful.html#grobber.stateful.Stateful.ATTRS">(Stateful attribute)</a>
 </li>
@@ -212,12 +208,12 @@
         <li><a href="reference/anime/models.html#grobber.anime.models.Stream.can_handle">(Stream method)</a>
 </li>
       </ul></li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.CHANGING_ATTRS">CHANGING_ATTRS (Anime attribute)</a>
+      <li><a href="reference/stateful.html#grobber.stateful.Expiring.CHANGING_ATTRS">CHANGING_ATTRS (Expiring attribute)</a>
 
       <ul>
-        <li><a href="reference/anime/models.html#grobber.anime.models.Episode.CHANGING_ATTRS">(Episode attribute)</a>
+        <li><a href="reference/anime/models.html#grobber.anime.models.SourceAnime.CHANGING_ATTRS">(SourceAnime attribute)</a>
 </li>
-        <li><a href="reference/stateful.html#grobber.stateful.Expiring.CHANGING_ATTRS">(Expiring attribute)</a>
+        <li><a href="reference/anime/models.html#grobber.anime.models.SourceEpisode.CHANGING_ATTRS">(SourceEpisode attribute)</a>
 </li>
         <li><a href="reference/anime/models.html#grobber.anime.models.Stream.CHANGING_ATTRS">(Stream attribute)</a>
 </li>
@@ -226,9 +222,11 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/stateful.html#grobber.stateful.check_container_bson">check_container_bson() (in module grobber.stateful)</a>
 </li>
-      <li><a href="reference/query.html#grobber.query.AnimeQuery.Query.convert_dubbed">convert_dubbed() (AnimeQuery.Query method)</a>
+      <li><a href="reference/query.html#grobber.query.QueryAnimeQuery.convert_dubbed">convert_dubbed() (QueryAnimeQuery method)</a>
 </li>
-      <li><a href="reference/query.html#grobber.query.AnimeQuery.Query.convert_language">convert_language() (AnimeQuery.Query method)</a>
+      <li><a href="reference/query.html#grobber.query.QueryAnimeQuery.convert_group">convert_group() (QueryAnimeQuery method)</a>
+</li>
+      <li><a href="reference/query.html#grobber.query.QueryAnimeQuery.convert_language">convert_language() (QueryAnimeQuery method)</a>
 </li>
       <li><a href="reference/uid.html#grobber.uid.UID.create">create() (grobber.uid.UID class method)</a>
 </li>
@@ -248,18 +246,18 @@
 </li>
       <li><a href="reference/anime/sources.html#grobber.anime.sources.delete_anime">delete_anime() (in module grobber.anime.sources)</a>
 </li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.deserialise_special">deserialise_special() (grobber.anime.models.Anime class method)</a>
+      <li><a href="reference/anime/models.html#grobber.anime.models.SourceAnime.deserialise_special">deserialise_special() (grobber.anime.models.SourceAnime class method)</a>
 
       <ul>
-        <li><a href="reference/anime/models.html#grobber.anime.models.Episode.deserialise_special">(grobber.anime.models.Episode class method)</a>
+        <li><a href="reference/anime/models.html#grobber.anime.models.SourceEpisode.deserialise_special">(grobber.anime.models.SourceEpisode class method)</a>
 </li>
         <li><a href="reference/stateful.html#grobber.stateful.Stateful.deserialise_special">(grobber.stateful.Stateful class method)</a>
 </li>
       </ul></li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.dirty">dirty (Anime attribute)</a>
+      <li><a href="reference/anime/models.html#grobber.anime.models.SourceAnime.dirty">dirty (SourceAnime attribute)</a>
 
       <ul>
-        <li><a href="reference/anime/models.html#grobber.anime.models.Episode.dirty">(Episode attribute)</a>
+        <li><a href="reference/anime/models.html#grobber.anime.models.SourceEpisode.dirty">(SourceEpisode attribute)</a>
 </li>
         <li><a href="reference/stateful.html#grobber.stateful.Stateful.dirty">(Stateful attribute)</a>
 </li>
@@ -268,7 +266,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/utils.html#grobber.utils.do_later">do_later() (in module grobber.utils)</a>
 </li>
-      <li><a href="reference/query.html#grobber.query.AnimeQuery.Query.dubbed">dubbed (AnimeQuery.Query attribute)</a>
+      <li><a href="reference/query.html#grobber.query.QueryAnimeQuery.dubbed">dubbed (QueryAnimeQuery attribute)</a>
 
       <ul>
         <li><a href="reference/query.html#grobber.query.SearchFilter.dubbed">(SearchFilter attribute)</a>
@@ -286,24 +284,22 @@
 </li>
       <li><a href="reference/languages.html#grobber.languages.Language.ENGLISH">ENGLISH (Language attribute)</a>
 </li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Episode">Episode (class in grobber.anime.models)</a>
-</li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.EPISODE_CLS">EPISODE_CLS (Anime attribute)</a>
+      <li><a href="reference/anime/sources.html#grobber.anime.sources.gogoanime.GogoAnime.EPISODE_CLS">EPISODE_CLS (GogoAnime attribute)</a>
 
       <ul>
-        <li><a href="reference/anime/sources.html#grobber.anime.sources.gogoanime.GogoAnime.EPISODE_CLS">(GogoAnime attribute)</a>
-</li>
         <li><a href="reference/anime/sources.html#grobber.anime.sources.masteranime.MasterAnime.EPISODE_CLS">(MasterAnime attribute)</a>
 </li>
         <li><a href="reference/anime/sources.html#grobber.anime.sources.nineanime.NineAnime.EPISODE_CLS">(NineAnime attribute)</a>
 </li>
+        <li><a href="reference/anime/models.html#grobber.anime.models.SourceAnime.EPISODE_CLS">(SourceAnime attribute)</a>
+</li>
       </ul></li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.episode_count">episode_count (Anime attribute)</a>
+      <li><a href="reference/anime/sources.html#grobber.anime.sources.gogoanime.GogoAnime.episode_count">episode_count (GogoAnime attribute)</a>
 
       <ul>
-        <li><a href="reference/anime/sources.html#grobber.anime.sources.gogoanime.GogoAnime.episode_count">(GogoAnime attribute)</a>
-</li>
         <li><a href="reference/anime/sources.html#grobber.anime.sources.masteranime.MasterAnime.episode_count">(MasterAnime attribute)</a>
+</li>
+        <li><a href="reference/anime/models.html#grobber.anime.models.SourceAnime.episode_count">(SourceAnime attribute)</a>
 </li>
       </ul></li>
       <li><a href="reference/anime/sources.html#grobber.anime.sources.masteranime.MasterAnime.episode_data">episode_data (MasterAnime attribute)</a>
@@ -312,26 +308,22 @@
 </li>
       <li><a href="reference/blueprints/anime.html#grobber.blueprints.anime.episode_source">episode_source() (in module grobber.blueprints.anime)</a>
 </li>
-      <li><a href="reference/blueprints/anime.html#grobber.blueprints.anime.episode_stream_source">episode_stream_source() (in module grobber.blueprints.anime)</a>
-</li>
       <li><a href="reference/anime/exceptions.html#grobber.anime.exceptions.EpisodeNotFound">EpisodeNotFound</a>
 </li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.episodes">episodes (Anime attribute)</a>
+      <li><a href="reference/anime/models.html#grobber.anime.models.SourceAnime.episodes">episodes (SourceAnime attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/utils.html#grobber.utils.error_response">error_response() (in module grobber.utils)</a>
 </li>
-      <li><a href="reference/blueprints/debug.html#grobber.blueprints.debug.expire_anime">expire_anime() (in module grobber.blueprints.debug)</a>
-</li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.EXPIRE_TIME">EXPIRE_TIME (Anime attribute)</a>
+      <li><a href="reference/stateful.html#grobber.stateful.Expiring.EXPIRE_TIME">EXPIRE_TIME (Expiring attribute)</a>
 
       <ul>
-        <li><a href="reference/anime/models.html#grobber.anime.models.Episode.EXPIRE_TIME">(Episode attribute)</a>
-</li>
-        <li><a href="reference/stateful.html#grobber.stateful.Expiring.EXPIRE_TIME">(Expiring attribute)</a>
-</li>
         <li><a href="reference/anime/streams.html#grobber.anime.streams.mp4upload.Mp4Upload.EXPIRE_TIME">(Mp4Upload attribute)</a>
+</li>
+        <li><a href="reference/anime/models.html#grobber.anime.models.SourceAnime.EXPIRE_TIME">(SourceAnime attribute)</a>
+</li>
+        <li><a href="reference/anime/models.html#grobber.anime.models.SourceEpisode.EXPIRE_TIME">(SourceEpisode attribute)</a>
 </li>
         <li><a href="reference/anime/models.html#grobber.anime.models.Stream.EXPIRE_TIME">(Stream attribute)</a>
 </li>
@@ -354,8 +346,6 @@
       </ul></li>
       <li><a href="reference/utils.html#grobber.utils.external_url_for">external_url_for() (in module grobber.utils)</a>
 </li>
-      <li><a href="reference/blueprints/debug.html#grobber.blueprints.debug.extract_stream">extract_stream() (in module grobber.blueprints.debug)</a>
-</li>
   </ul></td>
 </tr></table>
 
@@ -363,6 +353,8 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/url_pool.html#grobber.url_pool.UrlPool.fetch">fetch() (UrlPool method)</a>
+</li>
+      <li><a href="reference/search_results.html#grobber.search_results.find_cached_searches">find_cached_searches() (in module grobber.search_results)</a>
 </li>
       <li><a href="reference/request.html#grobber.request.Request.first">first() (Request method)</a>
 </li>
@@ -390,12 +382,8 @@
 </li>
       <li><a href="reference/languages.html#grobber.languages.Language.GERMAN">GERMAN (Language attribute)</a>
 </li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.get">get() (Anime method)</a>
-
-      <ul>
-        <li><a href="reference/anime/models.html#grobber.anime.models.Episode.get">(Episode method)</a>
+      <li><a href="reference/anime/models.html#grobber.anime.models.SourceAnime.get">get() (SourceAnime method)</a>
 </li>
-      </ul></li>
       <li><a href="reference/anime/sources.html#grobber.anime.sources.get_anime">get_anime() (in module grobber.anime.sources)</a>
 
       <ul>
@@ -403,8 +391,6 @@
 </li>
       </ul></li>
       <li><a href="reference/anime/sources.html#grobber.anime.sources.get_anime_by_title">get_anime_by_title() (in module grobber.anime.sources)</a>
-</li>
-      <li><a href="reference/blueprints/anime.html#grobber.blueprints.anime.get_anime_episode_count">get_anime_episode_count() (in module grobber.blueprints.anime)</a>
 </li>
       <li><a href="reference/blueprints/anime.html#grobber.blueprints.anime.get_anime_info">get_anime_info() (in module grobber.blueprints.anime)</a>
 </li>
@@ -416,18 +402,20 @@
 </li>
       <li><a href="reference/browser.html#grobber.browser.get_browser">get_browser() (in module grobber.browser)</a>
 </li>
+      <li><a href="reference/search_results.html#grobber.search_results.get_cached_searches">get_cached_searches() (in module grobber.search_results)</a>
+</li>
       <li><a href="reference/utils.html#grobber.utils.get_certainty">get_certainty() (in module grobber.utils)</a>
 </li>
       <li><a href="reference/app.html#grobber.app.get_dolos_info">get_dolos_info() (in module grobber.app)</a>
 </li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.get_episode">get_episode() (Anime method)</a>
+      <li><a href="reference/anime/sources.html#grobber.anime.sources.gogoanime.GogoAnime.get_episode">get_episode() (GogoAnime method)</a>
 
       <ul>
-        <li><a href="reference/anime/sources.html#grobber.anime.sources.gogoanime.GogoAnime.get_episode">(GogoAnime method)</a>
-</li>
         <li><a href="reference/anime/sources.html#grobber.anime.sources.masteranime.MasterAnime.get_episode">(MasterAnime method)</a>
 </li>
         <li><a href="reference/anime/sources.html#grobber.anime.sources.nineanime.NineAnime.get_episode">(NineAnime method)</a>
+</li>
+        <li><a href="reference/anime/models.html#grobber.anime.models.SourceAnime.get_episode">(SourceAnime method)</a>
 </li>
         <li><a href="reference/query.html#grobber.query.get_episode">(in module grobber.query)</a>
 </li>
@@ -438,24 +426,24 @@
 </li>
       <li><a href="reference/blueprints/anime.html#grobber.blueprints.anime.get_episode_state">get_episode_state() (in module grobber.blueprints.anime)</a>
 </li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.get_episodes">get_episodes() (Anime method)</a>
+      <li><a href="reference/anime/sources.html#grobber.anime.sources.gogoanime.GogoAnime.get_episodes">get_episodes() (GogoAnime method)</a>
 
       <ul>
-        <li><a href="reference/anime/sources.html#grobber.anime.sources.gogoanime.GogoAnime.get_episodes">(GogoAnime method)</a>
-</li>
         <li><a href="reference/anime/sources.html#grobber.anime.sources.masteranime.MasterAnime.get_episodes">(MasterAnime method)</a>
 </li>
         <li><a href="reference/anime/sources.html#grobber.anime.sources.nineanime.NineAnime.get_episodes">(NineAnime method)</a>
+</li>
+        <li><a href="reference/anime/models.html#grobber.anime.models.SourceAnime.get_episodes">(SourceAnime method)</a>
 </li>
       </ul></li>
       <li><a href="reference/utils.html#grobber.utils.AsyncFormatter.get_field">get_field() (AsyncFormatter method)</a>
 </li>
       <li><a href="reference/utils.html#grobber.utils.get_first">get_first() (in module grobber.utils)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/languages.html#grobber.languages.get_lang">get_lang() (in module grobber.languages)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/anime/streams.html#grobber.anime.streams.generic.Generic.get_links">get_links() (Generic method)</a>
 </li>
       <li><a href="reference/app.html#grobber.app.get_metrics">get_metrics() (in module grobber.app)</a>
@@ -492,8 +480,6 @@
 </li>
       <li><a href="reference/blueprints/anime.html#module-grobber.blueprints.anime">grobber.blueprints.anime (module)</a>
 </li>
-      <li><a href="reference/blueprints/debug.html#module-grobber.blueprints.debug">grobber.blueprints.debug (module)</a>
-</li>
       <li><a href="reference/browser.html#module-grobber.browser">grobber.browser (module)</a>
 </li>
       <li><a href="reference/decorators.html#module-grobber.decorators">grobber.decorators (module)</a>
@@ -508,6 +494,8 @@
 </li>
       <li><a href="reference/request.html#module-grobber.request">grobber.request (module)</a>
 </li>
+      <li><a href="reference/search_results.html#module-grobber.search_results">grobber.search_results (module)</a>
+</li>
       <li><a href="reference/stateful.html#module-grobber.stateful">grobber.stateful (module)</a>
 </li>
       <li><a href="reference/telemetry.html#module-grobber.telemetry">grobber.telemetry (module)</a>
@@ -517,6 +505,8 @@
       <li><a href="reference/utils.html#module-grobber.utils">grobber.utils (module)</a>
 </li>
       <li><a href="reference/exceptions.html#grobber.exceptions.GrobberException">GrobberException</a>
+</li>
+      <li><a href="reference/query.html#grobber.query.QueryAnimeQuery.group">group (QueryAnimeQuery attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -556,9 +546,9 @@
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.id">id (Anime attribute)</a>
+      <li><a href="reference/anime/models.html#grobber.anime.models.SourceAnime.id">id (SourceAnime attribute)</a>
 </li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.INCLUDE_CLS">INCLUDE_CLS (Anime attribute)</a>
+      <li><a href="reference/anime/models.html#grobber.anime.models.SourceAnime.INCLUDE_CLS">INCLUDE_CLS (SourceAnime attribute)</a>
 
       <ul>
         <li><a href="reference/stateful.html#grobber.stateful.Stateful.INCLUDE_CLS">(Stateful attribute)</a>
@@ -566,17 +556,15 @@
         <li><a href="reference/anime/models.html#grobber.anime.models.Stream.INCLUDE_CLS">(Stream attribute)</a>
 </li>
       </ul></li>
-      <li><a href="reference/anime/sources.html#grobber.anime.sources.masteranime.MasterAnime.info_data">info_data (MasterAnime attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/anime/sources.html#grobber.anime.sources.masteranime.MasterAnime.info_data">info_data (MasterAnime attribute)</a>
+</li>
       <li><a href="reference/exceptions.html#grobber.exceptions.InvalidRequest">InvalidRequest</a>
 </li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.is_dub">is_dub (Anime attribute)</a>
+      <li><a href="reference/anime/sources.html#grobber.anime.sources.gogoanime.GogoAnime.is_dub">is_dub (GogoAnime attribute)</a>
 
       <ul>
-        <li><a href="reference/anime/sources.html#grobber.anime.sources.gogoanime.GogoAnime.is_dub">(GogoAnime attribute)</a>
-</li>
         <li><a href="reference/anime/sources.html#grobber.anime.sources.masteranime.MasterAnime.is_dub">(MasterAnime attribute)</a>
 </li>
         <li><a href="reference/anime/sources.html#grobber.anime.sources.nineanime.NineAnime.is_dub">(NineAnime attribute)</a>
@@ -596,12 +584,6 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.language">language (Anime attribute)</a>
-
-      <ul>
-        <li><a href="reference/query.html#grobber.query.AnimeQuery.Query.language">(AnimeQuery.Query attribute)</a>
-</li>
-      </ul></li>
       <li><a href="reference/languages.html#grobber.languages.Language">Language (class in grobber.languages)</a>
 </li>
       <li><a href="reference/anime/sources.html#grobber.anime.sources.gogoanime.GogoAnime.language">language (GogoAnime attribute)</a>
@@ -611,15 +593,17 @@
 </li>
         <li><a href="reference/anime/sources.html#grobber.anime.sources.nineanime.NineAnime.language">(NineAnime attribute)</a>
 </li>
+        <li><a href="reference/query.html#grobber.query.QueryAnimeQuery.language">(QueryAnimeQuery attribute)</a>
+</li>
         <li><a href="reference/query.html#grobber.query.SearchFilter.language">(SearchFilter attribute)</a>
 </li>
         <li><a href="reference/uid.html#grobber.uid.UID.language">(UID attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/stateful.html#grobber.stateful.Expiring.last_update">last_update (Expiring attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/anime/streams.html#grobber.anime.streams.generic.Generic.links">links (Generic attribute)</a>
 
       <ul>
@@ -634,6 +618,8 @@
         <li><a href="reference/anime/streams.html#grobber.anime.streams.vidstreaming.Vidstreaming.links">(Vidstreaming attribute)</a>
 </li>
       </ul></li>
+      <li><a href="reference/stateful.html#grobber.stateful.Stateful.load_data">load_data() (Stateful method)</a>
+</li>
       <li><a href="reference/browser.html#grobber.browser.load_page">load_page() (in module grobber.browser)</a>
 </li>
       <li><a href="reference/anime/streams.html#grobber.anime.streams.load_stream">load_stream() (in module grobber.anime.streams)</a>
@@ -647,6 +633,8 @@
       <li><a href="reference/uid.html#grobber.uid.MediaType.MANGA">MANGA (MediaType attribute)</a>
 </li>
       <li><a href="reference/anime/sources.html#grobber.anime.sources.masteranime.MasterAnime">MasterAnime (class in grobber.anime.sources.masteranime)</a>
+</li>
+      <li><a href="reference/utils.html#grobber.utils.maybe_await">maybe_await() (in module grobber.utils)</a>
 </li>
       <li><a href="reference/uid.html#grobber.uid.UID.media_id">media_id (UID attribute)</a>
 </li>
@@ -706,11 +694,9 @@
         <li><a href="reference/anime/streams.html#grobber.anime.streams.vidstreaming.Vidstreaming.player_data">(Vidstreaming attribute)</a>
 </li>
       </ul></li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Episode.poster">poster (Episode attribute)</a>
+      <li><a href="reference/anime/streams.html#grobber.anime.streams.generic.Generic.poster">poster (Generic attribute)</a>
 
       <ul>
-        <li><a href="reference/anime/streams.html#grobber.anime.streams.generic.Generic.poster">(Generic attribute)</a>
-</li>
         <li><a href="reference/anime/streams.html#grobber.anime.streams.mp4upload.Mp4Upload.poster">(Mp4Upload attribute)</a>
 </li>
         <li><a href="reference/anime/streams.html#grobber.anime.streams.openload.Openload.poster">(Openload attribute)</a>
@@ -724,13 +710,9 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/blueprints/anime.html#grobber.blueprints.anime.preload_anime">preload_anime() (in module grobber.blueprints.anime)</a>
-</li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.PRELOAD_ATTRS">PRELOAD_ATTRS (Anime attribute)</a>
+      <li><a href="reference/anime/models.html#grobber.anime.models.SourceAnime.PRELOAD_ATTRS">PRELOAD_ATTRS (SourceAnime attribute)</a>
 </li>
       <li><a href="reference/stateful.html#grobber.stateful.Stateful.preload_attrs">preload_attrs() (Stateful method)</a>
-</li>
-      <li><a href="reference/blueprints/anime.html#grobber.blueprints.anime.preload_episode">preload_episode() (in module grobber.blueprints.anime)</a>
 </li>
       <li><a href="reference/url_pool.html#grobber.url_pool.UrlPool.prepare_url">prepare_url() (UrlPool method)</a>
 </li>
@@ -751,6 +733,12 @@
       <li><a href="reference/stateful.html#grobber.stateful.Stateful.qualcls">qualcls (Stateful attribute)</a>
 </li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/query.html#grobber.query.Query">Query (class in grobber.query)</a>
+</li>
+      <li><a href="reference/query.html#grobber.query.QueryAnimeQuery">QueryAnimeQuery (class in grobber.query)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="R">R</h2>
@@ -766,8 +754,6 @@
       </ul></li>
       <li><a href="reference/request.html#grobber.request.Request.raw_finalised_url">raw_finalised_url (Request attribute)</a>
 </li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Episode.raw_streams">raw_streams (Episode attribute)</a>
-</li>
       <li><a href="reference/anime/sources.html#grobber.anime.sources.gogoanime.GogoAnime.raw_title">raw_title (GogoAnime attribute)</a>
 
       <ul>
@@ -778,10 +764,10 @@
 </li>
       <li><a href="reference/anime/streams.html#grobber.anime.streams.register_stream">register_stream() (in module grobber.anime.streams)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/request.html#grobber.request.Request.reload">reload() (Request method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/request.html#grobber.request.Request.RELOAD_ATTRS">RELOAD_ATTRS (Request attribute)</a>
 </li>
       <li><a href="reference/request.html#grobber.request.Request">Request (class in grobber.request)</a>
@@ -790,10 +776,12 @@
 </li>
       <li><a href="reference/request.html#grobber.request.Request.RESET_ATTRS">RESET_ATTRS (Request attribute)</a>
 </li>
-      <li><a href="reference/query.html#grobber.query.AnimeQuery.Query.resolve">resolve() (AnimeQuery.Query method)</a>
+      <li><a href="reference/query.html#grobber.query.Query.resolve">resolve() (Query method)</a>
 
       <ul>
-        <li><a href="reference/query.html#grobber.query.AnimeQuery.UID.resolve">(AnimeQuery.UID method)</a>
+        <li><a href="reference/query.html#grobber.query.QueryAnimeQuery.resolve">(QueryAnimeQuery method)</a>
+</li>
+        <li><a href="reference/query.html#grobber.query.UIDAnimeQuery.resolve">(UIDAnimeQuery method)</a>
 </li>
       </ul></li>
       <li><a href="reference/request.html#grobber.request.Request.response">response (Request attribute)</a>
@@ -810,10 +798,10 @@
 </li>
       <li><a href="reference/anime/sources.html#grobber.anime.sources.save_dirty">save_dirty() (in module grobber.anime.sources)</a>
 </li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.search">search() (Anime method)</a>
+      <li><a href="reference/anime/sources.html#grobber.anime.sources.gogoanime.GogoAnime.search">search() (grobber.anime.sources.gogoanime.GogoAnime class method)</a>
 
       <ul>
-        <li><a href="reference/anime/sources.html#grobber.anime.sources.gogoanime.GogoAnime.search">(grobber.anime.sources.gogoanime.GogoAnime class method)</a>
+        <li><a href="reference/anime/models.html#grobber.anime.models.SourceAnime.search">(SourceAnime method)</a>
 </li>
         <li><a href="reference/anime/sources.html#grobber.anime.sources.masteranime.MasterAnime.search">(grobber.anime.sources.masteranime.MasterAnime class method)</a>
 </li>
@@ -828,28 +816,30 @@
         <li><a href="reference/query.html#grobber.query.search_anime">(in module grobber.query)</a>
 </li>
       </ul></li>
-      <li><a href="reference/query.html#grobber.query.AnimeQuery.Query.search_params">search_params() (AnimeQuery.Query method)</a>
+      <li><a href="reference/query.html#grobber.query.AnimeQuery.search_params">search_params() (AnimeQuery method)</a>
 
       <ul>
-        <li><a href="reference/query.html#grobber.query.AnimeQuery.UID.search_params">(AnimeQuery.UID method)</a>
+        <li><a href="reference/query.html#grobber.query.QueryAnimeQuery.search_params">(QueryAnimeQuery method)</a>
+</li>
+        <li><a href="reference/query.html#grobber.query.UIDAnimeQuery.search_params">(UIDAnimeQuery method)</a>
 </li>
       </ul></li>
       <li><a href="reference/query.html#grobber.query.SearchFilter">SearchFilter (class in grobber.query)</a>
 </li>
       <li><a href="reference/anime/models.html#grobber.anime.models.SearchResult">SearchResult (class in grobber.anime.models)</a>
 </li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.serialise_special">serialise_special() (Anime method)</a>
+      <li><a href="reference/anime/models.html#grobber.anime.models.SourceAnime.serialise_special">serialise_special() (SourceAnime method)</a>
 
       <ul>
-        <li><a href="reference/anime/models.html#grobber.anime.models.Episode.serialise_special">(Episode method)</a>
+        <li><a href="reference/anime/models.html#grobber.anime.models.SourceEpisode.serialise_special">(SourceEpisode method)</a>
 </li>
         <li><a href="reference/stateful.html#grobber.stateful.Stateful.serialise_special">(Stateful method)</a>
 </li>
       </ul></li>
-      <li><a href="reference/request.html#grobber.request.UrlFormatter.should_use_proxy">should_use_proxy() (UrlFormatter method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/request.html#grobber.request.UrlFormatter.should_use_proxy">should_use_proxy() (UrlFormatter method)</a>
+</li>
       <li><a href="guides/overview.html#term-source"><strong>Source</strong></a>
 
       <ul>
@@ -858,11 +848,13 @@
       </ul></li>
       <li><a href="reference/uid.html#grobber.uid.UID.source">source (UID attribute)</a>
 </li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.source_id">source_id (Anime attribute)</a>
+      <li><a href="reference/anime/models.html#grobber.anime.models.SourceAnime.source_id">source_id (SourceAnime attribute)</a>
+</li>
+      <li><a href="reference/anime/models.html#grobber.anime.models.SourceAnime">SourceAnime (class in grobber.anime.models)</a>
+</li>
+      <li><a href="reference/anime/models.html#grobber.anime.models.SourceEpisode">SourceEpisode (class in grobber.anime.models)</a>
 </li>
       <li><a href="reference/anime/exceptions.html#grobber.anime.exceptions.SourceNotFound">SourceNotFound</a>
-</li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Episode.sources">sources (Episode attribute)</a>
 </li>
       <li><a href="reference/request.html#grobber.request.Request.staggered_request">staggered_request() (Request method)</a>
 </li>
@@ -874,19 +866,17 @@
       </ul></li>
       <li><a href="reference/stateful.html#grobber.stateful.Stateful">Stateful (class in grobber.stateful)</a>
 </li>
+      <li><a href="reference/search_results.html#grobber.search_results.store_cached_search">store_cached_search() (in module grobber.search_results)</a>
+</li>
       <li><a href="guides/overview.html#term-stream"><strong>Stream</strong></a>
 
       <ul>
         <li><a href="reference/anime/models.html#grobber.anime.models.Stream">(class in grobber.anime.models)</a>
 </li>
       </ul></li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Episode.stream">stream (Episode attribute)</a>
-</li>
       <li><a href="reference/anime/streams.html#grobber.anime.streams.streamango.Streamango">Streamango (class in grobber.anime.streams.streamango)</a>
 </li>
       <li><a href="reference/anime/exceptions.html#grobber.anime.exceptions.StreamNotFound">StreamNotFound</a>
-</li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Episode.streams">streams (Episode attribute)</a>
 </li>
       <li><a href="reference/request.html#grobber.request.Request.success">success (Request attribute)</a>
 </li>
@@ -900,43 +890,45 @@
 </li>
       <li><a href="reference/request.html#grobber.request.Request.text">text (Request attribute)</a>
 </li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.thumbnail">thumbnail (Anime attribute)</a>
+      <li><a href="reference/anime/sources.html#grobber.anime.sources.gogoanime.GogoAnime.thumbnail">thumbnail (GogoAnime attribute)</a>
 
       <ul>
-        <li><a href="reference/anime/sources.html#grobber.anime.sources.gogoanime.GogoAnime.thumbnail">(GogoAnime attribute)</a>
-</li>
         <li><a href="reference/anime/sources.html#grobber.anime.sources.masteranime.MasterAnime.thumbnail">(MasterAnime attribute)</a>
 </li>
         <li><a href="reference/anime/sources.html#grobber.anime.sources.nineanime.NineAnime.thumbnail">(NineAnime attribute)</a>
 </li>
       </ul></li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.title">title (Anime attribute)</a>
+      <li><a href="reference/anime/sources.html#grobber.anime.sources.gogoanime.GogoAnime.title">title (GogoAnime attribute)</a>
 
       <ul>
-        <li><a href="reference/anime/sources.html#grobber.anime.sources.gogoanime.GogoAnime.title">(GogoAnime attribute)</a>
-</li>
         <li><a href="reference/anime/sources.html#grobber.anime.sources.masteranime.MasterAnime.title">(MasterAnime attribute)</a>
 </li>
         <li><a href="reference/anime/sources.html#grobber.anime.sources.nineanime.NineAnime.title">(NineAnime attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.to_dict">to_dict() (Anime method)</a>
+      <li><a href="reference/anime/models.html#grobber.anime.models.SearchResult.to_dict">to_dict() (SearchResult method)</a>
 
       <ul>
-        <li><a href="reference/anime/models.html#grobber.anime.models.Episode.to_dict">(Episode method)</a>
+        <li><a href="reference/anime/models.html#grobber.anime.models.SourceAnime.to_dict">(SourceAnime method)</a>
 </li>
-        <li><a href="reference/anime/models.html#grobber.anime.models.SearchResult.to_dict">(SearchResult method)</a>
+        <li><a href="reference/anime/models.html#grobber.anime.models.SourceEpisode.to_dict">(SourceEpisode method)</a>
 </li>
         <li><a href="reference/anime/models.html#grobber.anime.models.Stream.to_dict">(Stream method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/uid.html#grobber.uid.UID.to_python">to_python() (UID method)</a>
 </li>
       <li><a href="reference/uid.html#grobber.uid.UID.to_url">to_url() (UID method)</a>
 </li>
-      <li><a href="reference/request.html#grobber.request.Request.track_telemetry">track_telemetry() (Request method)</a>
+      <li><a href="reference/query.html#grobber.query.AnimeQuery.track_telemetry">track_telemetry() (AnimeQuery method)</a>
+
+      <ul>
+        <li><a href="reference/request.html#grobber.request.Request.track_telemetry">(Request method)</a>
+</li>
+      </ul></li>
+      <li><a href="reference/query.html#grobber.query.Query.try_build">try_build() (grobber.query.Query class method)</a>
 </li>
       <li><a href="reference/request.html#grobber.request.Request.try_req">try_req() (Request method)</a>
 </li>
@@ -947,19 +939,23 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="guides/overview.html#term-uid"><strong>UID</strong></a>
+
+      <ul>
+        <li><a href="reference/uid.html#grobber.uid.UID">(class in grobber.uid)</a>
 </li>
-      <li><a href="reference/anime/models.html#grobber.anime.models.Anime.uid">uid (Anime attribute)</a>
+      </ul></li>
+      <li><a href="reference/anime/models.html#grobber.anime.models.SourceAnime.uid">uid (SourceAnime attribute)</a>
 </li>
-      <li><a href="reference/uid.html#grobber.uid.UID">UID (class in grobber.uid)</a>
+      <li><a href="reference/query.html#grobber.query.UIDAnimeQuery">UIDAnimeQuery (class in grobber.query)</a>
 </li>
       <li><a href="reference/exceptions.html#grobber.exceptions.UIDInvalid">UIDInvalid</a>
 </li>
       <li><a href="reference/exceptions.html#grobber.exceptions.UIDUnknown">UIDUnknown</a>
 </li>
-      <li><a href="reference/url_pool.html#grobber.url_pool.UrlPool.update_url">update_url() (UrlPool method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/url_pool.html#grobber.url_pool.UrlPool.update_url">update_url() (UrlPool method)</a>
+</li>
       <li><a href="reference/url_pool.html#grobber.url_pool.UrlPool.upload">upload() (UrlPool method)</a>
 </li>
       <li><a href="reference/request.html#grobber.request.Request.url">url (Request attribute)</a>

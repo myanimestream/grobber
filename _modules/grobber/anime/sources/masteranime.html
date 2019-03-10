@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>grobber.anime.sources.masteranime &#8212; Grobber 3.0.16 documentation</title>
+    <title>grobber.anime.sources.masteranime &#8212; Grobber 3.0.17 documentation</title>
     <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
@@ -33,7 +33,9 @@
           <div class="body" role="main">
             
   <h1>Source code for grobber.anime.sources.masteranime</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">json</span>
+<span></span><span class="c1"># Masteranime got taken down RIP</span>
+
+<span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">AsyncIterator</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 
@@ -43,7 +45,7 @@
 <span class="kn">from</span> <span class="nn">grobber.request</span> <span class="k">import</span> <span class="n">DefaultUrlFormatter</span><span class="p">,</span> <span class="n">Request</span>
 <span class="kn">from</span> <span class="nn">grobber.url_pool</span> <span class="k">import</span> <span class="n">UrlPool</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">register_source</span>
-<span class="kn">from</span> <span class="nn">..models</span> <span class="k">import</span> <span class="n">Anime</span><span class="p">,</span> <span class="n">Episode</span><span class="p">,</span> <span class="n">SearchResult</span>
+<span class="kn">from</span> <span class="nn">..models</span> <span class="k">import</span> <span class="n">SearchResult</span><span class="p">,</span> <span class="n">SourceAnime</span><span class="p">,</span> <span class="n">SourceEpisode</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -69,7 +71,7 @@
     <span class="k">return</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{base}</span><span class="s2">/</span><span class="si">{path}</span><span class="s2">&quot;</span>
 
 
-<span class="k">class</span> <span class="nc">MasterEpisode</span><span class="p">(</span><span class="n">Episode</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">MasterEpisode</span><span class="p">(</span><span class="n">SourceEpisode</span><span class="p">):</span>
     <span class="n">ATTRS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;mirror_data&quot;</span><span class="p">,)</span>
 
     <span class="nd">@cached_property</span>
@@ -95,7 +97,7 @@
         <span class="k">return</span> <span class="n">links</span>
 
 
-<div class="viewcode-block" id="MasterAnime"><a class="viewcode-back" href="../../../../reference/anime/sources.html#grobber.anime.sources.masteranime.MasterAnime">[docs]</a><span class="k">class</span> <span class="nc">MasterAnime</span><span class="p">(</span><span class="n">Anime</span><span class="p">):</span>
+<div class="viewcode-block" id="MasterAnime"><a class="viewcode-back" href="../../../../reference/anime/sources.html#grobber.anime.sources.masteranime.MasterAnime">[docs]</a><span class="k">class</span> <span class="nc">MasterAnime</span><span class="p">(</span><span class="n">SourceAnime</span><span class="p">):</span>
     <span class="n">ATTRS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;anime_id&quot;</span><span class="p">,</span> <span class="s2">&quot;anime_slug&quot;</span><span class="p">)</span>
     <span class="n">EPISODE_CLS</span> <span class="o">=</span> <span class="n">MasterEpisode</span>
 
@@ -176,7 +178,7 @@
             <span class="k">yield</span> <span class="n">SearchResult</span><span class="p">(</span><span class="n">anime</span><span class="p">,</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_certainty</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">query</span><span class="p">))</span></div>
 
     <span class="nd">@cached_property</span>
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">raw_eps</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Episode</span><span class="p">]:</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">raw_eps</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">SourceEpisode</span><span class="p">]:</span>
         <span class="n">episodes</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="n">slug</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">anime_slug</span>
@@ -188,10 +190,10 @@
 
         <span class="k">return</span> <span class="n">episodes</span>
 
-<div class="viewcode-block" id="MasterAnime.get_episode"><a class="viewcode-back" href="../../../../reference/anime/sources.html#grobber.anime.sources.masteranime.MasterAnime.get_episode">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">get_episode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Episode</span><span class="p">]:</span>
+<div class="viewcode-block" id="MasterAnime.get_episode"><a class="viewcode-back" href="../../../../reference/anime/sources.html#grobber.anime.sources.masteranime.MasterAnime.get_episode">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">get_episode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">SourceEpisode</span><span class="p">]:</span>
         <span class="k">return</span> <span class="p">(</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_eps</span><span class="p">)[</span><span class="n">index</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="MasterAnime.get_episodes"><a class="viewcode-back" href="../../../../reference/anime/sources.html#grobber.anime.sources.masteranime.MasterAnime.get_episodes">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">get_episodes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Episode</span><span class="p">]:</span>
+<div class="viewcode-block" id="MasterAnime.get_episodes"><a class="viewcode-back" href="../../../../reference/anime/sources.html#grobber.anime.sources.masteranime.MasterAnime.get_episodes">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">get_episodes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">SourceEpisode</span><span class="p">]:</span>
         <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_eps</span></div></div>
 
 
