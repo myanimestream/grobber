@@ -1,9 +1,3 @@
-__all__ = ["AsyncFormatter",
-           "create_response", "error_response",
-           "add_http_scheme", "parse_js_json", "external_url_for", "format_available", "do_later",
-           "anext", "alist", "get_first",
-           "fuzzy_bool", "get_certainty"]
-
 import asyncio
 import json
 import logging
@@ -14,9 +8,16 @@ from typing import Any, Awaitable, Dict, List, Optional, TypeVar, Union
 
 from quart import url_for
 
-from .aiter import *
+from . import aitertools
+from .aitertools import *
 from .async_string_formatter import AsyncFormatter
 from .response import *
+
+__all__ = ["AsyncFormatter",
+           "create_response", "error_response",
+           "add_http_scheme", "parse_js_json", "external_url_for", "format_available", "do_later",
+           *aitertools.__all__,
+           "fuzzy_bool", "get_certainty"]
 
 log = logging.getLogger(__name__)
 
@@ -34,9 +35,13 @@ def add_http_scheme(link: str, base_url: str = None, *, _scheme="http") -> str:
     return link
 
 
-def fuzzy_bool(s: Optional[str]) -> bool:
+def fuzzy_bool(s: Optional[str], *, default: bool = False) -> bool:
+    if s is None:
+        return default
+
     if s:
         return str(s).lower() in {"true", "t", "yes", "y", "1"}
+
     return False
 
 

@@ -1,7 +1,7 @@
 .pytest_cache/
 .idea/
 venv/
-docs/build/
+docs/_build/
 
 *.pyc
 .coverage

@@ -34,7 +34,7 @@ async def get_browser(*, args: List[str] = None, **options) -> Browser:
         qs = "?" + "&".join(args) if args else ""
         return await pyppeteer.connect(browserWSEndpoint=CHROME_WS + qs, **options)
     else:
-        return await pyppeteer.launch(args=args, headless=False, **options)
+        return await pyppeteer.launch(args=args, headless=True, **options)
 
 
 BLOCKED_RESOURCE_TYPES = {

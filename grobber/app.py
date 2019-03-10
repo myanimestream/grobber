@@ -1,4 +1,3 @@
-import logging
 import os
 from typing import cast
 
@@ -21,7 +20,6 @@ app = Quart("grobber", static_url_path="/")
 app.url_map.converters["UID"] = UID
 
 app.register_blueprint(anime_blueprint)
-app.register_blueprint(debug_blueprint)
 
 host_url = os.getenv("HOST_URL")
 if host_url:

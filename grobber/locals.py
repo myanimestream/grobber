@@ -4,6 +4,8 @@ from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection, Asyn
 from pymongo import ASCENDING, IndexModel, TEXT
 from quart.local import LocalProxy
 
+__all__ = ["mongo_client", "db", "anime_collection", "search_results_collection", "url_pool_collection", "before_serving"]
+
 _MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
 _MONGO_DB_NAME = os.getenv("MONGO_DB", "MyAnimeStream")
 
@@ -29,7 +31,8 @@ url_pool_collection: AsyncIOMotorCollection = LocalProxy(lambda: db["url_pool"])
 
 def before_serving():
     anime_collection.create_indexes([
-        IndexModel([("title", ASCENDING), ("language", ASCENDING), ("is_dub", ASCENDING)], name="Query Index")
+        IndexModel([("title", ASCENDING), ("language", ASCENDING), ("is_dub", ASCENDING)], name="Query Index"),
+        IndexModel([("media_id", ASCENDING), ("language", ASCENDING), ("is_dub", ASCENDING)], name="Media ID Index"),
     ])
 
     search_results_collection.create_indexes([

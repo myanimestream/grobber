@@ -3,13 +3,13 @@ Models
 
 .. toctree::
 
-.. autoclass:: grobber.anime.models.Anime
+.. autoclass:: grobber.anime.models.SourceAnime
     :show-inheritance:
     :members:
     :undoc-members:
     :special-members:
 
-.. autoclass:: grobber.anime.models.Episode
+.. autoclass:: grobber.anime.models.SourceEpisode
     :show-inheritance:
     :members:
     :undoc-members:

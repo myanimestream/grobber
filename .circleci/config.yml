@@ -54,7 +54,7 @@ jobs:
       - *install_dependencies
       - run:
           name: Build Documentation
-          command: pipenv run sphinx-build -b html docs/source docs/build
+          command: pipenv run sphinx-build -b html docs docs/_build
       - run:
           name: Commit Documentation
           command: bash tools/commit_documentation.sh

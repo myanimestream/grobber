@@ -1,4 +1,4 @@
-__all__ = ["Anime"]
+__all__ = ["Anime", "SourceAnime"]
 
 import abc
 import asyncio
@@ -9,7 +9,7 @@ from grobber.decorators import cached_property
 from grobber.languages import Language
 from grobber.stateful import BsonType, Expiring
 from grobber.uid import MediaType, UID
-from .episode import Episode
+from .episode import Episode, SourceEpisode
 from ..exceptions import EpisodeNotFound
 
 if TYPE_CHECKING:
@@ -18,9 +18,77 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
-class Anime(Expiring, abc.ABC):
-    EPISODE_CLS = Episode
-    PRELOAD_ATTRS = ("id", "is_dub", "language", "title", "thumbnail", "episode_count")
+class Anime(abc.ABC):
+    def __repr__(self) -> str:
+        if hasattr(self, "_media_id"):
+            return f"Anime {self._media_id}"
+        else:
+            return super().__repr__()
+
+    def __str__(self) -> str:
+        if hasattr(self, "_title"):
+            return self._title
+        else:
+            return repr(self)
+
+    def __bool__(self) -> bool:
+        return True
+
+    @cached_property
+    async def media_id(self) -> str:
+        return UID.create_media_id(await self.title)
+
+    @abc.abstractmethod
+    async def get(self, index: int) -> Episode:
+        ...
+
+    @property
+    @abc.abstractmethod
+    async def uid(self) -> UID:
+        ...
+
+    @property
+    @abc.abstractmethod
+    async def is_dub(self) -> bool:
+        ...
+
+    @property
+    @abc.abstractmethod
+    async def language(self) -> Language:
+        ...
+
+    @property
+    @abc.abstractmethod
+    async def title(self) -> str:
+        ...
+
+    @property
+    @abc.abstractmethod
+    async def thumbnail(self) -> Optional[str]:
+        ...
+
+    @property
+    @abc.abstractmethod
+    async def episode_count(self) -> int:
+        ...
+
+    async def to_dict(self) -> Dict[str, BsonType]:
+        uid, media_id, title, thumbnail, episode_count, is_dub, language = await asyncio.gather(
+            self.uid, self.media_id, self.title, self.thumbnail, self.episode_count, self.is_dub, self.language
+        )
+
+        return {"uid": uid,
+                "media_id": media_id,
+                "title": title,
+                "thumbnail": thumbnail,
+                "episodes": episode_count,
+                "dubbed": is_dub,
+                "language": language.value}
+
+
+class SourceAnime(Anime, Expiring, abc.ABC):
+    EPISODE_CLS = SourceEpisode
+    PRELOAD_ATTRS = ("id", "media_id", "is_dub", "language", "title", "thumbnail", "episode_count")
 
     INCLUDE_CLS = True
     ATTRS = PRELOAD_ATTRS + ("episodes", "last_update")
@@ -29,22 +97,13 @@ class Anime(Expiring, abc.ABC):
 
     _episodes: Dict[int, EPISODE_CLS]
 
-    def __bool__(self) -> bool:
-        return True
-
     def __repr__(self) -> str:
         if hasattr(self, "_uid"):
             return self._uid
         else:
             return repr(self._req)
 
-    def __str__(self) -> str:
-        if hasattr(self, "_title"):
-            return self._title
-        else:
-            return repr(self)
-
-    def __eq__(self, other: "Anime") -> bool:
+    def __eq__(self, other: "SourceAnime") -> bool:
         return hash(self) == hash(other)
 
     def __hash__(self) -> int:
@@ -70,41 +129,20 @@ class Anime(Expiring, abc.ABC):
             for ep in self._episodes.values():
                 ep.dirty = value
 
-    @cached_property
+    @property
     async def uid(self) -> UID:
-        anime_id = UID.create_media_id(await self.title)
+        return UID(await self.id)
 
-        language, is_dub = await asyncio.gather(self.language, self.is_dub)
+    @uid.setter
+    def uid(self, value: UID):
+        # noinspection PyPropertyAccess,PyAttributeOutsideInit
+        self.id = value
 
-        return UID.create(MediaType.ANIME, anime_id, self.source_id, language, is_dub)
+    @cached_property
+    async def id(self) -> str:
+        media_id, language, is_dub = await asyncio.gather(self.media_id, self.language, self.is_dub)
 
-    @property
-    async def id(self) -> UID:
-        return await self.uid
-
-    @id.setter
-    def id(self, value: UID):
-        self._uid = value
-
-    @property
-    @abc.abstractmethod
-    async def is_dub(self) -> bool:
-        ...
-
-    @property
-    @abc.abstractmethod
-    async def language(self) -> Language:
-        ...
-
-    @property
-    @abc.abstractmethod
-    async def title(self) -> str:
-        ...
-
-    @property
-    @abc.abstractmethod
-    async def thumbnail(self) -> Optional[str]:
-        ...
+        return UID.create(MediaType.ANIME, media_id, self.source_id, language, is_dub)
 
     @cached_property
     async def episode_count(self) -> int:
@@ -149,16 +187,10 @@ class Anime(Expiring, abc.ABC):
         ...
 
     async def to_dict(self) -> Dict[str, BsonType]:
-        uid, title, thumbnail, episode_count, is_dub, language = await asyncio.gather(
-            self.uid, self.title, self.thumbnail, self.episode_count, self.is_dub, self.language)
+        data = await super().to_dict()
+        data["updated"] = self.last_update.isoformat()
 
-        return {"uid": uid,
-                "title": title,
-                "thumbnail": thumbnail,
-                "episodes": episode_count,
-                "dubbed": is_dub,
-                "language": language.value,
-                "updated": self.last_update.isoformat()}
+        return data
 
     @classmethod
     @abc.abstractmethod

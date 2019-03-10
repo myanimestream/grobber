@@ -1,4 +1,4 @@
-__all__ = ["Episode"]
+__all__ = ["Episode", "SourceEpisode"]
 
 import abc
 import asyncio
@@ -19,33 +19,7 @@ log = logging.getLogger(__name__)
 T = TypeVar("T")
 
 
-class Episode(Expiring, abc.ABC):
-    ATTRS = ("stream", "raw_streams", "streams", "poster")
-    CHANGING_ATTRS = ATTRS
-    EXPIRE_TIME = 6 * Expiring.HOUR
-
-    def __init__(self, req: Request, *args, **kwargs):
-        super().__init__(req, *args, **kwargs)
-
-    def __repr__(self) -> str:
-        return f"{type(self).__qualname__} Ep.: {repr(self._req)}"
-
-    @property
-    def dirty(self) -> bool:
-        if self._dirty:
-            return True
-        else:
-            if hasattr(self, "_streams"):
-                return any(stream.dirty for stream in self._streams)
-            return False
-
-    @dirty.setter
-    def dirty(self, value: bool):
-        self._dirty = value
-        if hasattr(self, "_streams"):
-            for stream in self._streams:
-                stream.dirty = value
-
+class Episode(abc.ABC):
     @property
     @abc.abstractmethod
     async def raw_streams(self) -> List[str]:
@@ -103,6 +77,41 @@ class Episode(Expiring, abc.ABC):
         log.debug(f"{self} searching for poster")
         return await get_first([stream.poster for stream in await self.streams])
 
+    async def to_dict(self) -> Dict[str, BsonType]:
+        raw_streams, stream, poster = await asyncio.gather(self.raw_streams, self.stream, self.poster)
+
+        return {"embeds": raw_streams,
+                "stream": await stream.to_dict() if stream else None,
+                "poster": poster}
+
+
+class SourceEpisode(Episode, Expiring, abc.ABC):
+    ATTRS = ("stream", "raw_streams", "streams", "poster")
+    CHANGING_ATTRS = ATTRS
+    EXPIRE_TIME = 6 * Expiring.HOUR
+
+    def __init__(self, req: Request, *args, **kwargs):
+        super().__init__(req, *args, **kwargs)
+
+    def __repr__(self) -> str:
+        return f"{type(self).__qualname__} Ep.: {repr(self._req)}"
+
+    @property
+    def dirty(self) -> bool:
+        if self._dirty:
+            return True
+        else:
+            if hasattr(self, "_streams"):
+                return any(stream.dirty for stream in self._streams)
+            return False
+
+    @dirty.setter
+    def dirty(self, value: bool):
+        self._dirty = value
+        if hasattr(self, "_streams"):
+            for stream in self._streams:
+                stream.dirty = value
+
     def serialise_special(self, key: str, value: Any) -> BsonType:
         if key == "streams":
             # if there are no links/poster in a stream and it has already been "processed", get rid of it
@@ -124,9 +133,7 @@ class Episode(Expiring, abc.ABC):
         return super().deserialise_special(key, value)
 
     async def to_dict(self) -> Dict[str, BsonType]:
-        raw_streams, stream, poster = await asyncio.gather(self.raw_streams, self.stream, self.poster)
+        data = await super().to_dict()
+        data["updated"] = self.last_update.isoformat()
 
-        return {"embeds": raw_streams,
-                "stream": await stream.to_dict() if stream else None,
-                "poster": poster,
-                "updated": self.last_update.isoformat()}
+        return data

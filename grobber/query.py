@@ -1,15 +1,16 @@
 import abc
 import asyncio
 import logging
-import typing
+from contextlib import suppress
 from operator import attrgetter
-from typing import Any, List, NamedTuple, Optional, Set
+from typing import Any, List, NamedTuple, Set, cast, get_type_hints
 
 from prometheus_async.aio import time
 from quart import request
 
+from grobber.anime.group import get_anime_group, get_anime_group_by_title, group_animes
 from . import languages
-from .anime import Anime, AnimeNotFound, Episode, SearchResult, SourceNotFound, Stream, sources
+from .anime import Anime, AnimeNotFound, Episode, SearchResult, SourceAnime, SourceNotFound, Stream, sources
 from .exceptions import InvalidRequest, UIDUnknown
 from .languages import Language
 from .search_results import find_cached_searches, get_cached_searches, store_cached_search
@@ -30,104 +31,118 @@ class SearchFilter(NamedTuple):
         return self._asdict()
 
 
-class AnimeQuery(metaclass=abc.ABCMeta):
-    class _Generic(metaclass=abc.ABCMeta):
-        def __init__(self, **kwargs) -> None:
-            cls = type(self)
-            hints = typing.get_type_hints(cls)
-            args = kwargs or request.args
+class Query(metaclass=abc.ABCMeta):
+    def __init__(self, **kwargs) -> None:
+        cls = type(self)
+        hints = get_type_hints(cls)
+        args = kwargs or request.args
 
-            for key, typ in hints.items():
-                value = args.get(key)
-                if value is None:
-                    if not hasattr(self, key):
-                        raise KeyError(f"{self}: {key} missing!")
-                    continue
+        for key, typ in hints.items():
+            value = args.get(key)
+            if value is None:
+                if not hasattr(self, key):
+                    raise KeyError(f"{self}: {key} missing!")
+                continue
 
-                converter = getattr(cls, f"convert_{key}", typ)
-                try:
-                    value = converter(value)
-                except (ValueError, TypeError):
-                    raise ValueError(f"{self} couldn't convert {value} to {typ} for {key}")
-
-                setattr(self, key, value)
-
-        @classmethod
-        def try_build(cls, **kwargs) -> Optional["AnimeQuery._Generic"]:
+            converter = getattr(cls, f"convert_{key}", typ)
             try:
-                return cls(**kwargs)
-            except (ValueError, KeyError):
-                return None
+                value = converter(value)
+            except (ValueError, TypeError):
+                raise ValueError(f"{self} couldn't convert {value} to {typ} for {key}")
 
-        def track_telemetry(self, language: Language, dubbed: bool, source: str):
-            LANGUAGE_COUNTER.labels(language.value, "dub" if dubbed else "sub").inc()
-            SOURCE_COUNTER.labels(source).inc()
+            setattr(self, key, value)
 
-            query_type = type(self).__qualname__
-            ANIME_QUERY_TYPE.labels(query_type).inc()
+    @classmethod
+    def try_build(cls, **kwargs):
+        try:
+            return cls(**kwargs)
+        except (ValueError, KeyError):
+            return None
 
-        @abc.abstractmethod
-        async def search_params(self) -> SearchFilter:
-            ...
+    @abc.abstractmethod
+    async def resolve(self) -> Any:
+        ...
 
-        @abc.abstractmethod
-        async def resolve(self) -> Anime:
-            ...
 
-    class UID(_Generic):
-        uid: UID
+class AnimeQuery(Query):
+    def track_telemetry(self, language: Language, dubbed: bool, source: str):
+        LANGUAGE_COUNTER.labels(language.value, "dub" if dubbed else "sub").inc()
+        SOURCE_COUNTER.labels(source).inc()
 
-        async def search_params(self) -> SearchFilter:
-            raise InvalidRequest("Can't search using a UID")
+        query_type = type(self).__qualname__
+        ANIME_QUERY_TYPE.labels(query_type).inc()
 
-        async def resolve(self) -> Anime:
-            if not self.uid:
-                raise InvalidRequest("")
-
-            anime = await sources.get_anime(self.uid)
-            if not anime:
-                raise UIDUnknown(self.uid)
-
-            self.track_telemetry(self.uid.language, self.uid.dubbed, self.uid.source)
-            return anime
-
-    class Query(_Generic):
-        anime: str
-
-        language: Language = None
-        convert_language = languages.get_lang
-
-        dubbed: bool = None
-        convert_dubbed = fuzzy_bool
-
-        async def search_params(self) -> SearchFilter:
-            return SearchFilter(self.language or Language.ENGLISH, bool(self.dubbed))
-
-        async def resolve(self) -> Anime:
-            filters = dict()
-
-            if self.dubbed is not None:
-                filters["dubbed"] = self.dubbed
-
-            if self.language:
-                filters["language"] = self.language.value
-
-            anime = await sources.get_anime_by_title(self.anime, **filters)
-            if not anime:
-                raise AnimeNotFound(self.anime, dubbed=self.dubbed, language=self.language)
-
-            self.track_telemetry(self.language, self.dubbed, type(anime).__qualname__)
-            return anime
+    @abc.abstractmethod
+    async def search_params(self) -> SearchFilter:
+        ...
 
     @staticmethod
-    def build(**kwargs) -> _Generic:
-        for query_type in (AnimeQuery.UID, AnimeQuery.Query):
+    def build(**kwargs) -> "AnimeQuery":
+        for query_type in (UIDAnimeQuery, QueryAnimeQuery):
             query = query_type.try_build(**kwargs)
             if query:
-                return query
+                return cast(AnimeQuery, query)
 
         raise InvalidRequest("Please specify the anime using either its uid, "
                              "or a title (anime), language and dubbed value")
+
+
+class UIDAnimeQuery(AnimeQuery):
+    uid: UID
+
+    async def search_params(self) -> SearchFilter:
+        raise InvalidRequest("Can't search using a UID")
+
+    async def resolve(self) -> SourceAnime:
+        if not self.uid:
+            raise InvalidRequest("Missing uid parameter")
+
+        if self.uid.source is None:
+            anime = await get_anime_group(self.uid)
+        else:
+            anime = await sources.get_anime(self.uid)
+
+        if not anime:
+            raise UIDUnknown(self.uid)
+
+        self.track_telemetry(self.uid.language, self.uid.dubbed, self.uid.source)
+        return anime
+
+
+class QueryAnimeQuery(AnimeQuery):
+    anime: str
+
+    language: Language = None
+    convert_language = languages.get_lang
+
+    dubbed: bool = None
+    convert_dubbed = fuzzy_bool
+
+    group: bool = True
+    convert_group = fuzzy_bool
+
+    async def search_params(self) -> SearchFilter:
+        return SearchFilter(self.language or Language.ENGLISH, bool(self.dubbed))
+
+    async def resolve(self) -> SourceAnime:
+        filters = dict()
+
+        if self.dubbed is not None:
+            filters["dubbed"] = self.dubbed
+
+        if self.language:
+            filters["language"] = self.language
+
+        if self.group:
+            anime = await get_anime_group_by_title(self.anime, **filters)
+        else:
+            anime = await sources.get_anime_by_title(self.anime, **filters)
+
+        if not anime:
+            raise AnimeNotFound(self.anime, dubbed=self.dubbed, language=self.language)
+
+        self.track_telemetry(self.language, self.dubbed, type(anime).__qualname__)
+        return anime
 
 
 def _get_int_param(name: str, default: Any = _DEFAULT) -> int:
@@ -144,25 +159,7 @@ def _get_int_param(name: str, default: Any = _DEFAULT) -> int:
     return value
 
 
-@time(ANIME_SEARCH_TIME)
-async def search_anime() -> List[SearchResult]:
-    query = AnimeQuery.build()
-    filters = await query.search_params()
-
-    query = request.args.get("anime")
-    if not query:
-        raise InvalidRequest("No query specified")
-
-    num_results = _get_int_param("results", 1)
-    if not (0 < num_results <= 20):
-        raise InvalidRequest(f"Can only request up to 20 results (not {num_results})")
-
-    exact_search_results = await get_cached_searches(MediaType.ANIME, query, num_results)
-    if exact_search_results:
-        log.info("Found exact search result")
-        exact_anime_results: List[Anime] = await asyncio.gather(*(sources.build_anime_from_doc(sr["_id"], sr) for sr in exact_search_results))
-        return [SearchResult(anime, get_certainty(await anime.title, query)) for anime in exact_anime_results]
-
+async def _search_anime(query: str, filters: SearchFilter, num_results: int) -> Set[SearchResult]:
     results_pool: Set[SearchResult] = set()
 
     # first try to find animes matching the query in the database
@@ -176,7 +173,7 @@ async def search_anime() -> List[SearchResult]:
             results_pool.update(map(lambda a: SearchResult(a, 1), anime))
 
     cached_search_results = await find_cached_searches(MediaType.ANIME, query, max_results=num_results)
-    anime_search_results: List[Anime] = await asyncio.gather(*(sources.build_anime_from_doc(sr["_id"], sr) for sr in cached_search_results))
+    anime_search_results: List[SourceAnime] = await asyncio.gather(*(sources.build_anime_from_doc(sr["_id"], sr) for sr in cached_search_results))
     cached_added = 0
     for search_result in anime_search_results:
         certainty = get_certainty(await search_result.title, query)
@@ -225,9 +222,41 @@ async def search_anime() -> List[SearchResult]:
         await store_cached_search(MediaType.ANIME, query, num_results, uids)
         log.info(f"cached {len(uids)} search results for \"{query}\"")
 
+    return results_pool
+
+
+@time(ANIME_SEARCH_TIME)
+async def search_anime() -> List[SearchResult]:
+    query = AnimeQuery.build()
+    filters = await query.search_params()
+
+    query = request.args.get("anime")
+    if not query:
+        raise InvalidRequest("No query specified")
+
+    num_results = _get_int_param("results", 1)
+    if not (0 < num_results <= 20):
+        raise InvalidRequest(f"Can only request up to 20 results (not {num_results})")
+
+    group: bool = fuzzy_bool(request.args.get("group"), default=True)
+
+    exact_search_results = await get_cached_searches(MediaType.ANIME, query, num_results)
+    if exact_search_results:
+        log.info("Found exact search result")
+        exact_anime_results: List[Anime] = await asyncio.gather(*(sources.build_anime_from_doc(sr["_id"], sr) for sr in exact_search_results))
+
+        results_pool = {SearchResult(anime, get_certainty(await anime.title, query)) for anime in exact_anime_results}
+    else:
+        results_pool = await _search_anime(query, filters, num_results)
+
+    if group:
+        groups = await group_animes(result.anime for result in results_pool)
+        results_pool = {SearchResult(g, get_certainty(await g.title, query)) for g in groups}
+
     log.info(f"found {len(results_pool)}/{num_results}")
     results = sorted(results_pool, key=attrgetter("certainty"), reverse=True)[:num_results]
-    await asyncio.gather(*(result.anime.preload_attrs(*Anime.PRELOAD_ATTRS) for result in results))
+    with suppress(AttributeError):
+        await asyncio.gather(*(result.anime.preload_attrs(*SourceAnime.PRELOAD_ATTRS) for result in results))
 
     # sort by certainty, title, episode count
     results.sort(key=lambda sr: (sr.certainty, getattr(sr.anime, "_title", ""), getattr(sr.anime, "_episode_count", 0)), reverse=True)
@@ -236,12 +265,12 @@ async def search_anime() -> List[SearchResult]:
 
 
 @time(ANIME_RESOLVE_TIME)
-async def get_anime(**kwargs) -> Anime:
+async def get_anime(**kwargs) -> SourceAnime:
     return await AnimeQuery.build(**kwargs).resolve()
 
 
-def get_episode_index() -> int:
-    return _get_int_param("episode")
+def get_episode_index(**kwargs) -> int:
+    return _get_int_param("episode", **kwargs)
 
 
 async def get_episode(episode_index: int = None, anime: Anime = None, **kwargs) -> Episode:

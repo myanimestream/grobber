@@ -8,12 +8,12 @@ from grobber.request import DefaultUrlFormatter, Request
 from grobber.url_pool import UrlPool
 from grobber.utils import add_http_scheme, get_certainty
 from . import register_source
-from ..models import Anime, Episode, SearchResult
+from ..models import SearchResult, SourceAnime, SourceEpisode
 
 log = logging.getLogger(__name__)
 
-RE_TITLE_EXTRACTOR: Pattern = re.compile(r"\s*(.+?)( \(Dub\))? Episode (\d+)\s*$")
-RE_HEADER_EXTRACTOR: Pattern = re.compile(r"\s*(.+?)( \(Dub\))? Episode (\d+)(?: English Subbed)?\s*$")
+RE_TITLE_EXTRACTOR: Pattern = re.compile(r"\s*(.+?)( \(Dub\))? Episode ([\d.]+)\s*$")
+RE_HEADER_EXTRACTOR: Pattern = re.compile(r"\s*(.+?)( \(Dub\))? Episode ([\d.]+)(?: English Subbed)?\s*$")
 RE_URL_SLUG_EXTRACTOR: Pattern = re.compile(r"([^/]+-)\d+$")
 
 vidstreaming_pool = UrlPool("Vidstreaming", ["https://vidstreaming.io"])
@@ -21,7 +21,7 @@ DefaultUrlFormatter.add_field("VIDSTREAMING_URL", lambda: vidstreaming_pool.url)
 DefaultUrlFormatter.use_proxy("VIDSTREAMING_URL")
 
 
-class VidstreamingEpisode(Episode):
+class VidstreamingEpisode(SourceEpisode):
     @cached_property
     async def streams_page(self) -> Request:
         bs = await self._req.bs
@@ -44,7 +44,7 @@ class VidstreamingEpisode(Episode):
         return stream_urls
 
 
-class VidstreamingAnime(Anime):
+class VidstreamingAnime(SourceAnime):
     ATTRS = ("url_slug",)
     EPISODE_CLS = VidstreamingEpisode
 
@@ -117,11 +117,16 @@ class VidstreamingAnime(Anime):
 
     # noinspection PyPropertyAccess
     async def parse_header(self) -> None:
-        header = (await self._req.bs).select_one("div.video-info h1").text
+        header = (await self._req.bs).select_one(".video-info h1").text
         match = RE_HEADER_EXTRACTOR.match(header)
         self.title = match.group(1)
         self.is_dub = bool(match.group(2))
-        self.episode_count = int(match.group(3))
+
+        try:
+            self.episode_count = int(match.group(3))
+        except ValueError as e:
+            log.info(f"{self} Couldn't parse episode count, using 0: {e}")
+            self.episode_count = 0
 
 
 register_source(VidstreamingAnime)

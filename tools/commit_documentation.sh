@@ -3,7 +3,7 @@ set -e
 
 rev=$(git rev-parse --short HEAD)
 
-cd docs/build/
+cd docs/_build/
 
 git init --quiet
 

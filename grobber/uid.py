@@ -1,6 +1,7 @@
 import logging
 import re
 from enum import Enum
+from typing import Optional
 
 from quart.routing import BaseConverter
 
@@ -11,8 +12,8 @@ log = logging.getLogger(__name__)
 
 # source-anime_id-language(_dub)?
 RE_LEGACY_UID_PARSER = re.compile(r"^(.+)-(.+)-(.+?)(_dub)?$")
-# media_type-media_id-source-language(_dub)?
-RE_UID_PARSER = re.compile(r"^(.+)-(.+)-(.+)-(.+?)(_dub)?$")
+# media_type-media_id(-source)?-language(_dub)?
+RE_UID_PARSER = re.compile(r"^([^-]+)-([^-]+)(?:-([^-]+))?-([^-]+?)(_dub)?$")
 
 
 class MediaType(Enum):
@@ -25,7 +26,7 @@ class UID(str, BaseConverter):
 
     _media_type: MediaType
     _media_id: str
-    _source: str
+    _source: Optional[str]
     _language: Language
     _dubbed: bool
 
@@ -40,7 +41,7 @@ class UID(str, BaseConverter):
         return self._media_id
 
     @property
-    def source(self) -> str:
+    def source(self) -> Optional[str]:
         self.parse()
         return self._source
 
@@ -55,9 +56,10 @@ class UID(str, BaseConverter):
         return self._dubbed
 
     @classmethod
-    def create(cls, media_type: MediaType, media_id: str, source: str, language: Language, dubbed: bool) -> "UID":
+    def create(cls, media_type: MediaType, media_id: str, source: Optional[str], language: Language, dubbed: bool) -> "UID":
         dubbed_str = "_dub" if dubbed else ""
-        uid = UID(f"{media_type.value}-{media_id}-{source}-{language.value}{dubbed_str}")
+        source_str = f"-{source}" if source else ""
+        uid = UID(f"{media_type.value}-{media_id}{source_str}-{language.value}{dubbed_str}")
 
         uid._media_type = media_type
         uid._media_id = media_id

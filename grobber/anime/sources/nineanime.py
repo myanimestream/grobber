@@ -1,6 +1,6 @@
 import logging
 import re
-from typing import Iterator, List, Optional
+from typing import Iterator, List, Optional, cast
 
 import yarl
 from pyppeteer.page import Page
@@ -11,7 +11,7 @@ from grobber.request import DefaultUrlFormatter, Request
 from grobber.url_pool import UrlPool
 from grobber.utils import get_certainty
 from . import register_source
-from ..models import Anime, Episode, SearchResult
+from ..models import SearchResult, SourceAnime, SourceEpisode
 
 log = logging.getLogger(__name__)
 
@@ -21,12 +21,12 @@ SEARCH_URL = BASE_URL + "/search"
 RE_DUB_STRIPPER = re.compile(r"\s\(Dub\)$")
 
 
-class NineEpisode(Episode):
+class NineEpisode(SourceEpisode):
     @cached_property
     async def raw_streams(self) -> List[str]:
         raw_streams = []
         async with self._req.page as page:
-            page: Page
+            page = cast(Page, page)
             await page.waitFor("div#player .cover")
             await page.evaluate("""document.querySelector("div#player .cover").click();""")
 
@@ -49,7 +49,7 @@ class NineEpisode(Episode):
         return raw_streams
 
 
-class NineAnime(Anime):
+class NineAnime(SourceAnime):
     EPISODE_CLS = NineEpisode
 
     @cached_property

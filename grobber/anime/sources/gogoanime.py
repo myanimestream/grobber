@@ -9,7 +9,7 @@ from grobber.request import DefaultUrlFormatter, Request
 from grobber.url_pool import UrlPool
 from grobber.utils import add_http_scheme, get_certainty
 from . import register_source
-from ..models import Anime, Episode, SearchResult
+from ..models import SearchResult, SourceAnime, SourceEpisode
 
 log = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ def get_potential_page_name(name: str) -> str:
     return page_name
 
 
-class GogoEpisode(Episode):
+class GogoEpisode(SourceEpisode):
     @cached_property
     async def raw_streams(self) -> List[str]:
         streams = []
@@ -51,7 +51,7 @@ class GogoEpisode(Episode):
         return streams
 
 
-class GogoAnime(Anime):
+class GogoAnime(SourceAnime):
     ATTRS = ("anime_id", "raw_title")
     EPISODE_CLS = GogoEpisode
 
@@ -150,7 +150,7 @@ class GogoAnime(Anime):
         return await self.raw_eps
 
 
-gogoanime_pool = UrlPool("GogoAnime", ["https://gogoanimes.co", "http://gogoanimes.co"])
+gogoanime_pool = UrlPool("GogoAnime", ["https://gogoanime.tv", "http://gogoanime.tv"])
 DefaultUrlFormatter.add_field("GOGOANIME_URL", lambda: gogoanime_pool.url)
 DefaultUrlFormatter.use_proxy("GOGOANIME_URL")
 

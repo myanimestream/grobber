@@ -1,3 +1,5 @@
+# Masteranime got taken down RIP
+
 import json
 import logging
 from typing import Any, AsyncIterator, Dict, List, Optional, Union
@@ -8,7 +10,7 @@ from grobber.languages import Language
 from grobber.request import DefaultUrlFormatter, Request
 from grobber.url_pool import UrlPool
 from . import register_source
-from ..models import Anime, Episode, SearchResult
+from ..models import SearchResult, SourceAnime, SourceEpisode
 
 log = logging.getLogger(__name__)
 
@@ -34,7 +36,7 @@ async def get_poster_url(poster_data: Union[Dict[str, Any], str]) -> str:
     return f"{base}/{path}"
 
 
-class MasterEpisode(Episode):
+class MasterEpisode(SourceEpisode):
     ATTRS = ("mirror_data",)
 
     @cached_property
@@ -60,7 +62,7 @@ class MasterEpisode(Episode):
         return links
 
 
-class MasterAnime(Anime):
+class MasterAnime(SourceAnime):
     ATTRS = ("anime_id", "anime_slug")
     EPISODE_CLS = MasterEpisode
 
@@ -141,7 +143,7 @@ class MasterAnime(Anime):
             yield SearchResult(anime, utils.get_certainty(title, query))
 
     @cached_property
-    async def raw_eps(self) -> List[Episode]:
+    async def raw_eps(self) -> List[SourceEpisode]:
         episodes = []
 
         slug = await self.anime_slug
@@ -153,10 +155,10 @@ class MasterAnime(Anime):
 
         return episodes
 
-    async def get_episode(self, index: int) -> Optional[Episode]:
+    async def get_episode(self, index: int) -> Optional[SourceEpisode]:
         return (await self.raw_eps)[index]
 
-    async def get_episodes(self) -> List[Episode]:
+    async def get_episodes(self) -> List[SourceEpisode]:
         return await self.raw_eps
 
 

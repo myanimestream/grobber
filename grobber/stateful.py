@@ -51,8 +51,7 @@ class Stateful(abc.ABC):
         self._dirty = False
 
         if data:
-            for key, value in data.items():
-                setattr(self, key, value)
+            self.load_data(data)
 
     @property
     def dirty(self) -> bool:
@@ -104,6 +103,10 @@ class Stateful(abc.ABC):
             return value
 
         return await asyncio.gather(*(preload(attr) for attr in attrs))
+
+    def load_data(self, data: Dict[str, Any]):
+        for key, value in data.items():
+            setattr(self, key, value)
 
     @property
     def state(self) -> Dict[str, BsonType]:

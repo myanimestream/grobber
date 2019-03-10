@@ -9,15 +9,15 @@ from grobber.locals import anime_collection
 from grobber.telemetry import SEARCH_SOURCE_COUNTER
 from grobber.uid import UID
 from grobber.utils import anext
-from ..models import Anime, SearchResult
+from ..models import SearchResult, SourceAnime
 
 log = logging.getLogger(__name__)
 
-_SOURCES = ["gogoanime", "masteranime", "nineanime", "vidstreaming"]
-SOURCES: Dict[str, Type[Anime]] = {}
+_SOURCES = ["gogoanime", "nineanime", "vidstreaming"]
+SOURCES: Dict[str, Type[SourceAnime]] = {}
 
 
-def register_source(anime: Type[Anime]):
+def register_source(anime: Type[SourceAnime]):
     SOURCES[anime.__qualname__] = anime
 
 
@@ -29,10 +29,10 @@ def _load_sources():
 _load_sources()
 log.info(f"Using Sources: {', '.join(source.__qualname__ for source in SOURCES.values())}")
 
-CACHE: Set[Anime] = set()
+CACHE: Set[SourceAnime] = set()
 
 
-async def save_anime(anime: Anime, *, silent: bool = False) -> None:
+async def save_anime(anime: SourceAnime, *, silent: bool = False) -> None:
     try:
         uid = await anime.uid
         await anime_collection.update_one({"_id": uid}, {"$set": anime.state}, upsert=True)
@@ -65,7 +65,7 @@ async def delete_anime(uid: str) -> None:
     await anime_collection.delete_one(dict(_id=uid))
 
 
-async def build_anime_from_doc(uid: str, doc: Dict[str, Any]) -> Anime:
+async def build_anime_from_doc(uid: str, doc: Dict[str, Any]) -> SourceAnime:
     *_, name = doc["cls"].rsplit(".", 1)
 
     try:
@@ -80,14 +80,14 @@ async def build_anime_from_doc(uid: str, doc: Dict[str, Any]) -> Anime:
     return anime
 
 
-async def get_anime(uid: UID) -> Optional[Anime]:
+async def get_anime(uid: UID) -> Optional[SourceAnime]:
     doc = await anime_collection.find_one(uid)
     if doc:
         return await build_anime_from_doc(uid, doc)
     return None
 
 
-async def get_animes(uids: Iterable[UID]) -> Dict[UID, Anime]:
+async def get_animes(uids: Iterable[UID]) -> Dict[UID, SourceAnime]:
     cursor = anime_collection.find({"_id": {"$in": list(uids)}})
     documents = await cursor.to_list(None)
 
@@ -100,13 +100,18 @@ async def get_animes(uids: Iterable[UID]) -> Dict[UID, Anime]:
     return res
 
 
-async def get_animes_by_title(title: str, *, language=Language.ENGLISH, dubbed=False) -> AsyncIterator[Anime]:
-    cursor = anime_collection.find({"title": title, f"language{Anime._SPECIAL_MARKER}": language.value, "is_dub": dubbed})
+async def get_animes_by_title(title: str, *, language=Language.ENGLISH, dubbed=False) -> AsyncIterator[SourceAnime]:
+    cursor = anime_collection.find({"title": title, f"language{SourceAnime._SPECIAL_MARKER}": language.value, "is_dub": dubbed})
     async for doc in cursor:
-        yield await build_anime_from_doc(doc["_id"], doc)
+        try:
+            yield await build_anime_from_doc(doc["_id"], doc)
+        except UIDUnknown as e:
+            title = doc.get("title") or doc.get("_id") or "unknown"
+            log.debug(f"ignoring {title} because: {e}")
+            continue
 
 
-async def get_anime_by_title(title: str, *, language=Language.ENGLISH, dubbed=False) -> Optional[Anime]:
+async def get_anime_by_title(title: str, *, language=Language.ENGLISH, dubbed=False) -> Optional[SourceAnime]:
     return await anext(get_animes_by_title(title, language=language, dubbed=dubbed), None)
 
 

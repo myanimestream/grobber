@@ -29,7 +29,7 @@ Glossary
 .. glossary::
 
     Source
-        A source is an interface between an Anime streaming website and Grobber.
+        A source is an interface between an SourceAnime streaming website and Grobber.
         It extracts metadata and episodes from such a site and provides a search
         functionality.
 

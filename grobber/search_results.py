@@ -71,7 +71,7 @@ async def get_cached_searches(media_type: MediaType, query: str, requested_resul
         }}
     ]
 
-    documents = await search_results_collection.aggregate(pipeline).to_list(None)
+    documents = await search_results_collection.aggregate(pipeline).to_list(1)
 
     if not documents:
         return None
@@ -86,5 +86,5 @@ async def store_cached_search(media_type: MediaType, query: str, requested_resul
         "query": query,
         "requested_results": requested_results,
         "results": list(uids),
-        "created": datetime.now()
+        "created": datetime.utcnow()
     })
