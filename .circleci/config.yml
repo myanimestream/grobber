@@ -75,11 +75,13 @@ workflows:
 
   publish-commit-image:
     jobs:
-      - docker-publish/publish
+      - docker-publish/publish:
+          image: $DOCKER_IMAGE
 
   publish-latest-image:
     jobs:
       - docker-publish/publish:
+          image: $DOCKER_IMAGE
           tag: latest
           filters:
             branches:
@@ -88,7 +90,8 @@ workflows:
   publish-tag-image:
     jobs:
       - docker-publish/publish:
-          tag: CIRCLE_TAG
+          image: $DOCKER_IMAGE
+          tag: $CIRCLE_TAG
           filters:
             branches:
               ignore: /.*/
