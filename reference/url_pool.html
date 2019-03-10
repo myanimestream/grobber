@@ -42,13 +42,62 @@
 <dt id="grobber.url_pool.UrlPool">
 <em class="property">class </em><code class="descname">UrlPool</code><span class="sig-paren">(</span><em>name</em>, <em>urls</em>, <em>*</em>, <em>strip_slash=True</em>, <em>ttl=3600</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/url_pool.html#UrlPool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.url_pool.UrlPool" title="Permalink to this definition">¶</a></dt>
 <dd><p>Pool of possible urls which provides easy access to a working one.</p>
-<dl class="docutils">
-<dt>Attributes:</dt>
-<dd>name (str): Name given to the pool
-urls (List[str]): List of the possible urls
-strip_slash (bool): Whether or not tailing slashes should be removed
-ttl (timedelta): Time until the current url expires</dd>
-</dl>
+<dl class="attribute">
+<dt id="grobber.url_pool.UrlPool.name">
+<code class="descname">name</code><a class="headerlink" href="#grobber.url_pool.UrlPool.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name given to the pool</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.url_pool.UrlPool.urls">
+<code class="descname">urls</code><a class="headerlink" href="#grobber.url_pool.UrlPool.urls" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of the possible urls</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a>]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.url_pool.UrlPool.strip_slash">
+<code class="descname">strip_slash</code><a class="headerlink" href="#grobber.url_pool.UrlPool.strip_slash" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether or not tailing slashes should be removed</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)">bool</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.url_pool.UrlPool.ttl">
+<code class="descname">ttl</code><a class="headerlink" href="#grobber.url_pool.UrlPool.ttl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Time until the current url expires</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">timedelta</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="method">
 <dt id="grobber.url_pool.UrlPool.fetch">
 <em class="property">coroutine </em><code class="descname">fetch</code><span class="sig-paren">(</span><em>self</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/url_pool.html#UrlPool.fetch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.url_pool.UrlPool.fetch" title="Permalink to this definition">¶</a></dt>
