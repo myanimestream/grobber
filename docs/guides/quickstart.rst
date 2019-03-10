@@ -12,7 +12,7 @@ you have everything you need to get started.
 
 Installing Dependencies
 ^^^^^^^^^^^^^^^^^^^^^^^
-Grobber uses `Pipenv <https://pipenv.readthedocs.io>`_ to mangage its dependencies.
+Grobber uses `Pipenv <https://pipenv.readthedocs.io>`_ to manage its dependencies.
 You can install Pipenv using ``pip install pipenv`` if you haven't already.
 To install the dependencies for Grobber use the command ``pipenv install``.
 That's it, you're done!

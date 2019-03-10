@@ -21,11 +21,13 @@ from pathlib import Path
 
 sys.path.append(str(Path("..").resolve()))
 
+# noinspection PyPep8
 import grobber
 
 # -- Project information -----------------------------------------------------
 
 project = "Grobber"
+# noinspection PyShadowingBuiltins
 copyright = "2018, MyAnimeStream"
 author = "Simon Berger"
 
@@ -52,6 +54,7 @@ extensions = [
     "sphinx.ext.imgmath",
     "sphinx.ext.viewcode",
     "sphinx.ext.githubpages",
+    "sphinx.ext.napoleon",
     "sphinx_autodoc_typehints",
     "sphinxcontrib.asyncio"
 ]

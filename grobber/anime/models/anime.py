@@ -159,6 +159,7 @@ class SourceAnime(Anime, Expiring, abc.ABC):
                         self._episodes[i] = await self.get_episode(i)
         else:
             eps = await self.get_episodes()
+            # noinspection PyTypeChecker
             self._episodes = dict(enumerate(eps))
 
         return self._episodes
