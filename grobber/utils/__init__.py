@@ -1,10 +1,11 @@
+import ast
 import asyncio
 import json
 import logging
 import re
 from difflib import SequenceMatcher
 from string import Formatter
-from typing import Any, Awaitable, Dict, List, Optional, TypeVar, Union
+from typing import Any, Awaitable, Callable, Dict, List, Match, Optional, Tuple, TypeVar, Union
 
 from quart import url_for
 
@@ -49,14 +50,59 @@ def get_certainty(a: str, b: str) -> float:
     return round(SequenceMatcher(a=a, b=b).ratio(), 2)
 
 
-RE_JSON_EXPANDER = re.compile(r"(['\"])?([a-z0-9A-Z_]+)(['\"])?(\s)?:(?=(\s)?[\[\d\"'{])", re.DOTALL)
+def perform_safe(func: Callable, *args, **kwargs) -> Tuple[Optional[Exception], Optional[Any]]:
+    try:
+        return None, func(*args, **kwargs)
+    except Exception as e:
+        return e, None
+
+
+RE_JSON_EXPANDER = re.compile(r"([`'])?([a-z0-9A-Z_]+)([`'])?\s*:(?=\s*[\[\d`'\"{])", re.DOTALL)
 RE_JSON_REMOVE_TRAILING_COMMA = re.compile(r"([\]}])\s*,(?=\s*[\]}])")
+
+RE_JSON_VARIABLE_DETECT = re.compile(r"\"(?P<key>[^\"]+?)\"\s*:\s*(?P<value>[^`'\"][a-zA-Z]+)\b,?")
 
 
 def parse_js_json(text: str):
-    valid_json = RE_JSON_EXPANDER.sub("\"\\2\": ", text).replace("'", "\"")
+    def _try_load(_text) -> Tuple[Optional[Exception], Any]:
+        _exc = _data = None
+
+        _exc, _data = perform_safe(json.loads, _text)
+        if _exc is None:
+            return None, _data
+
+        _e, _data = perform_safe(ast.literal_eval, _text)
+        if _e is None:
+            return None, _data
+
+        _e.__cause__ = _exc
+        return _e, None
+
+    valid_json = RE_JSON_EXPANDER.sub(r"\"\2\": ", text).replace("'", "\"")
     valid_json = RE_JSON_REMOVE_TRAILING_COMMA.sub(r"\1", valid_json)
-    return json.loads(valid_json)
+
+    e, data = _try_load(valid_json)
+    if e is None:
+        return data
+
+    log.debug(f"failed to load js json data: {e}")
+
+    _valid_names = {"true", "false", "null", "NaN", "Infinity", "-Infinity"}
+
+    def _replacer(_match: Match) -> str:
+        if _match["value"] not in _valid_names:
+            return ""
+
+        return _match[0]
+
+    log.debug("trying again with invalid values removed.")
+    RE_JSON_VARIABLE_DETECT.sub(_replacer, valid_json)
+
+    e, data = _try_load(valid_json)
+    if e is None:
+        return data
+
+    raise e
 
 
 def external_url_for(endpoint: str, **kwargs):
