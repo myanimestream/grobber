@@ -9,6 +9,7 @@ from prometheus_async.aio import time
 from quart import request
 
 from grobber.anime.group import get_anime_group, get_anime_group_by_title, group_animes
+from grobber.anime.sources import build_animes_from_docs
 from . import languages
 from .anime import Anime, AnimeNotFound, Episode, SearchResult, SourceAnime, SourceNotFound, Stream, sources
 from .exceptions import InvalidRequest, UIDUnknown
@@ -16,7 +17,7 @@ from .languages import Language
 from .search_results import find_cached_searches, get_cached_searches, store_cached_search
 from .telemetry import ANIME_QUERY_TYPE, ANIME_RESOLVE_TIME, ANIME_SEARCH_TIME, LANGUAGE_COUNTER, SOURCE_COUNTER
 from .uid import MediaType, UID
-from .utils import alist, fuzzy_bool, get_certainty
+from .utils import afilter, alist, fuzzy_bool, get_certainty
 
 log = logging.getLogger(__name__)
 
@@ -51,6 +52,18 @@ class Query(metaclass=abc.ABCMeta):
                 raise ValueError(f"{self} couldn't convert {value} to {typ} for {key}")
 
             setattr(self, key, value)
+
+    def __repr__(self) -> str:
+        attrs: List[str] = []
+
+        for key, value in vars(self).items():
+            if key.startswith("_") or key.endswith("_"):
+                continue
+            else:
+                attrs.append(f"{key}: {value}")
+
+        attrs_str = ", ".join(attrs)
+        return f"{type(self).__name__} ({attrs_str})"
 
     @classmethod
     def try_build(cls, **kwargs):
@@ -173,7 +186,7 @@ async def _search_anime(query: str, filters: SearchFilter, num_results: int) -> 
             results_pool.update(map(lambda a: SearchResult(a, 1), anime))
 
     cached_search_results = await find_cached_searches(MediaType.ANIME, query, max_results=num_results)
-    anime_search_results: List[SourceAnime] = await asyncio.gather(*(sources.build_anime_from_doc(sr["_id"], sr) for sr in cached_search_results))
+    anime_search_results: List[SourceAnime] = await alist(afilter(None, build_animes_from_docs(cached_search_results)))
     cached_added = 0
     for search_result in anime_search_results:
         certainty = get_certainty(await search_result.title, query)
@@ -243,7 +256,7 @@ async def search_anime() -> List[SearchResult]:
     exact_search_results = await get_cached_searches(MediaType.ANIME, query, num_results)
     if exact_search_results:
         log.info("Found exact search result")
-        exact_anime_results: List[Anime] = await asyncio.gather(*(sources.build_anime_from_doc(sr["_id"], sr) for sr in exact_search_results))
+        exact_anime_results: List[Anime] = await alist(afilter(None, build_animes_from_docs(exact_search_results)))
 
         results_pool = {SearchResult(anime, get_certainty(await anime.title, query)) for anime in exact_anime_results}
     else:

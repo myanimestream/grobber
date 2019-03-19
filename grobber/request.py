@@ -3,7 +3,7 @@ import inspect
 import json
 import logging
 import os
-from typing import Any, Awaitable, Callable, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Any, Awaitable, Callable, Dict, Iterable, List, Optional, Tuple, Union, cast
 
 import sentry_sdk
 import yarl
@@ -22,7 +22,7 @@ from .utils import AsyncFormatter
 log = logging.getLogger(__name__)
 
 DEFAULT_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:64.0) Gecko/20100101 Firefox/64.0"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36"
 }
 
 
@@ -271,7 +271,7 @@ class Request:
         return self.create_soup(text)
 
     @cached_contextmanager
-    async def browser(self, **options) -> Browser:
+    async def browser(self, **options):
         browser = await get_browser(**options)
         try:
             yield browser
@@ -279,9 +279,10 @@ class Request:
             await browser.close()
 
     @cached_contextmanager
-    async def page(self) -> Page:
-        browser: Browser
+    async def page(self):
         async with self.browser as browser:
+            browser = cast(Browser, browser)
+
             page = await load_page(browser, await self.url, self._max_retries)
 
             try:

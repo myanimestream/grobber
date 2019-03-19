@@ -1,6 +1,7 @@
 import asyncio
 import importlib
 import logging
+from contextlib import suppress
 from typing import Any, AsyncIterator, Dict, Iterable, List, Optional, Set, Type, cast
 
 from grobber.exceptions import UIDUnknown
@@ -8,7 +9,7 @@ from grobber.languages import Language
 from grobber.locals import anime_collection
 from grobber.telemetry import SEARCH_SOURCE_COUNTER
 from grobber.uid import UID
-from grobber.utils import anext
+from grobber.utils import AIterable, aiter, anext
 from ..models import SearchResult, SourceAnime
 
 log = logging.getLogger(__name__)
@@ -80,6 +81,17 @@ async def build_anime_from_doc(uid: str, doc: Dict[str, Any]) -> SourceAnime:
     return anime
 
 
+async def build_animes_from_docs(docs: AIterable[Dict[str, Any]]) -> AsyncIterator[Optional[SourceAnime]]:
+    async for doc in aiter(docs):
+        try:
+            uid: str = doc["_id"]
+        except KeyError:
+            continue
+
+        with suppress(UIDUnknown):
+            yield await build_anime_from_doc(uid, doc)
+
+
 async def get_anime(uid: UID) -> Optional[SourceAnime]:
     doc = await anime_collection.find_one(uid)
     if doc:
@@ -89,13 +101,16 @@ async def get_anime(uid: UID) -> Optional[SourceAnime]:
 
 async def get_animes(uids: Iterable[UID]) -> Dict[UID, SourceAnime]:
     cursor = anime_collection.find({"_id": {"$in": list(uids)}})
-    documents = await cursor.to_list(None)
 
     res = {}
-    for doc in documents:
+    async for doc in cursor:
         uid = doc["_id"]
-        anime = await build_anime_from_doc(uid, doc)
-        res[uid] = anime
+        try:
+            anime = await build_anime_from_doc(uid, doc)
+        except UIDUnknown:
+            pass
+        else:
+            res[uid] = anime
 
     return res
 

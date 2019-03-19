@@ -77,9 +77,19 @@ class NineAnime(SourceAnime):
         if language != Language.ENGLISH:
             return
 
-        req = Request(SEARCH_URL, {"keyword": query})
-        bs = await req.bs
-        container = bs.select_one("div.film-list")
+        for _ in range(5):
+            req = Request(SEARCH_URL, {"keyword": query}, use_proxy=True)
+            bs = await req.bs
+            container = bs.select_one("div.film-list")
+
+            if container:
+                break
+            else:
+                req.reload()
+        else:
+            log.warning(f"{cls} Couldn't get search results, retries exceeded!")
+            return
+
         search_results = container.select("div.item")
 
         for result in search_results:

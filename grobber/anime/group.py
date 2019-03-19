@@ -46,6 +46,7 @@ class HasAnimesMixin:
                 log.warning(f"{self} couldn't get {key} from {inst}: {e}")
                 return None
 
+        log.debug(f"getting {attr} from all {len(containers)} containers")
         return list(filter(None, await asyncio.gather(*(save_getattr(container, attr) for container in containers))))
 
     async def get_from_first(self, attr: str, containers: Any = None) -> Any:
@@ -156,17 +157,18 @@ class AnimeGroup(HasAnimesMixin, Anime):
         if self._title != await anime.title:
             return False
 
-        episode_counts = await self.get_from_all("episode_count")
+        episode_counts: List[int] = await self.get_from_all("episode_count")
+        # ignore if there are no episode counts
+        if episode_counts:
+            real_max_ep_count = max(episode_counts)
+            real_min_ep_count = min(episode_counts)
 
-        real_max_ep_count = max(episode_counts)
-        real_min_ep_count = min(episode_counts)
+            # make sure that the difference between max and min is at least 4
+            max_ep_count = max(real_max_ep_count, real_min_ep_count + 2)
+            min_ep_count = min(real_min_ep_count, real_max_ep_count - 2)
 
-        # make sure that the difference between max and min is at least 4
-        max_ep_count = max(real_max_ep_count, real_min_ep_count + 2)
-        min_ep_count = min(real_min_ep_count, real_max_ep_count - 2)
-
-        if not (min_ep_count <= await anime.episode_count <= max_ep_count):
-            return False
+            if not (min_ep_count <= await anime.episode_count <= max_ep_count):
+                return False
 
         return True
 

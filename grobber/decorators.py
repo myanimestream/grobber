@@ -63,7 +63,7 @@ def retry_with_proxy(*exceptions: Exception, attempts: int = 5):
     return decorator
 
 
-def cached_property(func: Callable[..., Awaitable]) -> property:
+def cached_property(func: Callable[..., Awaitable]):
     cache_name = f"_{func.__name__}"
     lock_name = f"{cache_name}__lock"
 
@@ -76,9 +76,8 @@ def cached_property(func: Callable[..., Awaitable]) -> property:
 
         return lock
 
-    @property
     @wraps(func)
-    async def wrapper(self, *args, **kwargs):
+    async def getter(self, *args, **kwargs):
         lock = get_lock(self)
 
         async with lock:
@@ -98,8 +97,7 @@ def cached_property(func: Callable[..., Awaitable]) -> property:
 
         return val
 
-    @wrapper.setter
-    def wrapper(self, value):
+    def setter(self, value):
         lock = get_lock(self)
         if lock.locked():
             log.warning(f"Lock {lock_name} already acquired for {func}")
@@ -113,8 +111,7 @@ def cached_property(func: Callable[..., Awaitable]) -> property:
         else:
             self._dirty = True
 
-    @wrapper.deleter
-    def wrapper(self):
+    def deleter(self):
         lock = get_lock(self)
         if lock.locked():
             log.warning(f"Lock {lock_name} already acquired for {func}")
@@ -128,7 +125,7 @@ def cached_property(func: Callable[..., Awaitable]) -> property:
         else:
             self._dirty = True
 
-    return wrapper
+    return property(getter, setter, deleter)
 
 
 class _RefCounter(_AsyncGeneratorContextManager):
@@ -148,7 +145,7 @@ class _RefCounter(_AsyncGeneratorContextManager):
 
     @cached_property
     async def value(self):
-        return await super().__aenter__()
+        return await self.gen.__anext__()
 
 
 def cached_contextmanager(func: Callable[..., AsyncGenerator]) -> property:
