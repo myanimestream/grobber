@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>grobber.anime.sources.nineanime &#8212; Grobber 3.0.17 documentation</title>
+    <title>grobber.anime.sources.nineanime &#8212; Grobber 3.0.18 documentation</title>
     <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
@@ -112,9 +112,19 @@
         <span class="k">if</span> <span class="n">language</span> <span class="o">!=</span> <span class="n">Language</span><span class="o">.</span><span class="n">ENGLISH</span><span class="p">:</span>
             <span class="k">return</span>
 
-        <span class="n">req</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">SEARCH_URL</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;keyword&quot;</span><span class="p">:</span> <span class="n">query</span><span class="p">})</span>
-        <span class="n">bs</span> <span class="o">=</span> <span class="k">await</span> <span class="n">req</span><span class="o">.</span><span class="n">bs</span>
-        <span class="n">container</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">select_one</span><span class="p">(</span><span class="s2">&quot;div.film-list&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+            <span class="n">req</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">SEARCH_URL</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;keyword&quot;</span><span class="p">:</span> <span class="n">query</span><span class="p">},</span> <span class="n">use_proxy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">bs</span> <span class="o">=</span> <span class="k">await</span> <span class="n">req</span><span class="o">.</span><span class="n">bs</span>
+            <span class="n">container</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">select_one</span><span class="p">(</span><span class="s2">&quot;div.film-list&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">container</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">req</span><span class="o">.</span><span class="n">reload</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{cls}</span><span class="s2"> Couldn&#39;t get search results, retries exceeded!&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
         <span class="n">search_results</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;div.item&quot;</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">search_results</span><span class="p">:</span>
