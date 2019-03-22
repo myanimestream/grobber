@@ -78,7 +78,7 @@ def parse_js_json(text: str):
         _e.__cause__ = _exc
         return _e, None
 
-    valid_json = RE_JSON_EXPANDER.sub(r"\"\2\": ", text).replace("'", "\"")
+    valid_json = RE_JSON_EXPANDER.sub("\"\\2\": ", text).replace("'", "\"")
     valid_json = RE_JSON_REMOVE_TRAILING_COMMA.sub(r"\1", valid_json)
 
     e, data = _try_load(valid_json)
