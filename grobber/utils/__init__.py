@@ -5,7 +5,7 @@ import logging
 import re
 from difflib import SequenceMatcher
 from string import Formatter
-from typing import Any, Awaitable, Callable, Dict, List, Match, Optional, Tuple, TypeVar, Union
+from typing import Any, Awaitable, Callable, Dict, List, Mapping, Match, Optional, Tuple, TypeVar, Union
 
 from quart import url_for
 
@@ -63,7 +63,7 @@ RE_JSON_REMOVE_TRAILING_COMMA = re.compile(r"([\]}])\s*,(?=\s*[\]}])")
 RE_JSON_VARIABLE_DETECT = re.compile(r"\"(?P<key>[^\"]+?)\"\s*:\s*(?P<value>[^`'\"][a-zA-Z]+)\b,?")
 
 
-def parse_js_json(text: str):
+def parse_js_json(text: str, *, variables: Mapping[str, str] = None) -> Any:
     def _try_load(_text) -> Tuple[Optional[Exception], Any]:
         _exc = _data = None
 
@@ -90,13 +90,17 @@ def parse_js_json(text: str):
     _valid_names = {"true", "false", "null", "NaN", "Infinity", "-Infinity"}
 
     def _replacer(_match: Match) -> str:
-        if _match["value"] not in _valid_names:
-            return ""
+        value = _match["value"]
+        if value not in _valid_names:
+            if variables:
+                return variables.get(value, "null")
+            else:
+                return "null"
 
         return _match[0]
 
     log.debug("trying again with invalid values removed.")
-    RE_JSON_VARIABLE_DETECT.sub(_replacer, valid_json)
+    valid_json = RE_JSON_VARIABLE_DETECT.sub(_replacer, valid_json)
 
     e, data = _try_load(valid_json)
     if e is None:

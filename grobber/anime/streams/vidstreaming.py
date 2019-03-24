@@ -1,6 +1,6 @@
 import logging
 import re
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from grobber.decorators import cached_property
 from grobber.request import Request
@@ -11,13 +11,30 @@ from ..models import Stream
 log = logging.getLogger(__name__)
 
 RE_EXTRACT_SETUP = re.compile(r"playerInstance\.setup\((.+?)\);", re.DOTALL)
+RE_EXTRACT_URL_VIDEO = re.compile(r"urlVideo\s*=\s*[\"'`](.+)[\"'`];")
+
+
+def _extract_variables(text: str) -> Dict[str, str]:
+    variables: Dict[str, str] = {}
+
+    try:
+        url_video = RE_EXTRACT_URL_VIDEO.search(text).group(1)
+    except (IndexError, TypeError):
+        pass
+    else:
+        variables["urlVideo"] = url_video
+
+    return variables
 
 
 def extract_player_data(text: str) -> dict:
     match = RE_EXTRACT_SETUP.search(text)
     if not match:
         return {}
-    return parse_js_json(match.group(1))
+
+    variables = _extract_variables(text)
+
+    return parse_js_json(match.group(1), variables=variables)
 
 
 class Vidstreaming(Stream):
