@@ -198,7 +198,7 @@ async def _search_anime(query: str, filters: SearchFilter, num_results: int) -> 
 
     log.debug(f"current total: {len(results_pool)}/{num_results}")
 
-    # if we didn't get enough use the actual search
+    # if we didn't get enough, use the actual search
     if len(results_pool) < num_results:
         # look at a sensible amount of search results (at least 1.5 times the amount of sources up to 5 and then just use the requested amount)
         consider_results = max(num_results, min(int(len(sources.SOURCES) * 1.5), 5))

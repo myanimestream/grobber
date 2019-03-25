@@ -22,7 +22,7 @@ class MediaType(Enum):
 
 
 class UID(str, BaseConverter):
-    _parsed: bool
+    __parsed__: bool
 
     _media_type: MediaType
     _media_id: str
@@ -67,7 +67,7 @@ class UID(str, BaseConverter):
         uid._language = language
         uid._dubbed = dubbed
 
-        uid._parsed = True
+        uid.__parsed__ = True
 
         return uid
 
@@ -85,8 +85,12 @@ class UID(str, BaseConverter):
         return super().to_url(value)
 
     def parse(self) -> None:
-        if getattr(self, "_parsed", False):
-            return
+        try:
+            parsed = self.__parsed__
+            if parsed:
+                return
+        except AttributeError:
+            pass
 
         match = RE_UID_PARSER.match(self)
         if match:
@@ -105,4 +109,4 @@ class UID(str, BaseConverter):
             self._language = get_lang(match.group(3))
             self._dubbed = bool(match.group(4))
 
-        self._parsed = True
+        self.__parsed__ = True

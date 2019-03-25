@@ -154,7 +154,7 @@ class Expiring(Stateful):
     def __getattribute__(self, name: str) -> Any:
         if name in type(self).CHANGING_ATTRS:
             if self._update:
-                log.debug(f"{self}: time for an update")
+                log.debug(f"{self!r}: time for an update")
                 for attr in type(self).CHANGING_ATTRS:
                     with suppress(AttributeError):
                         delattr(self, f"_{attr}")

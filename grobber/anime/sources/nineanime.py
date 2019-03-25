@@ -84,8 +84,9 @@ class NineAnime(SourceAnime):
 
             if container:
                 break
-            else:
-                req.reload()
+
+            log.debug(f"trying again {req._text}")
+            req.reload()
         else:
             log.warning(f"{cls} Couldn't get search results, retries exceeded!")
             return

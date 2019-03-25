@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import math
 import re
@@ -42,9 +43,10 @@ def get_potential_page_name(name: str) -> str:
 class GogoEpisode(SourceEpisode):
     @cached_property
     async def raw_streams(self) -> List[str]:
-        streams = []
         bs = await self._req.bs
         links = bs.select("div.anime_muti_link a")
+
+        streams = []
         for link in links:
             streams.append(add_http_scheme(link["data-video"]))
 
@@ -128,7 +130,9 @@ class GogoAnime(SourceAnime):
 
     @cached_property
     async def raw_eps(self) -> List[GogoEpisode]:
-        episode_req = Request(EPISODE_LIST_URL, {"id": await self.anime_id, "ep_start": 0, "ep_end": await self.episode_count})
+        anime_id, episode_count = await asyncio.gather(self.anime_id, self.episode_count)
+
+        episode_req = Request(EPISODE_LIST_URL, {"id": anime_id, "ep_start": 0, "ep_end": episode_count})
         episode_links = (await episode_req.bs).find_all("li")
         episodes = []
         for episode_link in reversed(episode_links):
@@ -140,10 +144,11 @@ class GogoAnime(SourceAnime):
         page_name = get_potential_page_name(await self.title)
         ep_req = Request(f"{BASE_URL}/{page_name}-episode-{index + 1}")
         log.debug(f"Trying to predict episode link {ep_req}")
-        if is_not_found_page(ep_req):
+        if await is_not_found_page(ep_req):
             log.debug("-> Prediction Invalid, manually fetching...")
             return (await self.raw_eps)[index]
         else:
+            log.debug("-> Prediction successful")
             return self.EPISODE_CLS(ep_req)
 
     async def get_episodes(self) -> List[GogoEpisode]:

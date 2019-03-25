@@ -25,13 +25,16 @@ class HasAnimesMixin:
 
         return super().__repr__()
 
-    async def wait_for_all(self, fs: Iterable[Awaitable]) -> List[Any]:
+    async def wait_for_all(self, fs: Iterable[Awaitable], *, timeout: float = None) -> List[Any]:
         async def save_wait(future: Awaitable) -> Optional[Any]:
             try:
-                return await future
+                return await asyncio.wait_for(future, timeout=timeout)
+            except TimeoutError:
+                log.debug(f"{future} timed-out!")
             except Exception as e:
                 log.warning(f"{self} couldn't await {future}: {e}")
-                return None
+
+            return None
 
         return list(filter(None, await asyncio.gather(*map(save_wait, fs))))
 
@@ -74,7 +77,7 @@ class EpisodeGroup(HasAnimesMixin, Episode):
     @cached_property
     async def episodes(self) -> List[Episode]:
         animes = await self.animes
-        episodes = await self.wait_for_all(anime.get(self.index) for anime in animes)
+        episodes = await self.wait_for_all((anime.get(self.index) for anime in animes), timeout=15)
         if not episodes:
             episode_count = await self.episode_count
             if self.index >= episode_count:
@@ -146,7 +149,7 @@ class AnimeGroup(HasAnimesMixin, Anime):
         animes.append(anime)
 
     async def could_contain(self, anime: SourceAnime) -> bool:
-        do_later(anime.preload_attrs("language", "is_dub", "title", "episode_count"))
+        do_later(anime.preload_attrs("language", "is_dub", "media_id", "episode_count"))
 
         if self._language != await anime.language:
             return False
@@ -154,7 +157,7 @@ class AnimeGroup(HasAnimesMixin, Anime):
         if self._is_dub != await anime.is_dub:
             return False
 
-        if self._title != await anime.title:
+        if await self.media_id != await anime.media_id:
             return False
 
         episode_counts: List[int] = await self.get_from_all("episode_count")
@@ -176,13 +179,17 @@ class AnimeGroup(HasAnimesMixin, Anime):
 async def group_animes(animes: AIterable, *, unique_groups: bool = True) -> List[AnimeGroup]:
     groups: List[AnimeGroup] = []
     async for anime in aiter(animes):
+        found_group = False
+
         for group in groups:
             if await group.could_contain(anime):
                 await group.add_anime(anime)
+                found_group = True
 
                 if unique_groups:
                     break
-        else:
+
+        if not found_group:
             auid, title, language, is_dub = await asyncio.gather(anime.uid, anime.title, anime.language, anime.is_dub)
             group = AnimeGroup([auid], title, language, is_dub)
             group.animes = [anime]

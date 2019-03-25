@@ -68,7 +68,7 @@ class UrlPool:
         if not doc:
             log.debug(f"creating pool for {self}")
         else:
-            log.debug(f"{self} initialising from database")
+            log.debug(f"{self} initialising from database {doc}")
             self._url = doc["url"]
             self._next_update = doc["next_update"]
 
