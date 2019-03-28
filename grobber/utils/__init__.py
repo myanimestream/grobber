@@ -50,11 +50,13 @@ def get_certainty(a: str, b: str) -> float:
     return round(SequenceMatcher(a=a, b=b).ratio(), 2)
 
 
-def perform_safe(func: Callable, *args, **kwargs) -> Tuple[Optional[Exception], Optional[Any]]:
+def perform_safe(func: Callable, *args, **kwargs) -> Tuple[Optional[Any], Optional[Exception]]:
     try:
-        return None, func(*args, **kwargs)
+        res = func(*args, **kwargs)
     except Exception as e:
-        return e, None
+        return None, e
+    else:
+        return res, None
 
 
 RE_JSON_EXPANDER = re.compile(r"([`'])?([a-z0-9A-Z_]+)([`'])?\s*:(?=\s*[\[\d`'\"{])", re.DOTALL)
@@ -67,11 +69,11 @@ def parse_js_json(text: str, *, variables: Mapping[str, Any] = None) -> Any:
     def _try_load(_text) -> Tuple[Optional[Exception], Any]:
         _exc = _data = None
 
-        _exc, _data = perform_safe(json.loads, _text)
+        _data, _exc = perform_safe(json.loads, _text)
         if _exc is None:
             return None, _data
 
-        _e, _data = perform_safe(ast.literal_eval, _text)
+        _data, _e = perform_safe(ast.literal_eval, _text)
         if _e is None:
             return None, _data
 
@@ -106,6 +108,7 @@ def parse_js_json(text: str, *, variables: Mapping[str, Any] = None) -> Any:
     if e is None:
         return data
 
+    log.info(f"couldn't decode js json:\nRaw:\n{text!r}\n\nParsed:\n{valid_json!r}")
     raise e
 
 
