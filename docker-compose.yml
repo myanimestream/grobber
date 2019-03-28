@@ -71,10 +71,13 @@ services:
     image: browserless/chrome
     restart: always
     environment:
+      - DEBUG=browserless/chrome
       - MAX_CONCURRENT_SESSIONS=5
       - MAX_QUEUE_LENGTH=10
       - PREBOOT_CHROME=true
       - CONNECTION_TIMEOUT=300000
+    ports:
+      - 3000:3000
     expose:
       - 3000
     networks:
