@@ -63,7 +63,7 @@ RE_JSON_REMOVE_TRAILING_COMMA = re.compile(r"([\]}])\s*,(?=\s*[\]}])")
 RE_JSON_VARIABLE_DETECT = re.compile(r"\"(?P<key>[^\"]+?)\"\s*:\s*(?P<value>[^`'\"][a-zA-Z]+)\b,?")
 
 
-def parse_js_json(text: str, *, variables: Mapping[str, str] = None) -> Any:
+def parse_js_json(text: str, *, variables: Mapping[str, Any] = None) -> Any:
     def _try_load(_text) -> Tuple[Optional[Exception], Any]:
         _exc = _data = None
 
@@ -93,7 +93,7 @@ def parse_js_json(text: str, *, variables: Mapping[str, str] = None) -> Any:
         value = _match["value"]
         if value not in _valid_names:
             if variables:
-                return variables.get(value, "null")
+                return json.dumps(variables.get(value))
             else:
                 return "null"
 
