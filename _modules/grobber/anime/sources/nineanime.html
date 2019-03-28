@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>grobber.anime.sources.nineanime &#8212; Grobber 3.0.19 documentation</title>
+    <title>grobber.anime.sources.nineanime &#8212; Grobber 3.0.20 documentation</title>
     <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
@@ -119,8 +119,9 @@
 
             <span class="k">if</span> <span class="n">container</span><span class="p">:</span>
                 <span class="k">break</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">req</span><span class="o">.</span><span class="n">reload</span><span class="p">()</span>
+
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;trying again </span><span class="si">{req._text}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">req</span><span class="o">.</span><span class="n">reload</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{cls}</span><span class="s2"> Couldn&#39;t get search results, retries exceeded!&quot;</span><span class="p">)</span>
             <span class="k">return</span>
@@ -160,7 +161,7 @@
     <span class="nd">@cached_property</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">raw_eps</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">NineEpisode</span><span class="p">]:</span>
         <span class="k">async</span> <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_req</span><span class="o">.</span><span class="n">page</span> <span class="k">as</span> <span class="n">page</span><span class="p">:</span>
-            <span class="n">page</span><span class="p">:</span> <span class="n">Page</span>
+            <span class="n">page</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">Page</span><span class="p">,</span> <span class="n">page</span><span class="p">)</span>
             <span class="n">episodes</span> <span class="o">=</span> <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span>
                 <span class="sd">&quot;&quot;&quot;Array.from(document.querySelectorAll(&quot;div.server:not(.hidden) ul.episodes a&quot;)).map(epLink =&gt; epLink.href);&quot;&quot;&quot;</span><span class="p">,</span> <span class="n">force_expr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
@@ -240,7 +241,7 @@
       &copy;2018, MyAnimeStream.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.4</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

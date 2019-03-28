@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>grobber.utils &#8212; Grobber 3.0.19 documentation</title>
+    <title>grobber.utils &#8212; Grobber 3.0.20 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -40,7 +40,7 @@
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">difflib</span> <span class="k">import</span> <span class="n">SequenceMatcher</span>
 <span class="kn">from</span> <span class="nn">string</span> <span class="k">import</span> <span class="n">Formatter</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Awaitable</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Match</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Awaitable</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Match</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">from</span> <span class="nn">quart</span> <span class="k">import</span> <span class="n">url_for</span>
 
@@ -85,11 +85,13 @@
     <span class="k">return</span> <span class="nb">round</span><span class="p">(</span><span class="n">SequenceMatcher</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="n">b</span><span class="p">)</span><span class="o">.</span><span class="n">ratio</span><span class="p">(),</span> <span class="mi">2</span><span class="p">)</span></div>
 
 
-<span class="k">def</span> <span class="nf">perform_safe</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="ne">Exception</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]]:</span>
+<span class="k">def</span> <span class="nf">perform_safe</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="ne">Exception</span><span class="p">]]:</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">e</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">e</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">res</span><span class="p">,</span> <span class="kc">None</span>
 
 
 <span class="n">RE_JSON_EXPANDER</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;([`&#39;])?([a-z0-9A-Z_]+)([`&#39;])?\s*:(?=\s*[\[\d`&#39;</span><span class="se">\&quot;</span><span class="s2">{])&quot;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="p">)</span>
@@ -98,15 +100,15 @@
 <span class="n">RE_JSON_VARIABLE_DETECT</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">(?P&lt;key&gt;[^</span><span class="se">\&quot;</span><span class="s2">]+?)</span><span class="se">\&quot;</span><span class="s2">\s*:\s*(?P&lt;value&gt;[^`&#39;</span><span class="se">\&quot;</span><span class="s2">][a-zA-Z]+)\b,?&quot;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="parse_js_json"><a class="viewcode-back" href="../../reference/utils.html#grobber.query.parse_js_json">[docs]</a><span class="k">def</span> <span class="nf">parse_js_json</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<div class="viewcode-block" id="parse_js_json"><a class="viewcode-back" href="../../reference/utils.html#grobber.query.parse_js_json">[docs]</a><span class="k">def</span> <span class="nf">parse_js_json</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">variables</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
     <span class="k">def</span> <span class="nf">_try_load</span><span class="p">(</span><span class="n">_text</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="ne">Exception</span><span class="p">],</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="n">_exc</span> <span class="o">=</span> <span class="n">_data</span> <span class="o">=</span> <span class="kc">None</span>
 
-        <span class="n">_exc</span><span class="p">,</span> <span class="n">_data</span> <span class="o">=</span> <span class="n">perform_safe</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">,</span> <span class="n">_text</span><span class="p">)</span>
+        <span class="n">_data</span><span class="p">,</span> <span class="n">_exc</span> <span class="o">=</span> <span class="n">perform_safe</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">,</span> <span class="n">_text</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">_exc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">_data</span>
 
-        <span class="n">_e</span><span class="p">,</span> <span class="n">_data</span> <span class="o">=</span> <span class="n">perform_safe</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">,</span> <span class="n">_text</span><span class="p">)</span>
+        <span class="n">_data</span><span class="p">,</span> <span class="n">_e</span> <span class="o">=</span> <span class="n">perform_safe</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">,</span> <span class="n">_text</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">_e</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">_data</span>
 
@@ -125,18 +127,23 @@
     <span class="n">_valid_names</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;true&quot;</span><span class="p">,</span> <span class="s2">&quot;false&quot;</span><span class="p">,</span> <span class="s2">&quot;null&quot;</span><span class="p">,</span> <span class="s2">&quot;NaN&quot;</span><span class="p">,</span> <span class="s2">&quot;Infinity&quot;</span><span class="p">,</span> <span class="s2">&quot;-Infinity&quot;</span><span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">_replacer</span><span class="p">(</span><span class="n">_match</span><span class="p">:</span> <span class="n">Match</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">_match</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_valid_names</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">_match</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_valid_names</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">variables</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">variables</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s2">&quot;null&quot;</span>
 
         <span class="k">return</span> <span class="n">_match</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;trying again with invalid values removed.&quot;</span><span class="p">)</span>
-    <span class="n">RE_JSON_VARIABLE_DETECT</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">_replacer</span><span class="p">,</span> <span class="n">valid_json</span><span class="p">)</span>
+    <span class="n">valid_json</span> <span class="o">=</span> <span class="n">RE_JSON_VARIABLE_DETECT</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">_replacer</span><span class="p">,</span> <span class="n">valid_json</span><span class="p">)</span>
 
     <span class="n">e</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">_try_load</span><span class="p">(</span><span class="n">valid_json</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">e</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">data</span>
 
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;couldn&#39;t decode js json:</span><span class="se">\n</span><span class="s2">Raw:</span><span class="se">\n</span><span class="si">{text!r}</span><span class="se">\n\n</span><span class="s2">Parsed:</span><span class="se">\n</span><span class="si">{valid_json!r}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="k">raise</span> <span class="n">e</span></div>
 
 
@@ -230,7 +237,7 @@
       &copy;2018, MyAnimeStream.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.4</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>
