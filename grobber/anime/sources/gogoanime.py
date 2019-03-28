@@ -1,8 +1,9 @@
 import asyncio
 import logging
-import math
 import re
 from typing import AsyncIterator, List, Optional
+
+import math
 
 from grobber.decorators import cached_property
 from grobber.languages import Language
@@ -133,6 +134,9 @@ class GogoAnime(SourceAnime):
         anime_id, episode_count = await asyncio.gather(self.anime_id, self.episode_count)
 
         episode_req = Request(EPISODE_LIST_URL, {"id": anime_id, "ep_start": 0, "ep_end": episode_count})
+        if await is_not_found_page(episode_req):
+            raise ValueError(f"hit not found page when loading list episode for {self!r}: {episode_req}")
+
         episode_links = (await episode_req.bs).find_all("li")
         episodes = []
         for episode_link in reversed(episode_links):
@@ -155,7 +159,7 @@ class GogoAnime(SourceAnime):
         return await self.raw_eps
 
 
-gogoanime_pool = UrlPool("GogoAnime", ["https://gogoanime.tv", "http://gogoanime.tv"])
+gogoanime_pool = UrlPool("GogoAnime", ["https://gogoanime.io", "http://gogoanime.io"])
 DefaultUrlFormatter.add_field("GOGOANIME_URL", lambda: gogoanime_pool.url)
 DefaultUrlFormatter.use_proxy("GOGOANIME_URL")
 

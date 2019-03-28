@@ -21,6 +21,11 @@ DefaultUrlFormatter.add_field("VIDSTREAMING_URL", lambda: vidstreaming_pool.url)
 DefaultUrlFormatter.use_proxy("VIDSTREAMING_URL")
 
 
+async def is_not_found(req: Request) -> bool:
+    text = await req.text
+    return text == "404"
+
+
 class VidstreamingEpisode(SourceEpisode):
     @cached_property
     async def streams_page(self) -> Request:
@@ -87,7 +92,11 @@ class VidstreamingAnime(SourceAnime):
     async def get_episode(self, index: int) -> EPISODE_CLS:
         url_slug = await self.url_slug
         url = f"{{VIDSTREAMING_URL}}/videos/{url_slug}{index + 1}"
-        return self.EPISODE_CLS(Request(url))
+        episode_req = Request(url)
+        if await is_not_found(episode_req):
+            raise KeyError(f"Episode index {index} doesn't exist in {self!r}")
+
+        return self.EPISODE_CLS(episode_req)
 
     @classmethod
     async def search(cls, query: str, *, dubbed: bool = False, language: Language = Language.ENGLISH) -> AsyncIterator[SearchResult]:

@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 from typing import List
@@ -32,9 +33,14 @@ async def get_browser(*, args: List[str] = None, **options) -> Browser:
 
     if CHROME_WS:
         qs = "?" + "&".join(args) if args else ""
-        return await pyppeteer.connect(browserWSEndpoint=CHROME_WS + qs, **options)
+        log.debug("connecting to external chrome")
+        browser = await asyncio.wait_for(pyppeteer.connect(browserWSEndpoint=CHROME_WS + qs, **options), timeout=20)
     else:
-        return await pyppeteer.launch(args=args, headless=True, **options)
+        log.debug("launching local chrome")
+        browser = await pyppeteer.launch(args=args, headless=True, **options)
+
+    log.debug(f"created browser: {browser}")
+    return browser
 
 
 BLOCKED_RESOURCE_TYPES = {
@@ -65,6 +71,7 @@ BLOCKED_HOSTS = LocalProxy(_load_blocked_hosts)
 
 
 async def load_page(browser: Browser, url: str, max_retries: int) -> Page:
+    log.debug("creating a new page")
     page = await browser.newPage()
     await page.setRequestInterception(True)
 
@@ -85,6 +92,7 @@ async def load_page(browser: Browser, url: str, max_retries: int) -> Page:
             requests_allowed += 1
             await request.continue_()
 
+    log.debug(f"navigating to {url}")
     for attempt in range(max_retries):
         try:
             await page.goto(url, timeout=25000, waitUntil="networkidle2")

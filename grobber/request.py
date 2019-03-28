@@ -81,6 +81,7 @@ def _get_aiosession():
     return _AIOSESSION
 
 
+# noinspection PyTypeChecker
 AIOSESSION: ClientSession = LocalProxy(_get_aiosession)
 
 PROXY_URL = os.getenv("PROXY_URL")
@@ -322,7 +323,7 @@ class Request:
         url = await self.url
         resp = None
 
-        while self._retry_count <= self._max_retries:
+        while self._retry_count < self._max_retries:
             self._retry_count += 1
 
             if self._use_proxy:
@@ -346,6 +347,9 @@ class Request:
                 continue
 
             break
+
+        if not resp:
+            raise TimeoutError(f"Timed out after {self._retry_count}/{self._max_retries} retries!")
 
         return resp
 

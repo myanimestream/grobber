@@ -76,6 +76,7 @@ async def build_anime_from_doc(uid: str, doc: Dict[str, Any]) -> SourceAnime:
         await delete_anime(uid)
         raise UIDUnknown(uid)
 
+    doc["id"] = uid
     anime = cls.from_state(doc)
     CACHE.add(anime)
     return anime

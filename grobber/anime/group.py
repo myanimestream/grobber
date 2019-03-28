@@ -30,9 +30,9 @@ class HasAnimesMixin:
             try:
                 return await asyncio.wait_for(future, timeout=timeout)
             except TimeoutError:
-                log.debug(f"{future} timed-out!")
+                log.debug(f"{future!r} timed-out!")
             except Exception as e:
-                log.warning(f"{self} couldn't await {future}: {e}")
+                log.warning(f"{self!r} couldn't await {future!r}: {e}")
 
             return None
 
@@ -46,7 +46,7 @@ class HasAnimesMixin:
             try:
                 return await getattr(inst, key)
             except Exception as e:
-                log.warning(f"{self} couldn't get {key} from {inst}: {e}")
+                log.warning(f"{self!r} couldn't get {key} from {inst!r}: {e!r}")
                 return None
 
         log.debug(f"getting {attr} from all {len(containers)} containers")
@@ -98,6 +98,21 @@ class EpisodeGroup(HasAnimesMixin, Episode):
 
         return list(filter(None, await self.wait_for_all([stream.working_external_self for stream in chain.from_iterable(streams)])))
 
+    @property
+    def state(self) -> Dict[str, Any]:
+        try:
+            # noinspection PyUnresolvedReferences
+            episode_list: List[SourceEpisode] = self._episodes
+        except AttributeError:
+            episodes = []
+        else:
+            episodes = [episode.state for episode in episode_list]
+
+        return {
+            "index": self.index,
+            "episodes": episodes,
+        }
+
 
 class AnimeGroup(HasAnimesMixin, Anime):
     uids: List[UID]
@@ -141,6 +156,23 @@ class AnimeGroup(HasAnimesMixin, Anime):
     async def thumbnail(self) -> str:
         return await self.get_from_first("thumbnail")
 
+    @property
+    def state(self) -> Dict[str, Any]:
+        try:
+            # noinspection PyUnresolvedReferences
+            anime_list: List[SourceAnime] = self._animes
+        except AttributeError:
+            animes = {}
+        else:
+            animes = {getattr(anime, "_id", None): anime.state for anime in anime_list}
+
+        return {
+            "title": self._title,
+            "language": self._language.value,
+            "dubbed": self._is_dub,
+            "animes": {uid: animes.get(uid) for uid in self.uids},
+        }
+
     async def add_anime(self, anime: SourceAnime) -> None:
         uid = await anime.uid
         self.uids.append(uid)
@@ -170,7 +202,13 @@ class AnimeGroup(HasAnimesMixin, Anime):
             max_ep_count = max(real_max_ep_count, real_min_ep_count + 2)
             min_ep_count = min(real_min_ep_count, real_max_ep_count - 2)
 
-            if not (min_ep_count <= await anime.episode_count <= max_ep_count):
+            try:
+                episode_count = await anime.episode_count
+            except Exception:
+                log.exception(f"Couldn't get episode count from {anime!r}")
+                return False
+
+            if not (min_ep_count <= episode_count <= max_ep_count):
                 return False
 
         return True
@@ -204,7 +242,7 @@ async def _get_anime_group(selector: Dict[str, Any]) -> Optional[AnimeGroup]:
             return await sources.build_anime_from_doc(doc["_id"], doc)
         except Exception as e:
             title = doc.get("title") or doc.get("media_id") or "unknown"
-            log.info(f"ignoring {title}: {e}")
+            log.info(f"ignoring {title}: {e!r}")
             return None
 
     cursor = anime_collection.find(selector)
