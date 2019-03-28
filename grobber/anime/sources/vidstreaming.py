@@ -23,7 +23,7 @@ DefaultUrlFormatter.use_proxy("VIDSTREAMING_URL")
 
 async def is_not_found(req: Request) -> bool:
     text = await req.text
-    return text == "404"
+    return text.strip() == "404"
 
 
 class VidstreamingEpisode(SourceEpisode):

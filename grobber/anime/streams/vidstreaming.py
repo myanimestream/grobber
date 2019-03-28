@@ -1,6 +1,6 @@
 import logging
 import re
-from typing import Dict, List, Optional
+from typing import Dict, List, Mapping, Optional
 
 from grobber.decorators import cached_property
 from grobber.request import Request
@@ -62,10 +62,19 @@ class Vidstreaming(Stream):
     @cached_property
     async def links(self) -> List[str]:
         raw_sources = (await self.player_data).get("sources")
-        if not raw_sources:
+        if not (raw_sources and isinstance(raw_sources, Mapping)):
+            log.debug(f"{self!r} invalid sources in player data: {raw_sources!r}")
             return []
 
-        sources = [Request(source["file"]) for source in raw_sources]
+        sources: List[Request] = []
+        for source in raw_sources:
+            try:
+                file = source["file"]
+            except KeyError:
+                pass
+            else:
+                sources.append(Request(file))
+
         log.debug(f"found sources {sources}")
         return await self.get_successful_links(sources)
 
