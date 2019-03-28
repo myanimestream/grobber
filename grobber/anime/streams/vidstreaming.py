@@ -17,12 +17,14 @@ RE_EXTRACT_URL_VIDEO = re.compile(r"urlVideo\s*=\s*[\"'`](.+)[\"'`];")
 def _extract_variables(text: str) -> Dict[str, str]:
     variables: Dict[str, str] = {}
 
-    try:
-        url_video = RE_EXTRACT_URL_VIDEO.search(text).group(1)
-    except (IndexError, TypeError):
-        pass
-    else:
-        variables["urlVideo"] = url_video
+    match = RE_EXTRACT_URL_VIDEO.search(text)
+    if match:
+        try:
+            url_video = match.group(1)
+        except IndexError:
+            pass
+        else:
+            variables["urlVideo"] = url_video
 
     return variables
 
