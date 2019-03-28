@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Search Results &#8212; Grobber 3.0.20 documentation</title>
+    <title>Search Results &#8212; Grobber 3.0.21 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -38,41 +38,6 @@
 <h1>Search Results<a class="headerlink" href="#search-results" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
-<span class="target" id="module-grobber.search_results"></span><dl class="function">
-<dt id="grobber.search_results.find_cached_searches">
-<em class="property">coroutine </em><code class="descname">find_cached_searches</code><span class="sig-paren">(</span><em>media_type</em>, <em>query</em>, <em>max_results=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/search_results.html#find_cached_searches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.search_results.find_cached_searches" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return search results that loosely match the search request</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]]</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="grobber.search_results.get_cached_searches">
-<em class="property">coroutine </em><code class="descname">get_cached_searches</code><span class="sig-paren">(</span><em>media_type</em>, <em>query</em>, <em>requested_results=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/search_results.html#get_cached_searches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.search_results.get_cached_searches" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the documents which match the search request exactly.</p>
-<p>Use <a class="reference internal" href="#grobber.search_results.find_cached_searches" title="grobber.search_results.find_cached_searches"><code class="xref py py-func docutils literal notranslate"><span class="pre">find_cached_searches()</span></code></a> to loosely search for cached results.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]]]</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="grobber.search_results.store_cached_search">
-<em class="property">coroutine </em><code class="descname">store_cached_search</code><span class="sig-paren">(</span><em>media_type</em>, <em>query</em>, <em>requested_results</em>, <em>uids</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/search_results.html#store_cached_search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.search_results.store_cached_search" title="Permalink to this definition">¶</a></dt>
-<dd><p>Store the provided search request such that it can be retrieved later on</p>
-</dd></dl>
-
 </div>
 
 
