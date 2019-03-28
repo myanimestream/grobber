@@ -88,7 +88,7 @@ class Anime(abc.ABC):
 
 class SourceAnime(Anime, Expiring, abc.ABC):
     EPISODE_CLS = SourceEpisode
-    PRELOAD_ATTRS = ("id", "media_id", "is_dub", "language", "title", "thumbnail", "episode_count")
+    PRELOAD_ATTRS = ("media_id", "is_dub", "language", "title", "thumbnail", "episode_count")
 
     INCLUDE_CLS = True
     ATTRS = PRELOAD_ATTRS + ("episodes", "last_update")
