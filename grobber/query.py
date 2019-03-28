@@ -8,16 +8,14 @@ from typing import Any, List, NamedTuple, Set, cast, get_type_hints
 from prometheus_async.aio import time
 from quart import request
 
-from grobber.anime.group import get_anime_group, get_anime_group_by_title, group_animes
-from grobber.anime.sources import build_animes_from_docs
 from . import languages
 from .anime import Anime, AnimeNotFound, Episode, SearchResult, SourceAnime, SourceNotFound, Stream, sources
+from .anime.group import get_anime_group, get_anime_group_by_title, group_animes
 from .exceptions import InvalidRequest, UIDUnknown
 from .languages import Language
-from .search_results import find_cached_searches, get_cached_searches, store_cached_search
 from .telemetry import ANIME_QUERY_TYPE, ANIME_RESOLVE_TIME, ANIME_SEARCH_TIME, LANGUAGE_COUNTER, SOURCE_COUNTER
-from .uid import MediaType, UID
-from .utils import afilter, alist, fuzzy_bool, get_certainty
+from .uid import UID
+from .utils import alist, fuzzy_bool, get_certainty
 
 log = logging.getLogger(__name__)
 
@@ -185,17 +183,6 @@ async def _search_anime(query: str, filters: SearchFilter, num_results: int) -> 
             log.info(f"found {len(anime)}/{num_results} anime in database with matching title")
             results_pool.update(map(lambda a: SearchResult(a, 1), anime))
 
-    cached_search_results = await find_cached_searches(MediaType.ANIME, query, max_results=num_results)
-    anime_search_results: List[SourceAnime] = await alist(afilter(None, build_animes_from_docs(cached_search_results)))
-    cached_added = 0
-    for search_result in anime_search_results:
-        certainty = get_certainty(await search_result.title, query)
-        if certainty >= .5:
-            results_pool.add(SearchResult(search_result, certainty))
-            cached_added += 1
-
-    log.info(f"found {cached_added}/{num_results} in cached search results ({len(anime_search_results) - cached_added} discarded)")
-
     log.debug(f"current total: {len(results_pool)}/{num_results}")
 
     # if we didn't get enough, use the actual search
@@ -230,11 +217,6 @@ async def _search_anime(query: str, filters: SearchFilter, num_results: int) -> 
 
         results_pool.update(search_results)
 
-        # cache the search results for this search
-        uids = await asyncio.gather(*(result.anime.uid for result in results_pool))
-        await store_cached_search(MediaType.ANIME, query, num_results, uids)
-        log.info(f"cached {len(uids)} search results for \"{query}\"")
-
     return results_pool
 
 
@@ -252,15 +234,7 @@ async def search_anime() -> List[SearchResult]:
         raise InvalidRequest(f"Can only request up to 20 results (not {num_results})")
 
     group: bool = fuzzy_bool(request.args.get("group"), default=True)
-
-    exact_search_results = await get_cached_searches(MediaType.ANIME, query, num_results)
-    if exact_search_results:
-        log.info("Found exact search result")
-        exact_anime_results: List[Anime] = await alist(afilter(None, build_animes_from_docs(exact_search_results)))
-
-        results_pool = {SearchResult(anime, get_certainty(await anime.title, query)) for anime in exact_anime_results}
-    else:
-        results_pool = await _search_anime(query, filters, num_results)
+    results_pool = await _search_anime(query, filters, num_results)
 
     if group:
         groups = await group_animes(result.anime for result in results_pool)
