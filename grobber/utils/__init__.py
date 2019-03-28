@@ -87,19 +87,23 @@ def parse_js_json(text: str, *, variables: Mapping[str, Any] = None) -> Any:
     if e is None:
         return data
 
-    log.debug(f"failed to load js json data: {e}")
+    log.debug(f"failed to load js json data: {e!r}")
 
     _valid_names = {"true", "false", "null", "NaN", "Infinity", "-Infinity"}
 
     def _replacer(_match: Match) -> str:
-        value = _match["value"]
-        if value not in _valid_names:
-            if variables:
-                return json.dumps(variables.get(value))
-            else:
-                return "null"
+        _key = _match["key"]
+        _variable = _match["value"]
 
-        return _match[0]
+        if _variable in _valid_names:
+            _value = _variable
+        elif variables:
+            _value = json.dumps(variables.get(_variable))
+        else:
+            log.debug(f"value {_variable!r} invalid, no variables passed, replacing with null!")
+            _value = "null"
+
+        return f"\"{_key}\": {_value}"
 
     log.debug("trying again with invalid values removed.")
     valid_json = RE_JSON_VARIABLE_DETECT.sub(_replacer, valid_json)

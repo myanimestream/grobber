@@ -58,14 +58,6 @@ class HasAnimesMixin:
 
         return await get_first(getattr(container, attr) for container in containers)
 
-    @cached_property
-    async def episode_count(self) -> int:
-        episode_counts = await self.get_from_all("episode_count")
-        if not episode_counts:
-            return 0
-
-        return max(episode_counts)
-
 
 class EpisodeGroup(HasAnimesMixin, Episode):
     index: int
@@ -78,11 +70,6 @@ class EpisodeGroup(HasAnimesMixin, Episode):
     async def episodes(self) -> List[Episode]:
         animes = await self.animes
         episodes = await self.wait_for_all((anime.get(self.index) for anime in animes), timeout=15)
-        if not episodes:
-            episode_count = await self.episode_count
-            if self.index >= episode_count:
-                raise EpisodeNotFound(self.index, episode_count)
-
         return episodes
 
     @cached_property
@@ -145,7 +132,20 @@ class AnimeGroup(HasAnimesMixin, Anime):
     async def animes(self) -> List[SourceAnime]:
         return list((await sources.get_animes(self.uids)).values())
 
+    @cached_property
+    async def episode_count(self) -> int:
+        episode_counts = await self.get_from_all("episode_count")
+        if not episode_counts:
+            return 0
+
+        return max(episode_counts)
+
     async def get(self, index: int) -> EpisodeGroup:
+        episode_count = await self.episode_count
+
+        if index >= episode_count:
+            raise EpisodeNotFound(index, episode_count)
+
         return EpisodeGroup(asyncio.ensure_future(self.animes), index)
 
     @property
@@ -230,6 +230,7 @@ async def group_animes(animes: AIterable, *, unique_groups: bool = True) -> List
         if not found_group:
             auid, title, language, is_dub = await asyncio.gather(anime.uid, anime.title, anime.language, anime.is_dub)
             group = AnimeGroup([auid], title, language, is_dub)
+            # noinspection PyPropertyAccess
             group.animes = [anime]
             groups.append(group)
 
