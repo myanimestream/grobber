@@ -126,7 +126,7 @@ class NineAnime(SourceAnime):
     @cached_property
     async def raw_eps(self) -> List[NineEpisode]:
         async with self._req.page as page:
-            page: Page
+            page = cast(Page, page)
             episodes = await page.evaluate(
                 """Array.from(document.querySelectorAll("div.server:not(.hidden) ul.episodes a")).map(epLink => epLink.href);""", force_expr=True)
 

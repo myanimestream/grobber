@@ -1,3 +1,5 @@
+from contextlib import suppress
+
 __all__ = ["Anime", "SourceAnime"]
 
 import abc
@@ -165,18 +167,20 @@ class SourceAnime(Anime, Expiring, abc.ABC):
         return self._episodes
 
     async def get(self, index: int) -> EPISODE_CLS:
-        if hasattr(self, "_episodes"):
-            ep = self._episodes.get(index)
-            if ep is not None:
-                return ep
+        try:
+            episodes = self._episodes
+        except AttributeError:
+            episodes = self._episodes = {}
         else:
-            self._episodes = {}
+            with suppress(KeyError, IndexError):
+                return episodes[index]
 
         try:
-            episode = self._episodes[index] = await self.get_episode(index)
-        except KeyError:
+            episode = await self.get_episode(index)
+        except (KeyError, IndexError):
             raise EpisodeNotFound(index, await self.episode_count)
         else:
+            episodes[index] = episode
             return episode
 
     @abc.abstractmethod
