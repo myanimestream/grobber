@@ -12,11 +12,11 @@ log = logging.getLogger(__name__)
 
 # source-anime_id-language(_dub)?
 RE_LEGACY_UID_PARSER = re.compile(r"^(.+)-(.+)-(.+?)(_dub)?$")
-# media_type-media_id(-source)?-language(_dub)?
+# medium_type-medium_id(-source)?-language(_dub)?
 RE_UID_PARSER = re.compile(r"^([^-]+)-([^-]+)(?:-([^-]+))?-([^-]+?)(_dub)?$")
 
 
-class MediaType(Enum):
+class MediumType(Enum):
     ANIME = "a"
     MANGA = "m"
 
@@ -24,21 +24,21 @@ class MediaType(Enum):
 class UID(str, BaseConverter):
     __parsed__: bool
 
-    _media_type: MediaType
-    _media_id: str
+    _medium_type: MediumType
+    _medium_id: str
     _source: Optional[str]
     _language: Language
     _dubbed: bool
 
     @property
-    def media_type(self) -> MediaType:
+    def medium_type(self) -> MediumType:
         self.parse()
-        return self._media_type
+        return self._medium_type
 
     @property
-    def media_id(self) -> str:
+    def medium_id(self) -> str:
         self.parse()
-        return self._media_id
+        return self._medium_id
 
     @property
     def source(self) -> Optional[str]:
@@ -56,13 +56,13 @@ class UID(str, BaseConverter):
         return self._dubbed
 
     @classmethod
-    def create(cls, media_type: MediaType, media_id: str, source: Optional[str], language: Language, dubbed: bool) -> "UID":
+    def create(cls, media_type: MediumType, media_id: str, source: Optional[str], language: Language, dubbed: bool) -> "UID":
         dubbed_str = "_dub" if dubbed else ""
         source_str = f"-{source}" if source else ""
         uid = UID(f"{media_type.value}-{media_id}{source_str}-{language.value}{dubbed_str}")
 
-        uid._media_type = media_type
-        uid._media_id = media_id
+        uid._medium_type = media_type
+        uid._medium_id = media_id
         uid._source = source
         uid._language = language
         uid._dubbed = dubbed
@@ -94,8 +94,8 @@ class UID(str, BaseConverter):
 
         match = RE_UID_PARSER.match(self)
         if match:
-            self._media_type = MediaType(match.group(1))
-            self._media_id, self._source = match.group(2, 3)
+            self._medium_type = MediumType(match.group(1))
+            self._medium_id, self._source = match.group(2, 3)
             self._language = get_lang(match.group(4))
             self._dubbed = bool(match.group(5))
         else:
@@ -104,8 +104,8 @@ class UID(str, BaseConverter):
             if not match:
                 raise UIDInvalid(self)
 
-            self._media_type = MediaType.ANIME
-            self._source, self._media_id = match.group(1, 2)
+            self._medium_type = MediumType.ANIME
+            self._source, self._medium_id = match.group(1, 2)
             self._language = get_lang(match.group(3))
             self._dubbed = bool(match.group(4))
 

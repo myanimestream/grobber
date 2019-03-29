@@ -10,7 +10,7 @@ from typing import Any, AsyncIterator, Dict, List, Optional, TYPE_CHECKING, Unio
 from grobber.decorators import cached_property
 from grobber.languages import Language
 from grobber.stateful import BsonType, Expiring
-from grobber.uid import MediaType, UID
+from grobber.uid import MediumType, UID
 from .episode import Episode, SourceEpisode
 from ..exceptions import EpisodeNotFound
 
@@ -144,7 +144,7 @@ class SourceAnime(Anime, Expiring, abc.ABC):
     async def id(self) -> str:
         media_id, language, is_dub = await asyncio.gather(self.media_id, self.language, self.is_dub)
 
-        return UID.create(MediaType.ANIME, media_id, self.source_id, language, is_dub)
+        return UID.create(MediumType.ANIME, media_id, self.source_id, language, is_dub)
 
     @cached_property
     async def episode_count(self) -> int:

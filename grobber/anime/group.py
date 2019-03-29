@@ -7,7 +7,7 @@ from grobber.anime import Anime, Episode, EpisodeNotFound, SourceAnime, Stream, 
 from grobber.decorators import cached_property
 from grobber.languages import Language
 from grobber.locals import anime_collection
-from grobber.uid import MediaType, UID
+from grobber.uid import MediumType, UID
 from grobber.utils import AIterable, afilter, aiter, amap, do_later, get_first
 
 log = logging.getLogger(__name__)
@@ -150,7 +150,7 @@ class AnimeGroup(HasAnimesMixin, Anime):
 
     @property
     async def uid(self) -> UID:
-        return UID.create(MediaType.ANIME, UID.create_media_id(self._title), None, self._language, self._is_dub)
+        return UID.create(MediumType.ANIME, UID.create_media_id(self._title), None, self._language, self._is_dub)
 
     @cached_property
     async def thumbnail(self) -> str:
@@ -254,7 +254,7 @@ async def _get_anime_group(selector: Dict[str, Any]) -> Optional[AnimeGroup]:
 
 async def get_anime_group(uid: UID) -> Optional[AnimeGroup]:
     return await _get_anime_group({
-        "media_id": uid.media_id,
+        "media_id": uid.medium_id,
         f"language{SourceAnime._SPECIAL_MARKER}": uid.language.value,
         "is_dub": uid.dubbed
     })
