@@ -35,7 +35,7 @@
   <h1>Source code for grobber.anime.sources.nineanime</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">cast</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">cast</span>
 
 <span class="kn">import</span> <span class="nn">yarl</span>
 <span class="kn">from</span> <span class="nn">pyppeteer.page</span> <span class="k">import</span> <span class="n">Page</span>
@@ -54,6 +54,14 @@
 <span class="n">SEARCH_URL</span> <span class="o">=</span> <span class="n">BASE_URL</span> <span class="o">+</span> <span class="s2">&quot;/search&quot;</span>
 
 <span class="n">RE_DUB_STRIPPER</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\s\(Dub\)$&quot;</span><span class="p">)</span>
+
+<span class="n">JS_EXTRACT_EPISODES</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">Array.from(document.querySelectorAll(&quot;div.server:not(.hidden) ul.episodes a&quot;))</span>
+<span class="s2">.map(epLink =&gt; ({</span>
+<span class="s2">    episode: epLink.dataset.comment, </span>
+<span class="s2">    href: epLink.href,</span>
+<span class="s2">}));</span>
+<span class="s2">&quot;&quot;&quot;</span>
 
 
 <span class="k">class</span> <span class="nc">NineEpisode</span><span class="p">(</span><span class="n">SourceEpisode</span><span class="p">):</span>
@@ -159,18 +167,41 @@
             <span class="k">yield</span> <span class="n">SearchResult</span><span class="p">(</span><span class="n">anime</span><span class="p">,</span> <span class="n">similarity</span><span class="p">)</span></div>
 
     <span class="nd">@cached_property</span>
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">raw_eps</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">NineEpisode</span><span class="p">]:</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">raw_eps</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">EPISODE_CLS</span><span class="p">]:</span>
         <span class="k">async</span> <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_req</span><span class="o">.</span><span class="n">page</span> <span class="k">as</span> <span class="n">page</span><span class="p">:</span>
             <span class="n">page</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">Page</span><span class="p">,</span> <span class="n">page</span><span class="p">)</span>
-            <span class="n">episodes</span> <span class="o">=</span> <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span>
-                <span class="sd">&quot;&quot;&quot;Array.from(document.querySelectorAll(&quot;div.server:not(.hidden) ul.episodes a&quot;)).map(epLink =&gt; epLink.href);&quot;&quot;&quot;</span><span class="p">,</span> <span class="n">force_expr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">episode_infos</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span>
+                <span class="n">JS_EXTRACT_EPISODES</span><span class="p">,</span>
+                <span class="n">force_expr</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
 
-            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">url</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">EPISODE_CLS</span><span class="p">(</span><span class="n">Request</span><span class="p">(</span><span class="n">BASE_URL</span> <span class="o">+</span> <span class="n">yarl</span><span class="o">.</span><span class="n">URL</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">)),</span> <span class="n">episodes</span><span class="p">))</span>
+            <span class="n">episodes</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">NineEpisode</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
 
-<div class="viewcode-block" id="NineAnime.get_episodes"><a class="viewcode-back" href="../../../../reference/anime/sources.html#grobber.anime.sources.nineanime.NineAnime.get_episodes">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">get_episodes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">NineEpisode</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">ep_data</span> <span class="ow">in</span> <span class="n">episode_infos</span><span class="p">:</span>
+                <span class="n">episode_number_str</span> <span class="o">=</span> <span class="n">ep_data</span><span class="p">[</span><span class="s2">&quot;episode&quot;</span><span class="p">]</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">episode_number</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">episode_number_str</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="c1"># check if we&#39;re dealing with a movie</span>
+                    <span class="k">if</span> <span class="n">episode_number_str</span> <span class="o">==</span> <span class="s2">&quot;full&quot;</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">episodes</span><span class="p">:</span>
+                            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{self!r}</span><span class="s2"> found </span><span class="se">\&quot;</span><span class="s2">full</span><span class="se">\&quot;</span><span class="s2"> episode (assuming movie) &quot;</span>
+                                        <span class="n">f</span><span class="s2">&quot;but there already are episodes: </span><span class="si">{episodes}</span><span class="s2"> (returning full anyway)&quot;</span><span class="p">)</span>
+                        <span class="n">episode_number</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{self!r}</span><span class="s2"> Couldn&#39;t parse episode number for episode </span><span class="si">{ep_data}</span><span class="s2">, moving on&quot;</span><span class="p">)</span>
+                        <span class="k">continue</span>
+
+                <span class="n">url</span> <span class="o">=</span> <span class="n">yarl</span><span class="o">.</span><span class="n">URL</span><span class="p">(</span><span class="n">ep_data</span><span class="p">[</span><span class="s2">&quot;href&quot;</span><span class="p">])</span>
+                <span class="n">req</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">BASE_URL</span> <span class="o">+</span> <span class="n">url</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+                <span class="n">episodes</span><span class="p">[</span><span class="n">episode_number</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">EPISODE_CLS</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">episodes</span>
+
+<div class="viewcode-block" id="NineAnime.get_episodes"><a class="viewcode-back" href="../../../../reference/anime/sources.html#grobber.anime.sources.nineanime.NineAnime.get_episodes">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">get_episodes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">EPISODE_CLS</span><span class="p">]:</span>
         <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_eps</span></div>
 
-<div class="viewcode-block" id="NineAnime.get_episode"><a class="viewcode-back" href="../../../../reference/anime/sources.html#grobber.anime.sources.nineanime.NineAnime.get_episode">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">get_episode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NineEpisode</span><span class="p">:</span>
+<div class="viewcode-block" id="NineAnime.get_episode"><a class="viewcode-back" href="../../../../reference/anime/sources.html#grobber.anime.sources.nineanime.NineAnime.get_episode">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">get_episode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EPISODE_CLS</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">(</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_eps</span><span class="p">)[</span><span class="n">index</span><span class="p">]</span></div></div>
 
 
