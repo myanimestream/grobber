@@ -3,13 +3,16 @@
 
 A [quart] api server serving Anime data.
 
+The server takes a very lazy approach in the sense that it
+doesn't do anything unless it has to. This means that the data
+is only actually retrieved when it is requested. This results
+in some extreme performance penalties. Everything is a race to
+make sure the user gets as much data as soon as possible.
+This approach has a lot of problems which will be addressed by
+a future project called [Cardinal](https://github.com/MyAnimeStream/cardinal)
+
 # JSON API Documentation
 You can find a somewhat detailed documentation [here][grobber-documentation].
-
-
-# Deprecation notice
-Grobber will (hopefully) soon be rewritten in **Go**. The API will stay
-the same!
 
 # Hosting it yourself
 
@@ -30,8 +33,6 @@ a [MongoDB] database, a slightly modified version of [Scylla]
     external chrome browser such as [Browserless]
 - `SENTRY_DSN`:
     If you want some sweet error reports, there's a [Sentry] integration.
-- `ARIAS_URL` (unused): Arias endpoint
-
 
 [browserless]: https://www.browserless.io/ "Browserless website"
 [nginx]: https://www.nginx.com/ "NginX website"

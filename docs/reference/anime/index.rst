@@ -1,5 +1,5 @@
 SourceAnime
-=====
+===========
 
 .. toctree::
     :glob:
