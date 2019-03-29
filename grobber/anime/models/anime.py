@@ -5,7 +5,7 @@ __all__ = ["Anime", "SourceAnime"]
 import abc
 import asyncio
 import logging
-from typing import Any, AsyncIterator, Dict, List, Optional, TYPE_CHECKING
+from typing import Any, AsyncIterator, Dict, List, Optional, TYPE_CHECKING, Union
 
 from grobber.decorators import cached_property
 from grobber.languages import Language
@@ -148,7 +148,13 @@ class SourceAnime(Anime, Expiring, abc.ABC):
 
     @cached_property
     async def episode_count(self) -> int:
-        return len(await self.get_episodes())
+        eps = await self.get_episodes()
+
+        if isinstance(eps, dict):
+            # use max index + 1 to get amount of episodes
+            return max(eps.keys()) + 1
+        else:
+            return len(eps)
 
     @property
     async def episodes(self) -> Dict[int, EPISODE_CLS]:
@@ -161,8 +167,16 @@ class SourceAnime(Anime, Expiring, abc.ABC):
                         self._episodes[i] = await self.get_episode(i)
         else:
             eps = await self.get_episodes()
-            # noinspection PyTypeChecker
-            self._episodes = dict(enumerate(eps))
+            if isinstance(eps, dict):
+                self._episodes = eps
+            else:
+                eps_dict: Dict[int, SourceEpisode] = {}
+
+                for i, ep in enumerate(eps):
+                    if ep is not None:
+                        eps_dict[i] = ep
+
+                self._episodes = eps_dict
 
         return self._episodes
 
@@ -184,7 +198,7 @@ class SourceAnime(Anime, Expiring, abc.ABC):
             return episode
 
     @abc.abstractmethod
-    async def get_episodes(self) -> List[EPISODE_CLS]:
+    async def get_episodes(self) -> Union[List[Optional[EPISODE_CLS]], Dict[int, EPISODE_CLS]]:
         ...
 
     @abc.abstractmethod

@@ -1,6 +1,6 @@
 import logging
 import re
-from typing import Iterator, List, Optional, cast
+from typing import Dict, Iterator, List, Optional, cast
 
 import yarl
 from pyppeteer.page import Page
@@ -19,6 +19,14 @@ BASE_URL = "{9ANIME_URL}"
 SEARCH_URL = BASE_URL + "/search"
 
 RE_DUB_STRIPPER = re.compile(r"\s\(Dub\)$")
+
+JS_EXTRACT_EPISODES = """
+Array.from(document.querySelectorAll("div.server:not(.hidden) ul.episodes a"))
+.map(epLink => ({
+    episode: epLink.dataset.comment, 
+    href: epLink.href,
+}));
+"""
 
 
 class NineEpisode(SourceEpisode):
@@ -124,18 +132,41 @@ class NineAnime(SourceAnime):
             yield SearchResult(anime, similarity)
 
     @cached_property
-    async def raw_eps(self) -> List[NineEpisode]:
+    async def raw_eps(self) -> Dict[int, EPISODE_CLS]:
         async with self._req.page as page:
             page = cast(Page, page)
-            episodes = await page.evaluate(
-                """Array.from(document.querySelectorAll("div.server:not(.hidden) ul.episodes a")).map(epLink => epLink.href);""", force_expr=True)
+            episode_infos: List[dict] = await page.evaluate(
+                JS_EXTRACT_EPISODES,
+                force_expr=True
+            )
 
-            return list(map(lambda url: self.EPISODE_CLS(Request(BASE_URL + yarl.URL(url).path)), episodes))
+            episodes: Dict[int, NineEpisode] = {}
 
-    async def get_episodes(self) -> List[NineEpisode]:
+            for ep_data in episode_infos:
+                episode_number_str = ep_data["episode"]
+                try:
+                    episode_number = int(episode_number_str)
+                except ValueError:
+                    # check if we're dealing with a movie
+                    if episode_number_str == "full":
+                        if episodes:
+                            log.warning(f"{self!r} found \"full\" episode (assuming movie) "
+                                        f"but there already are episodes: {episodes} (returning full anyway)")
+                        episode_number = 1
+                    else:
+                        log.info(f"{self!r} Couldn't parse episode number for episode {ep_data}, moving on")
+                        continue
+
+                url = yarl.URL(ep_data["href"])
+                req = Request(BASE_URL + url.path)
+                episodes[episode_number - 1] = self.EPISODE_CLS(req)
+
+            return episodes
+
+    async def get_episodes(self) -> Dict[int, EPISODE_CLS]:
         return await self.raw_eps
 
-    async def get_episode(self, index: int) -> NineEpisode:
+    async def get_episode(self, index: int) -> EPISODE_CLS:
         return (await self.raw_eps)[index]
 
 

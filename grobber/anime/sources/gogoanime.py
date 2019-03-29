@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import re
-from typing import AsyncIterator, List, Optional
+from typing import AsyncIterator, Dict, List, Optional, Pattern
 
 import math
 
@@ -27,6 +27,7 @@ RE_CLEAN = re.compile(r"-+")
 RE_DUB_STRIPPER = re.compile(r"\s\(Dub\)$")
 
 RE_NOT_FOUND = re.compile(r"<h1 class=\"entry-title\">Page not found</h1>")
+RE_EPISODE_URL_PARSER: Pattern = re.compile(r"(?P<prefix>[^/]+-episode-)(?P<episode>.+)$")
 
 
 async def is_not_found_page(req: Request) -> bool:
@@ -130,17 +131,35 @@ class GogoAnime(SourceAnime):
             yield SearchResult(anime, similarity)
 
     @cached_property
-    async def raw_eps(self) -> List[GogoEpisode]:
+    async def raw_eps(self) -> Dict[int, EPISODE_CLS]:
         anime_id, episode_count = await asyncio.gather(self.anime_id, self.episode_count)
 
         episode_req = Request(EPISODE_LIST_URL, {"id": anime_id, "ep_start": 0, "ep_end": episode_count})
         if await is_not_found_page(episode_req):
+            # you might think this check is stupid but you wouldn't believe what a headache this has already caused me
+            # the gogoanime 404 page also lists episodes just like the real page does, only they are from "recently updated"
+            # shows so it would show completely unrelated episodes... So please PRAISE this check, thanks!
             raise ValueError(f"hit not found page when loading list episode for {self!r}: {episode_req}")
 
         episode_links = (await episode_req.bs).find_all("li")
-        episodes = []
+        episodes: Dict[int, GogoEpisode] = {}
         for episode_link in reversed(episode_links):
-            episodes.append(self.EPISODE_CLS(Request(BASE_URL + episode_link.a["href"].lstrip())))
+            href = episode_link.a["href"].lstrip()
+            match = RE_EPISODE_URL_PARSER.search(href)
+            if not match:
+                log.info(f"{self!r} Couldn't parse episode url {href}, moving on")
+                continue
+
+            episode_number_str = match["episode"]
+
+            try:
+                episode_number = int(episode_number_str)
+            except ValueError:
+                log.info(f"{self!r} couldn't parse episode number \"{episode_number_str!r}\", moving on")
+                continue
+
+            req = Request(BASE_URL + href)
+            episodes[episode_number - 1] = self.EPISODE_CLS(req)
 
         return episodes
 
@@ -155,7 +174,7 @@ class GogoAnime(SourceAnime):
             log.debug("-> Prediction successful")
             return self.EPISODE_CLS(ep_req)
 
-    async def get_episodes(self) -> List[GogoEpisode]:
+    async def get_episodes(self) -> Dict[int, GogoEpisode]:
         return await self.raw_eps
 
 

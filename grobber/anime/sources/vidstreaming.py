@@ -1,6 +1,6 @@
 import logging
 import re
-from typing import AsyncIterator, List, Optional, Pattern
+from typing import AsyncIterator, Dict, List, Optional, Pattern
 
 from grobber.decorators import cached_property
 from grobber.languages import Language
@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 
 RE_TITLE_EXTRACTOR: Pattern = re.compile(r"\s*(.+?)( \(Dub\))? Episode ([\d.]+)\s*$")
 RE_HEADER_EXTRACTOR: Pattern = re.compile(r"\s*(.+?)( \(Dub\))? Episode ([\d.]+)(?: English Subbed)?\s*$")
-RE_URL_SLUG_EXTRACTOR: Pattern = re.compile(r"([^/]+-)\d+$")
+RE_URL_SLUG_EXTRACTOR: Pattern = re.compile(r"([^/]+-episode-)(.+)$")
 
 vidstreaming_pool = UrlPool("Vidstreaming", ["https://vidstreaming.io"])
 DefaultUrlFormatter.add_field("VIDSTREAMING_URL", lambda: vidstreaming_pool.url)
@@ -71,15 +71,28 @@ class VidstreamingAnime(SourceAnime):
     async def thumbnail(self) -> Optional[str]:
         return None
 
-    async def get_episodes(self) -> List[EPISODE_CLS]:
+    async def get_episodes(self) -> Dict[int, EPISODE_CLS]:
         bs = await self._req.bs
         links = bs.select("div.video-info-left ul.items li.video-block a")
-        episodes = []
+        episodes: Dict[int, VidstreamingEpisode] = {}
+
         for link in reversed(links):
             href = link["href"]
+            match = RE_URL_SLUG_EXTRACTOR.search(href)
+            if not match:
+                log.info(f"Couldn't extract episode number from url: \"{href}\", moving on")
+                continue
+
+            episode_number_str = match.group(2)
+            try:
+                episode_number = int(episode_number_str)
+            except ValueError:
+                log.info(f"{self!r} Couldn't parse episode number {episode_number_str}. Ignoring episode \"{href}\"")
+                continue
+
             req = Request(f"{{VIDSTREAMING_URL}}{href}")
             episode = self.EPISODE_CLS(req)
-            episodes.append(episode)
+            episodes[episode_number - 1] = episode
 
         return episodes
 
