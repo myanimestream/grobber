@@ -11,33 +11,14 @@ services:
     networks:
       - backend
     environment:
-      #      - ARIAS_URL=http://arias:7200
       - MONGO_URI=mongodb://database:27017
       - CHROME_WS=ws://browserless:3000
       - PROXY_URL=http://proxy:8081
       - SENTRY_DSN
     depends_on:
-      #      - arias
       - browserless
       - database
       - proxy
-
-  #  arias:
-  #    container_name: Arias
-  #    image: myanimestream/arias
-  #    restart: always
-  #    environment:
-  #      - AWS_REGION
-  #      - AWS_ACCESS_KEY_ID
-  #      - AWS_SECRET_ACCESS_KEY
-  #      - STORAGETYPE
-  #      - DEFAULTBUCKET
-  #    expose:
-  #      - 7200
-  #    volumes:
-  #      - downloads:/downloads
-  #    networks:
-  #      - backend
 
   database:
     container_name: MongoDB
@@ -85,7 +66,6 @@ services:
 
 volumes:
   database: {}
-  #  downloads: {}
   scylla: {}
 
 networks:

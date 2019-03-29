@@ -151,8 +151,13 @@ class SourceAnime(Anime, Expiring, abc.ABC):
         eps = await self.get_episodes()
 
         if isinstance(eps, dict):
-            # use max index + 1 to get amount of episodes
-            return max(eps.keys()) + 1
+            try:
+                max_episode_index = max(eps.keys())
+            except ValueError:
+                return 0
+            else:
+                # use max index + 1 to get amount of episodes
+                return max_episode_index + 1
         else:
             return len(eps)
 
