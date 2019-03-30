@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import re
-from typing import AsyncIterator, Dict, List, Optional, Pattern
+from typing import AsyncIterator, Dict, List, Optional, Pattern, Tuple
 
 import math
 
@@ -28,6 +28,12 @@ RE_DUB_STRIPPER = re.compile(r"\s\(Dub\)$")
 
 RE_NOT_FOUND = re.compile(r"<h1 class=\"entry-title\">Page not found</h1>")
 RE_EPISODE_URL_PARSER: Pattern = re.compile(r"(?P<prefix>[^/]+-episode-)(?P<episode>.+)$")
+
+
+def parse_raw_title(raw_title: str) -> Tuple[str, bool]:
+    title = RE_DUB_STRIPPER.sub("", raw_title, 1)
+    dubbed = raw_title.endswith("(Dub)")
+    return title, dubbed
 
 
 async def is_not_found_page(req: Request) -> bool:
@@ -69,7 +75,7 @@ class GogoAnime(SourceAnime):
 
     @cached_property
     async def title(self) -> str:
-        return RE_DUB_STRIPPER.sub("", await self.raw_title, 1)
+        return parse_raw_title(await self.raw_title)[0]
 
     @cached_property
     async def thumbnail(self) -> Optional[str]:
@@ -77,7 +83,7 @@ class GogoAnime(SourceAnime):
 
     @cached_property
     async def is_dub(self) -> bool:
-        return (await self.raw_title).endswith("(Dub)")
+        return parse_raw_title(await self.raw_title)[1]
 
     @cached_property
     async def language(self) -> Language:

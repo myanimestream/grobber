@@ -1,6 +1,6 @@
 import logging
 import re
-from typing import Dict, Iterator, List, Optional, cast
+from typing import Dict, Iterator, List, Optional, Tuple, cast
 
 import yarl
 from pyppeteer.page import Page
@@ -27,6 +27,12 @@ Array.from(document.querySelectorAll("div.server:not(.hidden) ul.episodes a"))
     href: epLink.href,
 }));
 """
+
+
+def parse_raw_title(raw_title: str) -> Tuple[str, bool]:
+    title = RE_DUB_STRIPPER.sub("", raw_title, 1)
+    dubbed = raw_title.endswith("(Dub)")
+    return title, dubbed
 
 
 class NineEpisode(SourceEpisode):
@@ -66,7 +72,7 @@ class NineAnime(SourceAnime):
 
     @cached_property
     async def title(self) -> str:
-        return RE_DUB_STRIPPER.sub("", await self.raw_title, 1)
+        return parse_raw_title(await self.raw_title)[0]
 
     @cached_property
     async def thumbnail(self) -> Optional[str]:
@@ -74,7 +80,7 @@ class NineAnime(SourceAnime):
 
     @cached_property
     async def is_dub(self) -> bool:
-        return (await self.raw_title).endswith("(Dub)")
+        return parse_raw_title(await self.raw_title)[1]
 
     @cached_property
     async def language(self) -> Language:
