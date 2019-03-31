@@ -8,7 +8,7 @@ from typing import Any, Awaitable, Callable, Dict, Iterable, List, Optional, Tup
 import sentry_sdk
 import yarl
 from aiohttp import ClientResponse, ClientSession, TCPConnector
-from aiohttp.client_exceptions import ClientError, ClientHttpProxyError, ClientProxyConnectionError
+from aiohttp.client_exceptions import ClientConnectionError, ClientError, ClientHttpProxyError, ClientProxyConnectionError
 from bs4 import BeautifulSoup
 from pyppeteer.browser import Browser
 from pyppeteer.page import Page
@@ -335,7 +335,11 @@ class Request:
                 options.pop("timeout", None)
                 resp = await self.staggered_request(method, url, **options)
             except (ClientProxyConnectionError, ClientHttpProxyError) as e:
-                log.info(f"{self} proxy error: {e}, trying again try {self._retry_count}/{self._max_retries}")
+                log.info(f"{self} proxy error: {e}, trying again. try {self._retry_count}/{self._max_retries}")
+                continue
+            except ClientConnectionError as e:
+                log.info(f"{self} connectiong error: {e}, trying again. try {self._retry_count}/{self._max_retries}")
+                self._use_proxy = True
                 continue
 
             if resp.status in {403, 429, 529} and self._retry_count <= self._max_retries:

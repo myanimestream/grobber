@@ -39,15 +39,31 @@ def parse_raw_title(raw_title: str) -> Tuple[str, bool]:
 def extract_episode_count(ep_text_container: Optional[Tag]) -> Optional[int]:
     if ep_text_container:
         try:
-            ep_text = ep_text_container.text.split("/", 1)[0].strip()[3:]
+            ep_text = ep_text_container.text.split("/", 1)[0].strip()[3:].lower()
         except Exception:
             log.exception(f"couldn't extract episode text from {ep_text_container}")
             return None
+
+        if ep_text.endswith("-preview"):
+            ep_text = ep_text[:-len("-preview")]
+            preview = True
+        else:
+            preview = False
+
         try:
-            return int(ep_text)
+            ep = int(ep_text)
         except ValueError:
+            # movie
+            if ep_text == "full":
+                return 1
+
             log.warning(f"Couldn't tell episode count from \"{ep_text}\": {ep_text_container}")
             return None
+        else:
+            if preview:
+                ep -= 1
+
+            return ep
     else:
         # this is a movie
         return 1
