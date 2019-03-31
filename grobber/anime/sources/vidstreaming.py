@@ -1,6 +1,6 @@
 import logging
 import re
-from typing import AsyncIterator, Dict, List, Optional, Pattern
+from typing import AsyncIterator, Dict, List, Optional, Pattern, Tuple
 
 from grobber.decorators import cached_property
 from grobber.languages import Language
@@ -20,10 +20,28 @@ vidstreaming_pool = UrlPool("Vidstreaming", ["https://vidstreaming.io"])
 DefaultUrlFormatter.add_field("VIDSTREAMING_URL", lambda: vidstreaming_pool.url)
 DefaultUrlFormatter.use_proxy("VIDSTREAMING_URL")
 
+BASE_URL = "{VIDSTREAMING_URL}"
+
 
 async def is_not_found(req: Request) -> bool:
     text = await req.text
     return text.strip() == "404"
+
+
+def parse_raw_title(raw_title: str) -> Tuple[str, bool, int]:
+    match = RE_TITLE_EXTRACTOR.search(raw_title)
+    if not match:
+        return "UNKNOWN", False, 0
+
+    title, dubbed_str, episode_number_str = match.groups()
+    dubbed: bool = dubbed_str is not None
+
+    try:
+        episode_index = int(episode_number_str) - 1
+    except ValueError:
+        episode_index = 0
+
+    return title, dubbed, episode_index
 
 
 class VidstreamingEpisode(SourceEpisode):
@@ -90,7 +108,7 @@ class VidstreamingAnime(SourceAnime):
                 log.info(f"{self!r} Couldn't parse episode number {episode_number_str}. Ignoring episode \"{href}\"")
                 continue
 
-            req = Request(f"{{VIDSTREAMING_URL}}{href}")
+            req = Request(f"{BASE_URL}{href}")
             episode = self.EPISODE_CLS(req)
             episodes[episode_number - 1] = episode
 
@@ -104,7 +122,7 @@ class VidstreamingAnime(SourceAnime):
 
     async def get_episode(self, index: int) -> EPISODE_CLS:
         url_slug = await self.url_slug
-        url = f"{{VIDSTREAMING_URL}}/videos/{url_slug}{index + 1}"
+        url = f"{BASE_URL}/videos/{url_slug}{index + 1}"
         episode_req = Request(url)
         if await is_not_found(episode_req):
             raise KeyError(f"Episode index {index} doesn't exist in {self!r}")
@@ -116,20 +134,13 @@ class VidstreamingAnime(SourceAnime):
         if language != Language.ENGLISH:
             return
 
-        bs = await Request("{VIDSTREAMING_URL}/search.html", dict(keyword=query)).bs
+        bs = await Request(f"{BASE_URL}/search.html", dict(keyword=query)).bs
         links = bs.select("ul.items li.video-block a")
 
         for link in links:
-            url = "{VIDSTREAMING_URL}" + link["href"]
+            url = BASE_URL + link["href"]
             title_container = link.select_one("div.name").text
-            match = RE_TITLE_EXTRACTOR.match(title_container)
-            title = match.group(1)
-            is_dub = bool(match.group(2))
-
-            if dubbed != is_dub:
-                continue
-
-            ep_count = int(match.group(3))
+            title, is_dub, ep_count = parse_raw_title(title_container)
             thumbnail = link.select_one("div.picture img")["src"]
 
             anime = cls(Request(url), data=dict(title=title, thumbnail=thumbnail, is_dub=is_dub, episode_count=ep_count))

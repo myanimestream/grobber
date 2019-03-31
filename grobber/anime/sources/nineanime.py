@@ -3,6 +3,7 @@ import re
 from typing import Dict, Iterator, List, Optional, Tuple, cast
 
 import yarl
+from bs4 import Tag
 from pyppeteer.page import Page
 
 from grobber.decorators import cached_property
@@ -33,6 +34,23 @@ def parse_raw_title(raw_title: str) -> Tuple[str, bool]:
     title = RE_DUB_STRIPPER.sub("", raw_title, 1)
     dubbed = raw_title.endswith("(Dub)")
     return title, dubbed
+
+
+def extract_episode_count(ep_text_container: Optional[Tag]) -> Optional[int]:
+    if ep_text_container:
+        try:
+            ep_text = ep_text_container.text.split("/", 1)[0].strip()[3:]
+        except Exception:
+            log.exception(f"couldn't extract episode text from {ep_text_container}")
+            return None
+        try:
+            return int(ep_text)
+        except ValueError:
+            log.warning(f"Couldn't tell episode count from \"{ep_text}\": {ep_text_container}")
+            return None
+    else:
+        # this is a movie
+        return 1
 
 
 class NineEpisode(SourceEpisode):
@@ -109,32 +127,23 @@ class NineAnime(SourceAnime):
 
         for result in search_results:
             raw_title = result.select_one("a.name").text
-            if dubbed != raw_title.endswith("(Dub)"):
+            title, is_dub = parse_raw_title(raw_title)
+
+            if dubbed != is_dub:
                 continue
 
-            title = RE_DUB_STRIPPER.sub("", raw_title, 1)
+            data = dict(title=title, is_dub=is_dub)
 
             ep_text_container = result.select_one("div.ep")
-            if ep_text_container:
-                ep_text = ep_text_container.text.split("/", 1)[0].strip()[3:]
-
-                if ep_text.isnumeric():
-                    ep_count = int(ep_text)
-                else:
-                    log.warning(f"{cls} {req} Couldn't tell episode count {ep_text}")
-                    ep_count = 0
-            else:
-                ep_count = 1
+            ep_count = extract_episode_count(ep_text_container)
+            if ep_count is not None:
+                data["episode_count"] = ep_count
 
             link = yarl.URL(result.select_one("a.poster")["href"])
-            thumbnail = result.select_one("a.poster img")["src"]
+            data["thumbnail"] = result.select_one("a.poster img")["src"]
             similarity = get_certainty(query, title)
 
-            anime = cls(Request(BASE_URL + link.path), data=dict(raw_title=raw_title,
-                                                                 title=title,
-                                                                 is_dub=dubbed,
-                                                                 episode_count=ep_count,
-                                                                 thumbnail=thumbnail))
+            anime = cls(Request(BASE_URL + link.path), data=data)
             yield SearchResult(anime, similarity)
 
     @cached_property

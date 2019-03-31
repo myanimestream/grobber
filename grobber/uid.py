@@ -56,12 +56,12 @@ class UID(str, BaseConverter):
         return self._dubbed
 
     @classmethod
-    def create(cls, media_type: MediumType, media_id: str, source: Optional[str], language: Language, dubbed: bool) -> "UID":
+    def create(cls, medium_type: MediumType, media_id: str, source: Optional[str], language: Language, dubbed: bool) -> "UID":
         dubbed_str = "_dub" if dubbed else ""
         source_str = f"-{source}" if source else ""
-        uid = UID(f"{media_type.value}-{media_id}{source_str}-{language.value}{dubbed_str}")
+        uid = UID(f"{medium_type.value}-{media_id}{source_str}-{language.value}{dubbed_str}")
 
-        uid._medium_type = media_type
+        uid._medium_type = medium_type
         uid._medium_id = media_id
         uid._source = source
         uid._language = language
