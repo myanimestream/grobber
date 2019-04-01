@@ -111,9 +111,13 @@ class SourceAnime(Anime, Expiring, abc.ABC):
     def __hash__(self) -> int:
         return hash(self._req)
 
+    @classmethod
+    def get_source_id(cls) -> str:
+        return cls.get_qualcls().lower()
+
     @property
     def source_id(self) -> str:
-        return type(self).__qualname__.lower()
+        return self.get_source_id()
 
     @property
     def dirty(self) -> bool:

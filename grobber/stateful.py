@@ -61,9 +61,13 @@ class Stateful(abc.ABC):
     def dirty(self, value: bool):
         self._dirty = value
 
+    @classmethod
+    def get_qualcls(cls) -> str:
+        return cls.__qualname__
+
     @property
     def qualcls(self) -> str:
-        return type(self).__qualname__
+        return self.get_qualcls()
 
     def serialise_special(self, key: str, value: Any) -> BsonType:
         raise TypeError(f"Special key \"{key}\" with value {value} doesn't have a handler to serialise!")

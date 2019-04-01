@@ -19,7 +19,12 @@ SOURCES: Dict[str, Type[SourceAnime]] = {}
 
 
 def register_source(anime: Type[SourceAnime]):
-    SOURCES[anime.__qualname__] = anime
+    SOURCES[anime.get_qualcls().lower()] = anime
+
+
+def get_source(source_id: str) -> Type[SourceAnime]:
+    source_id = source_id.rsplit(".", 1)[-1]
+    return SOURCES[source_id.lower()]
 
 
 def _load_sources():
@@ -67,12 +72,12 @@ async def delete_anime(uid: str) -> None:
 
 
 async def build_anime_from_doc(uid: str, doc: Dict[str, Any]) -> SourceAnime:
-    *_, name = doc["cls"].rsplit(".", 1)
+    source_id = doc["cls"]
 
     try:
-        cls = SOURCES[name]
+        cls = get_source(source_id)
     except KeyError:
-        log.warning(f"couldn't find source for {uid}: {name}")
+        log.warning(f"couldn't find source for {uid}: {source_id}")
         await delete_anime(uid)
         raise UIDUnknown(uid)
 
@@ -132,6 +137,7 @@ async def get_anime_by_title(title: str, *, language=Language.ENGLISH, dubbed=Fa
 
 
 async def search_anime(query: str, *, language=Language.ENGLISH, dubbed=False) -> AsyncIterator[SearchResult]:
+    # noinspection PyTypeChecker
     sources: List[AsyncIterator[SearchResult]] = [source.search(query, language=language, dubbed=dubbed) for source in SOURCES.values()]
 
     def waiter(src):
@@ -142,6 +148,7 @@ async def search_anime(query: str, *, language=Language.ENGLISH, dubbed=False) -
                 return e, src
 
             res = cast(SearchResult, res)
+            # noinspection PyUnresolvedReferences
             SEARCH_SOURCE_COUNTER.labels(res.anime.source_id).inc()
             log.debug(f"got search result from {src.__qualname__}: {res}")
 

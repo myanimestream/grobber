@@ -58,7 +58,7 @@ class UID(str, BaseConverter):
     @classmethod
     def create(cls, medium_type: MediumType, media_id: str, source: Optional[str], language: Language, dubbed: bool) -> "UID":
         dubbed_str = "_dub" if dubbed else ""
-        source_str = f"-{source}" if source else ""
+        source_str = f"-{source.lower()}" if source else ""
         uid = UID(f"{medium_type.value}-{media_id}{source_str}-{language.value}{dubbed_str}")
 
         uid._medium_type = medium_type
