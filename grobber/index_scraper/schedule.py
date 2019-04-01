@@ -28,7 +28,7 @@ def create_scheduler() -> AsyncIOScheduler:
 
     scheduler.add_job(_scrape_new, CronTrigger(day="*"))
     scheduler.add_job(_scrape_ongoing, IntervalTrigger(weeks=2))
-    scheduler.add_job(_scrape_full, IntervalTrigger(weeks=16))
+    scheduler.add_job(_scrape_full, IntervalTrigger(weeks=18))
 
     return scheduler
 

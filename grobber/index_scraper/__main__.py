@@ -28,6 +28,11 @@ def cli() -> None:
 
 @cli.command()
 def start() -> None:
+    """Start the scheduler.
+
+    This will run the scrapers in intervals
+    to keep the data updated.
+    """
     from . import schedule
     loop = asyncio.get_event_loop()
 
@@ -44,6 +49,10 @@ def start() -> None:
 @cli.command()
 @click.argument("categories", nargs=-1, type=EnumType(IndexScraperCategory))
 def scrape(categories: Tuple[IndexScraperCategory]) -> None:
+    """Run the scraper for the given categories.
+
+    If no categories provided, all scrapers are ran.
+    """
     from . import scrape_indices
     from grobber.locals import source_index_collection
 
@@ -58,6 +67,12 @@ def scrape(categories: Tuple[IndexScraperCategory]) -> None:
 
 @cli.command()
 def initdb() -> None:
+    """Initialise the database.
+
+    This adds the required indexes to the related collections.
+    There's no need to do this manually however, the program
+    already does it automatically when required.
+    """
     from . import add_collection_indexes
     from grobber.locals import source_index_collection
 
