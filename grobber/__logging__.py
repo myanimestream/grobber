@@ -17,6 +17,9 @@ CONFIG = {
     "loggers": {
         "grobber": {
             "level": "DEBUG"
+        },
+        "apscheduler": {
+            "level": "DEBUG"
         }
     },
     "root": {

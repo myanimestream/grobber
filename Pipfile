@@ -16,6 +16,8 @@ yarl = "*"
 sentry-sdk = "*"
 prometheus-client = "*"
 prometheus-async = "*"
+click = "*"
+apscheduler = "*"
 
 [requires]
 python_version = "3.7"
