@@ -1,12 +1,10 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Request &#8212; Grobber 3.0.21 documentation</title>
+    <meta charset="utf-8" />
+    <title>Request &#8212; Grobber 3.0.22 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -16,7 +14,7 @@
     <script type="text/javascript" src="../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Search Results" href="search_results.html" />
+    <link rel="next" title="Stateful" href="stateful.html" />
     <link rel="prev" title="Query" href="query.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
@@ -55,25 +53,21 @@
 <dt id="grobber.request.Request.all">
 <em class="property">coroutine </em><code class="descname">all</code><span class="sig-paren">(</span><em>requests</em>, <em>*</em>, <em>timeout=None</em>, <em>predicate=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/request.html#Request.all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.request.Request.all" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get all requests that fulfill predicate</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>requests</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Iterable</span></code></a>[<a class="reference internal" href="#grobber.request.Request" title="grobber.request.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a>]) – Iterable of Request instances</li>
-<li><strong>timeout</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]) – timeout for ALL requests together</li>
-<li><strong>predicate</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></a>[[<a class="reference internal" href="#grobber.request.Request" title="grobber.request.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a>], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Awaitable" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Awaitable</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>]]]) – condition for a Request to pass (defaults to head_success)</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>requests</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Iterable</span></code></a>[<a class="reference internal" href="#grobber.request.Request" title="grobber.request.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a>]) – Iterable of Request instances</p></li>
+<li><p><strong>timeout</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]) – timeout for ALL requests together</p></li>
+<li><p><strong>predicate</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></a>[[<a class="reference internal" href="#grobber.request.Request" title="grobber.request.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a>], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Awaitable" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Awaitable</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>]]]) – condition for a Request to pass (defaults to head_success)</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">[‘Request’]</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">List of Requests that fulfilled predicate</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>[‘Request’]</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>List of Requests that fulfilled predicate</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
@@ -84,91 +78,72 @@
 <dl class="attribute">
 <dt id="grobber.request.Request.bs">
 <code class="descname">bs</code><a class="headerlink" href="#grobber.request.Request.bs" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeautifulSoup</span></code></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">BeautifulSoup</span></code></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="classmethod">
 <dt id="grobber.request.Request.create_soup">
 <em class="property">classmethod </em><code class="descname">create_soup</code><span class="sig-paren">(</span><em>html</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/request.html#Request.create_soup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.request.Request.create_soup" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">BeautifulSoup</span></code></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">BeautifulSoup</span></code></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="grobber.request.Request.first">
 <em class="property">coroutine </em><code class="descname">first</code><span class="sig-paren">(</span><em>requests</em>, <em>*</em>, <em>timeout=None</em>, <em>predicate=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/request.html#Request.first"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.request.Request.first" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get first request that fulfills predicate (or None)</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>requests</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Iterable</span></code></a>[<a class="reference internal" href="#grobber.request.Request" title="grobber.request.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a>]) – Iterable of requests</li>
-<li><strong>timeout</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]) – Timeout for ALL requests together</li>
-<li><strong>predicate</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></a>[[<a class="reference internal" href="#grobber.request.Request" title="grobber.request.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a>], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Awaitable" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Awaitable</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>]]]) – Predicate to fulfill (defaults to head_success)</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>requests</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Iterable</span></code></a>[<a class="reference internal" href="#grobber.request.Request" title="grobber.request.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a>]) – Iterable of requests</p></li>
+<li><p><strong>timeout</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]) – Timeout for ALL requests together</p></li>
+<li><p><strong>predicate</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></a>[[<a class="reference internal" href="#grobber.request.Request" title="grobber.request.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a>], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Awaitable" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Awaitable</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>]]]) – Predicate to fulfill (defaults to head_success)</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference internal" href="#grobber.request.Request" title="grobber.request.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a>]</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Optional Request instance</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference internal" href="#grobber.request.Request" title="grobber.request.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a>]</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Optional Request instance</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="classmethod">
 <dt id="grobber.request.Request.from_state">
 <em class="property">classmethod </em><code class="descname">from_state</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/request.html#Request.from_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.request.Request.from_state" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#grobber.request.Request" title="grobber.request.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#grobber.request.Request" title="grobber.request.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="grobber.request.Request.head_response">
 <code class="descname">head_response</code><a class="headerlink" href="#grobber.request.Request.head_response" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">ClientResponse</span></code></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">ClientResponse</span></code></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="grobber.request.Request.head_success">
 <code class="descname">head_success</code><a class="headerlink" href="#grobber.request.Request.head_success" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
@@ -179,14 +154,11 @@
 <dl class="attribute">
 <dt id="grobber.request.Request.json">
 <code class="descname">json</code><a class="headerlink" href="#grobber.request.Request.json" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
@@ -197,27 +169,21 @@
 <dl class="method">
 <dt id="grobber.request.Request.perform_request">
 <em class="property">coroutine </em><code class="descname">perform_request</code><span class="sig-paren">(</span><em>self</em>, <em>method</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/request.html#Request.perform_request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.request.Request.perform_request" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">ClientResponse</span></code></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">ClientResponse</span></code></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="grobber.request.Request.raw_finalised_url">
 <code class="descname">raw_finalised_url</code><a class="headerlink" href="#grobber.request.Request.raw_finalised_url" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
@@ -228,132 +194,105 @@
 <dl class="method">
 <dt id="grobber.request.Request.reset">
 <code class="descname">reset</code><span class="sig-paren">(</span><em>attrs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/request.html#Request.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.request.Request.reset" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">None</span></code></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="grobber.request.Request.response">
 <code class="descname">response</code><a class="headerlink" href="#grobber.request.Request.response" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">ClientResponse</span></code></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">ClientResponse</span></code></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="grobber.request.Request.staggered_request">
 <em class="property">coroutine </em><code class="descname">staggered_request</code><span class="sig-paren">(</span><em>self</em>, <em>method</em>, <em>url</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/request.html#Request.staggered_request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.request.Request.staggered_request" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">ClientResponse</span></code></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">ClientResponse</span></code></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="grobber.request.Request.state">
 <code class="descname">state</code><a class="headerlink" href="#grobber.request.Request.state" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a json serializable dictionary containing the state of this request.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Dict</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dict</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="grobber.request.Request.success">
 <code class="descname">success</code><a class="headerlink" href="#grobber.request.Request.success" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="grobber.request.Request.text">
 <code class="descname">text</code><a class="headerlink" href="#grobber.request.Request.text" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="grobber.request.Request.track_telemetry">
 <code class="descname">track_telemetry</code><span class="sig-paren">(</span><em>url</em>, <em>method</em>, <em>using_proxy</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/request.html#Request.track_telemetry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.request.Request.track_telemetry" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">None</span></code></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="grobber.request.Request.try_req">
 <em class="property">coroutine </em><code class="descname">try_req</code><span class="sig-paren">(</span><em>req</em>, <em>*</em>, <em>predicate=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/request.html#Request.try_req"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.request.Request.try_req" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return request if it passes predicate, otherwise None</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>req</strong> (<a class="reference internal" href="#grobber.request.Request" title="grobber.request.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a>) – Request to check</li>
-<li><strong>predicate</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></a>[[<a class="reference internal" href="#grobber.request.Request" title="grobber.request.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a>], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Awaitable" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Awaitable</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>]]]) – Predicate to check on req, defaults to head_success</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>req</strong> (<a class="reference internal" href="#grobber.request.Request" title="grobber.request.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a>) – Request to check</p></li>
+<li><p><strong>predicate</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></a>[[<a class="reference internal" href="#grobber.request.Request" title="grobber.request.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a>], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Awaitable" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Awaitable</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>]]]) – Predicate to check on req, defaults to head_success</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference internal" href="#grobber.request.Request" title="grobber.request.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a>]</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">req if it passes predicate, else None</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference internal" href="#grobber.request.Request" title="grobber.request.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a>]</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>req if it passes predicate, else None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="grobber.request.Request.url">
 <code class="descname">url</code><a class="headerlink" href="#grobber.request.Request.url" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
@@ -369,53 +308,41 @@
 <dd><dl class="method">
 <dt id="grobber.request.UrlFormatter.add_field">
 <code class="descname">add_field</code><span class="sig-paren">(</span><em>key</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/request.html#UrlFormatter.add_field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.request.UrlFormatter.add_field" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">None</span></code></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="grobber.request.UrlFormatter.add_fields">
 <code class="descname">add_fields</code><span class="sig-paren">(</span><em>fields=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/request.html#UrlFormatter.add_fields"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.request.UrlFormatter.add_fields" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">None</span></code></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="grobber.request.UrlFormatter.get_value">
 <em class="property">coroutine </em><code class="descname">get_value</code><span class="sig-paren">(</span><em>self</em>, <em>key</em>, <em>args</em>, <em>kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/request.html#UrlFormatter.get_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.request.UrlFormatter.get_value" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="grobber.request.UrlFormatter.should_use_proxy">
 <code class="descname">should_use_proxy</code><span class="sig-paren">(</span><em>url</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/request.html#UrlFormatter.should_use_proxy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.request.UrlFormatter.should_use_proxy" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
@@ -459,7 +386,6 @@
 <li class="toctree-l2"><a class="reference internal" href="locals.html">Locals</a></li>
 <li class="toctree-l2"><a class="reference internal" href="query.html">Query</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Request</a></li>
-<li class="toctree-l2"><a class="reference internal" href="search_results.html">Search Results</a></li>
 <li class="toctree-l2"><a class="reference internal" href="stateful.html">Stateful</a></li>
 <li class="toctree-l2"><a class="reference internal" href="telemetry.html">Telemetry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="uid.html">UID</a></li>
@@ -475,7 +401,7 @@
   <li><a href="../index.html">Documentation overview</a><ul>
   <li><a href="index.html">API Reference</a><ul>
       <li>Previous: <a href="query.html" title="previous chapter">Query</a></li>
-      <li>Next: <a href="search_results.html" title="next chapter">Search Results</a></li>
+      <li>Next: <a href="stateful.html" title="next chapter">Stateful</a></li>
   </ul></li>
   </ul></li>
 </ul>
@@ -486,8 +412,6 @@
     <form class="search" action="../search.html" method="get">
       <input type="text" name="q" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -508,7 +432,7 @@
       &copy;2018, MyAnimeStream.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

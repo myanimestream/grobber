@@ -1,0 +1,358 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Group &#8212; Grobber 3.0.22 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Models" href="models.html" />
+    <link rel="prev" title="Exceptions" href="exceptions.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="group">
+<h1>Group<a class="headerlink" href="#group" title="Permalink to this headline">¶</a></h1>
+<p>Groups help combine Anime from different sources into one, unified model which
+can be used to extract a lot more information.</p>
+<span class="target" id="module-grobber.anime.group"></span><dl class="class">
+<dt id="grobber.anime.group.AnimeGroup">
+<em class="property">class </em><code class="descname">AnimeGroup</code><span class="sig-paren">(</span><em>uids</em>, <em>title</em>, <em>language</em>, <em>is_dub</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/group.html#AnimeGroup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.group.AnimeGroup" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="grobber.anime.group.AnimeGroup.add_anime">
+<em class="property">coroutine </em><code class="descname">add_anime</code><span class="sig-paren">(</span><em>self</em>, <em>anime</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/group.html#AnimeGroup.add_anime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.group.AnimeGroup.add_anime" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.group.AnimeGroup.animes">
+<code class="descname">animes</code><a class="headerlink" href="#grobber.anime.group.AnimeGroup.animes" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">SourceAnime</span></code>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="grobber.anime.group.AnimeGroup.could_contain">
+<em class="property">coroutine </em><code class="descname">could_contain</code><span class="sig-paren">(</span><em>self</em>, <em>anime</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/group.html#AnimeGroup.could_contain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.group.AnimeGroup.could_contain" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.group.AnimeGroup.episode_count">
+<code class="descname">episode_count</code><a class="headerlink" href="#grobber.anime.group.AnimeGroup.episode_count" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="grobber.anime.group.AnimeGroup.get">
+<em class="property">coroutine </em><code class="descname">get</code><span class="sig-paren">(</span><em>self</em>, <em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/group.html#AnimeGroup.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.group.AnimeGroup.get" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#grobber.anime.group.EpisodeGroup" title="grobber.anime.group.EpisodeGroup"><code class="xref py py-class docutils literal notranslate"><span class="pre">EpisodeGroup</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.group.AnimeGroup.is_dub">
+<code class="descname">is_dub</code><a class="headerlink" href="#grobber.anime.group.AnimeGroup.is_dub" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.group.AnimeGroup.language">
+<code class="descname">language</code><a class="headerlink" href="#grobber.anime.group.AnimeGroup.language" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="../languages.html#grobber.languages.Language" title="grobber.languages.Language"><code class="xref py py-class docutils literal notranslate"><span class="pre">Language</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.group.AnimeGroup.state">
+<code class="descname">state</code><a class="headerlink" href="#grobber.anime.group.AnimeGroup.state" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.group.AnimeGroup.thumbnail">
+<code class="descname">thumbnail</code><a class="headerlink" href="#grobber.anime.group.AnimeGroup.thumbnail" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.group.AnimeGroup.title">
+<code class="descname">title</code><a class="headerlink" href="#grobber.anime.group.AnimeGroup.title" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.group.AnimeGroup.uid">
+<code class="descname">uid</code><a class="headerlink" href="#grobber.anime.group.AnimeGroup.uid" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="../uid.html#grobber.uid.UID" title="grobber.uid.UID"><code class="xref py py-class docutils literal notranslate"><span class="pre">UID</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="grobber.anime.group.EpisodeGroup">
+<em class="property">class </em><code class="descname">EpisodeGroup</code><span class="sig-paren">(</span><em>animes</em>, <em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/group.html#EpisodeGroup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.group.EpisodeGroup" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="grobber.anime.group.EpisodeGroup.episodes">
+<code class="descname">episodes</code><a class="headerlink" href="#grobber.anime.group.EpisodeGroup.episodes" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Episode</span></code>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.group.EpisodeGroup.raw_streams">
+<code class="descname">raw_streams</code><a class="headerlink" href="#grobber.anime.group.EpisodeGroup.raw_streams" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.group.EpisodeGroup.state">
+<code class="descname">state</code><a class="headerlink" href="#grobber.anime.group.EpisodeGroup.state" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.group.EpisodeGroup.working_streams">
+<code class="descname">working_streams</code><a class="headerlink" href="#grobber.anime.group.EpisodeGroup.working_streams" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Stream</span></code>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="grobber.anime.group.HasAnimesMixin">
+<em class="property">class </em><code class="descname">HasAnimesMixin</code><a class="reference internal" href="../../_modules/grobber/anime/group.html#HasAnimesMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.group.HasAnimesMixin" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="grobber.anime.group.HasAnimesMixin.get_from_all">
+<em class="property">coroutine </em><code class="descname">get_from_all</code><span class="sig-paren">(</span><em>self</em>, <em>attr</em>, <em>containers=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/group.html#HasAnimesMixin.get_from_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.group.HasAnimesMixin.get_from_all" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="grobber.anime.group.HasAnimesMixin.get_from_first">
+<em class="property">coroutine </em><code class="descname">get_from_first</code><span class="sig-paren">(</span><em>self</em>, <em>attr</em>, <em>containers=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/group.html#HasAnimesMixin.get_from_first"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.group.HasAnimesMixin.get_from_first" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="grobber.anime.group.HasAnimesMixin.wait_for_all">
+<em class="property">coroutine </em><code class="descname">wait_for_all</code><span class="sig-paren">(</span><em>self</em>, <em>fs</em>, <em>*</em>, <em>timeout=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/group.html#HasAnimesMixin.wait_for_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.group.HasAnimesMixin.wait_for_all" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="grobber.anime.group.get_anime_group">
+<em class="property">coroutine </em><code class="descname">get_anime_group</code><span class="sig-paren">(</span><em>uid</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/group.html#get_anime_group"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.group.get_anime_group" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference internal" href="#grobber.anime.group.AnimeGroup" title="grobber.anime.group.AnimeGroup"><code class="xref py py-class docutils literal notranslate"><span class="pre">AnimeGroup</span></code></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="grobber.anime.group.get_anime_group_by_title">
+<em class="property">coroutine </em><code class="descname">get_anime_group_by_title</code><span class="sig-paren">(</span><em>title</em>, <em>language</em>, <em>dubbed</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/group.html#get_anime_group_by_title"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.group.get_anime_group_by_title" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference internal" href="#grobber.anime.group.AnimeGroup" title="grobber.anime.group.AnimeGroup"><code class="xref py py-class docutils literal notranslate"><span class="pre">AnimeGroup</span></code></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="grobber.anime.group.group_animes">
+<em class="property">coroutine </em><code class="descname">group_animes</code><span class="sig-paren">(</span><em>animes</em>, <em>*</em>, <em>unique_groups=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/group.html#group_animes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.group.group_animes" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference internal" href="#grobber.anime.group.AnimeGroup" title="grobber.anime.group.AnimeGroup"><code class="xref py py-class docutils literal notranslate"><span class="pre">AnimeGroup</span></code></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">Grobber</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../guides/index.html">Guides</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">SourceAnime</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../blueprints/index.html">Blueprints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../app.html">App</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../arias.html">Arias</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../browser.html">Browser</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../decorators.html">Decorators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../languages.html">Languages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../locals.html">Locals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../query.html">Query</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../request.html">Request</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stateful.html">Stateful</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../telemetry.html">Telemetry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../uid.html">UID</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../url_pool.html">UrlPool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../utils.html">Utils</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">API Reference</a><ul>
+  <li><a href="index.html">SourceAnime</a><ul>
+      <li>Previous: <a href="exceptions.html" title="previous chapter">Exceptions</a></li>
+      <li>Next: <a href="models.html" title="next chapter">Models</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, MyAnimeStream.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/reference/anime/group.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

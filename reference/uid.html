@@ -1,12 +1,10 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>UID &#8212; Grobber 3.0.21 documentation</title>
+    <meta charset="utf-8" />
+    <title>UID &#8212; Grobber 3.0.22 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -39,17 +37,17 @@
 <div class="toctree-wrapper compound">
 </div>
 <span class="target" id="module-grobber.uid"></span><dl class="class">
-<dt id="grobber.uid.MediaType">
-<em class="property">class </em><code class="descname">MediaType</code><a class="reference internal" href="../_modules/grobber/uid.html#MediaType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.uid.MediaType" title="Permalink to this definition">¶</a></dt>
+<dt id="grobber.uid.MediumType">
+<em class="property">class </em><code class="descname">MediumType</code><a class="reference internal" href="../_modules/grobber/uid.html#MediumType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.uid.MediumType" title="Permalink to this definition">¶</a></dt>
 <dd><p>An enumeration.</p>
 <dl class="attribute">
-<dt id="grobber.uid.MediaType.ANIME">
-<code class="descname">ANIME</code><em class="property"> = 'a'</em><a class="headerlink" href="#grobber.uid.MediaType.ANIME" title="Permalink to this definition">¶</a></dt>
+<dt id="grobber.uid.MediumType.ANIME">
+<code class="descname">ANIME</code><em class="property"> = 'a'</em><a class="headerlink" href="#grobber.uid.MediumType.ANIME" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
-<dt id="grobber.uid.MediaType.MANGA">
-<code class="descname">MANGA</code><em class="property"> = 'm'</em><a class="headerlink" href="#grobber.uid.MediaType.MANGA" title="Permalink to this definition">¶</a></dt>
+<dt id="grobber.uid.MediumType.MANGA">
+<code class="descname">MANGA</code><em class="property"> = 'm'</em><a class="headerlink" href="#grobber.uid.MediumType.MANGA" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -59,132 +57,102 @@
 <em class="property">class </em><code class="descname">UID</code><a class="reference internal" href="../_modules/grobber/uid.html#UID"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.uid.UID" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="classmethod">
 <dt id="grobber.uid.UID.create">
-<em class="property">classmethod </em><code class="descname">create</code><span class="sig-paren">(</span><em>media_type</em>, <em>media_id</em>, <em>source</em>, <em>language</em>, <em>dubbed</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/uid.html#UID.create"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.uid.UID.create" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#grobber.uid.UID" title="grobber.uid.UID"><code class="xref py py-class docutils literal notranslate"><span class="pre">UID</span></code></a></td>
-</tr>
-</tbody>
-</table>
+<em class="property">classmethod </em><code class="descname">create</code><span class="sig-paren">(</span><em>medium_type</em>, <em>media_id</em>, <em>source</em>, <em>language</em>, <em>dubbed</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/uid.html#UID.create"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.uid.UID.create" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#grobber.uid.UID" title="grobber.uid.UID"><code class="xref py py-class docutils literal notranslate"><span class="pre">UID</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="classmethod">
 <dt id="grobber.uid.UID.create_media_id">
 <em class="property">classmethod </em><code class="descname">create_media_id</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/uid.html#UID.create_media_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.uid.UID.create_media_id" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="grobber.uid.UID.dubbed">
 <code class="descname">dubbed</code><a class="headerlink" href="#grobber.uid.UID.dubbed" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="grobber.uid.UID.language">
 <code class="descname">language</code><a class="headerlink" href="#grobber.uid.UID.language" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="languages.html#grobber.languages.Language" title="grobber.languages.Language"><code class="xref py py-class docutils literal notranslate"><span class="pre">Language</span></code></a></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="languages.html#grobber.languages.Language" title="grobber.languages.Language"><code class="xref py py-class docutils literal notranslate"><span class="pre">Language</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="grobber.uid.UID.media_id">
-<code class="descname">media_id</code><a class="headerlink" href="#grobber.uid.UID.media_id" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></td>
-</tr>
-</tbody>
-</table>
+<dt id="grobber.uid.UID.medium_id">
+<code class="descname">medium_id</code><a class="headerlink" href="#grobber.uid.UID.medium_id" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="grobber.uid.UID.media_type">
-<code class="descname">media_type</code><a class="headerlink" href="#grobber.uid.UID.media_type" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#grobber.uid.MediaType" title="grobber.uid.MediaType"><code class="xref py py-class docutils literal notranslate"><span class="pre">MediaType</span></code></a></td>
-</tr>
-</tbody>
-</table>
+<dt id="grobber.uid.UID.medium_type">
+<code class="descname">medium_type</code><a class="headerlink" href="#grobber.uid.UID.medium_type" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#grobber.uid.MediumType" title="grobber.uid.MediumType"><code class="xref py py-class docutils literal notranslate"><span class="pre">MediumType</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="grobber.uid.UID.parse">
 <code class="descname">parse</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/uid.html#UID.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.uid.UID.parse" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">None</span></code></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="grobber.uid.UID.source">
 <code class="descname">source</code><a class="headerlink" href="#grobber.uid.UID.source" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="grobber.uid.UID.to_python">
 <code class="descname">to_python</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/uid.html#UID.to_python"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.uid.UID.to_python" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#grobber.uid.UID" title="grobber.uid.UID"><code class="xref py py-class docutils literal notranslate"><span class="pre">UID</span></code></a></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#grobber.uid.UID" title="grobber.uid.UID"><code class="xref py py-class docutils literal notranslate"><span class="pre">UID</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="grobber.uid.UID.to_url">
 <code class="descname">to_url</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/uid.html#UID.to_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.uid.UID.to_url" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -223,7 +191,6 @@
 <li class="toctree-l2"><a class="reference internal" href="locals.html">Locals</a></li>
 <li class="toctree-l2"><a class="reference internal" href="query.html">Query</a></li>
 <li class="toctree-l2"><a class="reference internal" href="request.html">Request</a></li>
-<li class="toctree-l2"><a class="reference internal" href="search_results.html">Search Results</a></li>
 <li class="toctree-l2"><a class="reference internal" href="stateful.html">Stateful</a></li>
 <li class="toctree-l2"><a class="reference internal" href="telemetry.html">Telemetry</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">UID</a></li>
@@ -250,8 +217,6 @@
     <form class="search" action="../search.html" method="get">
       <input type="text" name="q" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -272,7 +237,7 @@
       &copy;2018, MyAnimeStream.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

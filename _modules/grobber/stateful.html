@@ -1,12 +1,10 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>grobber.stateful &#8212; Grobber 3.0.21 documentation</title>
+    <meta charset="utf-8" />
+    <title>grobber.stateful &#8212; Grobber 3.0.22 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -96,9 +94,13 @@
     <span class="k">def</span> <span class="nf">dirty</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dirty</span> <span class="o">=</span> <span class="n">value</span>
 
+<div class="viewcode-block" id="Stateful.get_qualcls"><a class="viewcode-back" href="../../reference/stateful.html#grobber.stateful.Stateful.get_qualcls">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_qualcls</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__qualname__</span></div>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">qualcls</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__qualname__</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_qualcls</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Stateful.serialise_special"><a class="viewcode-back" href="../../reference/stateful.html#grobber.stateful.Stateful.serialise_special">[docs]</a>    <span class="k">def</span> <span class="nf">serialise_special</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BsonType</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Special key </span><span class="se">\&quot;</span><span class="si">{key}</span><span class="se">\&quot;</span><span class="s2"> with value </span><span class="si">{value}</span><span class="s2"> doesn&#39;t have a handler to serialise!&quot;</span><span class="p">)</span></div>
@@ -246,8 +248,6 @@
     <form class="search" action="../../search.html" method="get">
       <input type="text" name="q" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -268,7 +268,7 @@
       &copy;2018, MyAnimeStream.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

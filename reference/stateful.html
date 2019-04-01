@@ -1,12 +1,10 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Stateful &#8212; Grobber 3.0.21 documentation</title>
+    <meta charset="utf-8" />
+    <title>Stateful &#8212; Grobber 3.0.22 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -17,7 +15,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Telemetry" href="telemetry.html" />
-    <link rel="prev" title="Search Results" href="search_results.html" />
+    <link rel="prev" title="Request" href="request.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -74,14 +72,11 @@
 <dl class="attribute">
 <dt id="grobber.stateful.Expiring.last_update">
 <code class="descname">last_update</code><a class="headerlink" href="#grobber.stateful.Expiring.last_update" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime</span></code></a></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -102,40 +97,41 @@
 <dl class="classmethod">
 <dt id="grobber.stateful.Stateful.deserialise_special">
 <em class="property">classmethod </em><code class="descname">deserialise_special</code><span class="sig-paren">(</span><em>key</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/stateful.html#Stateful.deserialise_special"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.stateful.Stateful.deserialise_special" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="grobber.stateful.Stateful.dirty">
 <code class="descname">dirty</code><a class="headerlink" href="#grobber.stateful.Stateful.dirty" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="classmethod">
 <dt id="grobber.stateful.Stateful.from_state">
 <em class="property">classmethod </em><code class="descname">from_state</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/stateful.html#Stateful.from_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.stateful.Stateful.from_state" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#grobber.stateful.Stateful" title="grobber.stateful.Stateful"><code class="xref py py-class docutils literal notranslate"><span class="pre">Stateful</span></code></a></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#grobber.stateful.Stateful" title="grobber.stateful.Stateful"><code class="xref py py-class docutils literal notranslate"><span class="pre">Stateful</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="grobber.stateful.Stateful.get_qualcls">
+<em class="property">classmethod </em><code class="descname">get_qualcls</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/stateful.html#Stateful.get_qualcls"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.stateful.Stateful.get_qualcls" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
@@ -146,53 +142,41 @@
 <dl class="method">
 <dt id="grobber.stateful.Stateful.preload_attrs">
 <em class="property">coroutine </em><code class="descname">preload_attrs</code><span class="sig-paren">(</span><em>self</em>, <em>*attrs</em>, <em>recursive=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/stateful.html#Stateful.preload_attrs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.stateful.Stateful.preload_attrs" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="grobber.stateful.Stateful.qualcls">
 <code class="descname">qualcls</code><a class="headerlink" href="#grobber.stateful.Stateful.qualcls" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="grobber.stateful.Stateful.serialise_special">
 <code class="descname">serialise_special</code><span class="sig-paren">(</span><em>key</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/stateful.html#Stateful.serialise_special"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.stateful.Stateful.serialise_special" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">~BsonType</td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>~BsonType</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="grobber.stateful.Stateful.state">
 <code class="descname">state</code><a class="headerlink" href="#grobber.stateful.Stateful.state" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, ~BsonType]</td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, ~BsonType]</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -200,14 +184,11 @@
 <dl class="function">
 <dt id="grobber.stateful.check_container_bson">
 <code class="descname">check_container_bson</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/stateful.html#check_container_bson"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.stateful.check_container_bson" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></td>
-</tr>
-</tbody>
-</table>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -244,7 +225,6 @@
 <li class="toctree-l2"><a class="reference internal" href="locals.html">Locals</a></li>
 <li class="toctree-l2"><a class="reference internal" href="query.html">Query</a></li>
 <li class="toctree-l2"><a class="reference internal" href="request.html">Request</a></li>
-<li class="toctree-l2"><a class="reference internal" href="search_results.html">Search Results</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Stateful</a></li>
 <li class="toctree-l2"><a class="reference internal" href="telemetry.html">Telemetry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="uid.html">UID</a></li>
@@ -259,7 +239,7 @@
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
   <li><a href="index.html">API Reference</a><ul>
-      <li>Previous: <a href="search_results.html" title="previous chapter">Search Results</a></li>
+      <li>Previous: <a href="request.html" title="previous chapter">Request</a></li>
       <li>Next: <a href="telemetry.html" title="next chapter">Telemetry</a></li>
   </ul></li>
   </ul></li>
@@ -271,8 +251,6 @@
     <form class="search" action="../search.html" method="get">
       <input type="text" name="q" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -293,7 +271,7 @@
       &copy;2018, MyAnimeStream.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
