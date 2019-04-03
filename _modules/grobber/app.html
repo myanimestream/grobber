@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>grobber.app &#8212; Grobber 3.0.23 documentation</title>
+    <title>grobber.app &#8212; Grobber 3.0.24 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -84,7 +84,7 @@
 <div class="viewcode-block" id="before_serving"><a class="viewcode-back" href="../../reference/app.html#grobber.app.before_serving">[docs]</a><span class="nd">@app</span><span class="o">.</span><span class="n">before_serving</span>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">before_serving</span><span class="p">():</span>
     <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;grobber version </span><span class="si">{__info__.__version__}</span><span class="s2"> running!&quot;</span><span class="p">)</span>
-    <span class="nb">locals</span><span class="o">.</span><span class="n">before_serving</span><span class="p">()</span></div>
+    <span class="k">await</span> <span class="nb">locals</span><span class="o">.</span><span class="n">before_serving</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="before_request"><a class="viewcode-back" href="../../reference/app.html#grobber.app.before_request">[docs]</a><span class="nd">@app</span><span class="o">.</span><span class="n">before_request</span>

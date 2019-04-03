@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>grobber.anime.models.anime &#8212; Grobber 3.0.23 documentation</title>
+    <title>grobber.anime.models.anime &#8212; Grobber 3.0.24 documentation</title>
     <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
@@ -71,7 +71,7 @@
 
     <span class="nd">@cached_property</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">media_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">UID</span><span class="o">.</span><span class="n">create_media_id</span><span class="p">(</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">title</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">UID</span><span class="o">.</span><span class="n">create_medium_id</span><span class="p">(</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">title</span><span class="p">)</span>
 
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Episode</span><span class="p">:</span>
@@ -164,7 +164,8 @@
     <span class="nd">@dirty</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">dirty</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dirty</span> <span class="o">=</span> <span class="n">value</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_episodes&quot;</span><span class="p">):</span>
+        <span class="c1"># only set dirty flag for episode if we&#39;re cleaning</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_episodes&quot;</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">ep</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_episodes</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
                 <span class="n">ep</span><span class="o">.</span><span class="n">dirty</span> <span class="o">=</span> <span class="n">value</span>
 

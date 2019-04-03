@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>grobber.locals &#8212; Grobber 3.0.23 documentation</title>
+    <title>grobber.locals &#8212; Grobber 3.0.24 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -68,14 +68,15 @@
 <span class="n">source_index_meta_collection</span><span class="p">:</span> <span class="n">AsyncIOMotorClient</span> <span class="o">=</span> <span class="n">LocalProxy</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">db</span><span class="p">[</span><span class="s2">&quot;source_index_meta&quot;</span><span class="p">])</span>
 
 
-<div class="viewcode-block" id="before_serving"><a class="viewcode-back" href="../../reference/locals.html#grobber.locals.before_serving">[docs]</a><span class="k">def</span> <span class="nf">before_serving</span><span class="p">():</span>
-    <span class="n">anime_collection</span><span class="o">.</span><span class="n">create_indexes</span><span class="p">([</span>
+<div class="viewcode-block" id="before_serving"><a class="viewcode-back" href="../../reference/locals.html#grobber.locals.before_serving">[docs]</a><span class="k">async</span> <span class="k">def</span> <span class="nf">before_serving</span><span class="p">():</span>
+    <span class="kn">from</span> <span class="nn">.index_scraper</span> <span class="k">import</span> <span class="n">add_collection_indexes</span>
+
+    <span class="k">await</span> <span class="n">anime_collection</span><span class="o">.</span><span class="n">create_indexes</span><span class="p">([</span>
         <span class="n">IndexModel</span><span class="p">([(</span><span class="s2">&quot;title&quot;</span><span class="p">,</span> <span class="n">ASCENDING</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;language&quot;</span><span class="p">,</span> <span class="n">ASCENDING</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;is_dub&quot;</span><span class="p">,</span> <span class="n">ASCENDING</span><span class="p">)],</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Query Index&quot;</span><span class="p">),</span>
         <span class="n">IndexModel</span><span class="p">([(</span><span class="s2">&quot;media_id&quot;</span><span class="p">,</span> <span class="n">ASCENDING</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;language&quot;</span><span class="p">,</span> <span class="n">ASCENDING</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;is_dub&quot;</span><span class="p">,</span> <span class="n">ASCENDING</span><span class="p">)],</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Media ID Index&quot;</span><span class="p">),</span>
     <span class="p">])</span>
 
-    <span class="kn">from</span> <span class="nn">.index_scraper</span> <span class="k">import</span> <span class="n">add_collection_indexes</span>
-    <span class="n">add_collection_indexes</span><span class="p">(</span><span class="n">source_index_collection</span><span class="p">)</span></div>
+    <span class="k">await</span> <span class="n">add_collection_indexes</span><span class="p">(</span><span class="n">source_index_collection</span><span class="p">)</span></div>
 </pre></div>
 
           </div>

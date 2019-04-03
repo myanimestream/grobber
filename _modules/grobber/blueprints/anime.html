@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>grobber.blueprints.anime &#8212; Grobber 3.0.23 documentation</title>
+    <title>grobber.blueprints.anime &#8212; Grobber 3.0.24 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -33,13 +33,18 @@
   <h1>Source code for grobber.blueprints.anime</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">asyncio</span>
 <span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">cast</span>
 
 <span class="kn">import</span> <span class="nn">quart</span>
-<span class="kn">from</span> <span class="nn">quart</span> <span class="k">import</span> <span class="n">Blueprint</span><span class="p">,</span> <span class="n">Response</span><span class="p">,</span> <span class="n">redirect</span>
+<span class="kn">from</span> <span class="nn">quart</span> <span class="k">import</span> <span class="n">Blueprint</span><span class="p">,</span> <span class="n">Request</span><span class="p">,</span> <span class="n">Response</span><span class="p">,</span> <span class="n">redirect</span><span class="p">,</span> <span class="n">request</span>
 
-<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">query</span>
-<span class="kn">from</span> <span class="nn">..uid</span> <span class="k">import</span> <span class="n">UID</span>
-<span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="n">create_response</span><span class="p">,</span> <span class="n">external_url_for</span>
+<span class="kn">from</span> <span class="nn">grobber</span> <span class="k">import</span> <span class="nb">locals</span><span class="p">,</span> <span class="n">query</span>
+<span class="kn">from</span> <span class="nn">grobber.exceptions</span> <span class="k">import</span> <span class="n">InvalidRequest</span>
+<span class="kn">from</span> <span class="nn">grobber.index_scraper</span> <span class="k">import</span> <span class="n">medium_to_dict</span><span class="p">,</span> <span class="n">search_media</span>
+<span class="kn">from</span> <span class="nn">grobber.uid</span> <span class="k">import</span> <span class="n">MediumType</span><span class="p">,</span> <span class="n">UID</span>
+<span class="kn">from</span> <span class="nn">grobber.utils</span> <span class="k">import</span> <span class="n">create_response</span><span class="p">,</span> <span class="n">external_url_for</span>
+
+<span class="n">request</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">Request</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -52,6 +57,57 @@
     <span class="n">results</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">search_results</span><span class="p">))</span>
 
     <span class="k">return</span> <span class="n">create_response</span><span class="p">(</span><span class="n">anime</span><span class="o">=</span><span class="n">results</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="quick_search"><a class="viewcode-back" href="../../../reference/blueprints/anime.html#grobber.blueprints.anime.quick_search">[docs]</a><span class="nd">@anime_blueprint</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/quicksearch/&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">quick_search</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Response</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">search_query</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;query&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">search_query</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">search_query</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">InvalidRequest</span><span class="p">(</span><span class="s2">&quot;Please specify a query&quot;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">page</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;page&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">page</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">page</span> <span class="o">&lt;</span> <span class="mi">30</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">InvalidRequest</span><span class="p">(</span><span class="s2">&quot;Page must be between 0 and 29&quot;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">items_per_page</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;results&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">items_per_page</span> <span class="o">=</span> <span class="mi">20</span>
+
+    <span class="n">language</span><span class="p">,</span> <span class="n">dubbed</span><span class="p">,</span> <span class="n">group</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">get_lookup_spec</span><span class="p">()</span>
+
+    <span class="n">results</span> <span class="o">=</span> <span class="k">await</span> <span class="n">search_media</span><span class="p">(</span><span class="nb">locals</span><span class="o">.</span><span class="n">source_index_collection</span><span class="p">,</span> <span class="n">MediumType</span><span class="o">.</span><span class="n">ANIME</span><span class="p">,</span> <span class="n">search_query</span><span class="p">,</span>
+                                 <span class="n">language</span><span class="o">=</span><span class="n">language</span><span class="p">,</span>
+                                 <span class="n">dubbed</span><span class="o">=</span><span class="n">dubbed</span><span class="p">,</span>
+                                 <span class="n">group</span><span class="o">=</span><span class="n">group</span><span class="p">,</span>
+                                 <span class="n">page</span><span class="o">=</span><span class="n">page</span><span class="p">,</span>
+                                 <span class="n">items_per_page</span><span class="o">=</span><span class="n">items_per_page</span><span class="p">)</span>
+    <span class="n">media_result_data</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">search_item</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">medium_to_dict</span><span class="p">(</span><span class="n">search_item</span><span class="o">.</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Couldn&#39;t convert medium to dict (silenced): </span><span class="si">{search_item}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;episodes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;episode_count&quot;</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;media_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">search_item</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">medium_id</span>
+
+        <span class="n">media_result_data</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s2">&quot;anime&quot;</span><span class="p">:</span> <span class="n">data</span><span class="p">,</span>
+            <span class="s2">&quot;certainty&quot;</span><span class="p">:</span> <span class="n">search_item</span><span class="o">.</span><span class="n">score</span>
+        <span class="p">})</span>
+
+    <span class="k">return</span> <span class="n">create_response</span><span class="p">(</span><span class="n">anime</span><span class="o">=</span><span class="n">media_result_data</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="get_anime_info"><a class="viewcode-back" href="../../../reference/blueprints/anime.html#grobber.blueprints.anime.get_anime_info">[docs]</a><span class="nd">@anime_blueprint</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>

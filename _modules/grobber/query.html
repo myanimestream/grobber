@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>grobber.query &#8212; Grobber 3.0.23 documentation</title>
+    <title>grobber.query &#8212; Grobber 3.0.24 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -36,23 +36,58 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">contextlib</span> <span class="k">import</span> <span class="n">suppress</span>
 <span class="kn">from</span> <span class="nn">operator</span> <span class="k">import</span> <span class="n">attrgetter</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">NamedTuple</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">cast</span><span class="p">,</span> <span class="n">get_type_hints</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">NamedTuple</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">cast</span><span class="p">,</span> <span class="n">get_type_hints</span>
 
 <span class="kn">from</span> <span class="nn">prometheus_async.aio</span> <span class="k">import</span> <span class="n">time</span>
-<span class="kn">from</span> <span class="nn">quart</span> <span class="k">import</span> <span class="n">request</span>
+<span class="kn">from</span> <span class="nn">quart</span> <span class="k">import</span> <span class="n">Request</span><span class="p">,</span> <span class="n">request</span>
 
-<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">languages</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">index_scraper</span><span class="p">,</span> <span class="n">languages</span>
 <span class="kn">from</span> <span class="nn">.anime</span> <span class="k">import</span> <span class="n">Anime</span><span class="p">,</span> <span class="n">AnimeNotFound</span><span class="p">,</span> <span class="n">Episode</span><span class="p">,</span> <span class="n">SearchResult</span><span class="p">,</span> <span class="n">SourceAnime</span><span class="p">,</span> <span class="n">SourceNotFound</span><span class="p">,</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">sources</span>
 <span class="kn">from</span> <span class="nn">.anime.group</span> <span class="k">import</span> <span class="n">get_anime_group</span><span class="p">,</span> <span class="n">get_anime_group_by_title</span><span class="p">,</span> <span class="n">group_animes</span>
 <span class="kn">from</span> <span class="nn">.exceptions</span> <span class="k">import</span> <span class="n">InvalidRequest</span><span class="p">,</span> <span class="n">UIDUnknown</span>
 <span class="kn">from</span> <span class="nn">.languages</span> <span class="k">import</span> <span class="n">Language</span>
+<span class="kn">from</span> <span class="nn">.locals</span> <span class="k">import</span> <span class="n">source_index_collection</span>
 <span class="kn">from</span> <span class="nn">.telemetry</span> <span class="k">import</span> <span class="n">ANIME_QUERY_TYPE</span><span class="p">,</span> <span class="n">ANIME_RESOLVE_TIME</span><span class="p">,</span> <span class="n">ANIME_SEARCH_TIME</span><span class="p">,</span> <span class="n">LANGUAGE_COUNTER</span><span class="p">,</span> <span class="n">SOURCE_COUNTER</span>
-<span class="kn">from</span> <span class="nn">.uid</span> <span class="k">import</span> <span class="n">UID</span>
+<span class="kn">from</span> <span class="nn">.uid</span> <span class="k">import</span> <span class="n">MediumType</span><span class="p">,</span> <span class="n">UID</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">alist</span><span class="p">,</span> <span class="n">fuzzy_bool</span><span class="p">,</span> <span class="n">get_certainty</span>
+
+<span class="n">request</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">Request</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
+<span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
+<span class="n">U</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;U&quot;</span><span class="p">)</span>
 <span class="n">_DEFAULT</span> <span class="o">=</span> <span class="nb">object</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">_get_arg</span><span class="p">(</span><span class="o">*</span><span class="n">names</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="bp">cls</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="n">T</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">default</span><span class="p">:</span> <span class="n">U</span> <span class="o">=</span> <span class="n">_DEFAULT</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">T</span><span class="p">,</span> <span class="n">U</span><span class="p">]:</span>
+    <span class="n">rep_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">names</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="k">if</span> <span class="bp">cls</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">value</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+    <span class="k">if</span> <span class="n">default</span> <span class="ow">is</span> <span class="n">_DEFAULT</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">InvalidRequest</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;No valid value for parameter </span><span class="se">\&quot;</span><span class="si">{rep_name}</span><span class="se">\&quot;</span><span class="s2"> set!&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">default</span>
+
+
+<div class="viewcode-block" id="get_lookup_spec"><a class="viewcode-back" href="../../reference/query.html#grobber.query.get_lookup_spec">[docs]</a><span class="k">def</span> <span class="nf">get_lookup_spec</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Language</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
+    <span class="n">language</span> <span class="o">=</span> <span class="n">_get_arg</span><span class="p">(</span><span class="s2">&quot;language&quot;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">languages</span><span class="o">.</span><span class="n">get_lang</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">Language</span><span class="o">.</span><span class="n">ENGLISH</span><span class="p">)</span>
+    <span class="n">dubbed</span> <span class="o">=</span> <span class="n">_get_arg</span><span class="p">(</span><span class="s2">&quot;dubbed&quot;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">fuzzy_bool</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">group</span> <span class="o">=</span> <span class="n">_get_arg</span><span class="p">(</span><span class="s2">&quot;group&quot;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">fuzzy_bool</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">language</span><span class="p">,</span> <span class="n">dubbed</span><span class="p">,</span> <span class="n">group</span></div>
 
 
 <div class="viewcode-block" id="SearchFilter"><a class="viewcode-back" href="../../reference/query.html#grobber.query.SearchFilter">[docs]</a><span class="k">class</span> <span class="nc">SearchFilter</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
@@ -145,6 +180,11 @@
             <span class="n">anime</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_anime_group</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">uid</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">anime</span> <span class="o">=</span> <span class="k">await</span> <span class="n">sources</span><span class="o">.</span><span class="n">get_anime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">uid</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">anime</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{self}</span><span class="s2"> uid not found in anime collection, trying source index!&quot;</span><span class="p">)</span>
+                <span class="n">medium</span> <span class="o">=</span> <span class="k">await</span> <span class="n">index_scraper</span><span class="o">.</span><span class="n">get_medium</span><span class="p">(</span><span class="n">source_index_collection</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">uid</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">medium</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">anime</span> <span class="o">=</span> <span class="n">index_scraper</span><span class="o">.</span><span class="n">source_anime_from_medium</span><span class="p">(</span><span class="n">medium</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">anime</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">UIDUnknown</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">uid</span><span class="p">)</span>
@@ -215,6 +255,25 @@
         <span class="k">if</span> <span class="n">anime</span><span class="p">:</span>
             <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;found {len(anime)}/</span><span class="si">{num_results}</span><span class="s2"> anime in database with matching title&quot;</span><span class="p">)</span>
             <span class="n">results_pool</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">a</span><span class="p">:</span> <span class="n">SearchResult</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">anime</span><span class="p">))</span>
+
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;current total: {len(results_pool)}/</span><span class="si">{num_results}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">media</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">List</span><span class="p">[</span><span class="n">index_scraper</span><span class="o">.</span><span class="n">Medium</span><span class="p">],</span>
+                 <span class="k">await</span> <span class="n">index_scraper</span><span class="o">.</span><span class="n">get_media_by_title</span><span class="p">(</span>
+                     <span class="n">source_index_collection</span><span class="p">,</span> <span class="n">MediumType</span><span class="o">.</span><span class="n">ANIME</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span>
+                     <span class="n">language</span><span class="o">=</span><span class="n">filters</span><span class="o">.</span><span class="n">language</span><span class="p">,</span>
+                     <span class="n">dubbed</span><span class="o">=</span><span class="n">filters</span><span class="o">.</span><span class="n">dubbed</span><span class="p">,</span>
+                     <span class="n">group</span><span class="o">=</span><span class="kc">False</span>
+                 <span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">medium</span> <span class="ow">in</span> <span class="n">media</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">anime</span> <span class="o">=</span> <span class="n">index_scraper</span><span class="o">.</span><span class="n">source_anime_from_medium</span><span class="p">(</span><span class="n">medium</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Couldn&#39;t convert medium to anime (</span><span class="si">{medium}</span><span class="s2">), moving on...&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;adding </span><span class="si">{anime}</span><span class="s2"> from medium </span><span class="si">{medium}</span><span class="s2"> to pool&quot;</span><span class="p">)</span>
+            <span class="n">results_pool</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">SearchResult</span><span class="p">(</span><span class="n">anime</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
 
     <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;current total: {len(results_pool)}/</span><span class="si">{num_results}</span><span class="s2">&quot;</span><span class="p">)</span>
 

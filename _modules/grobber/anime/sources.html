@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>grobber.anime.sources &#8212; Grobber 3.0.23 documentation</title>
+    <title>grobber.anime.sources &#8212; Grobber 3.0.24 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -104,6 +104,10 @@
     <span class="k">await</span> <span class="n">anime_collection</span><span class="o">.</span><span class="n">delete_one</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">_id</span><span class="o">=</span><span class="n">uid</span><span class="p">))</span></div>
 
 
+<div class="viewcode-block" id="track_in_cache"><a class="viewcode-back" href="../../../reference/anime/sources.html#grobber.anime.sources.track_in_cache">[docs]</a><span class="k">def</span> <span class="nf">track_in_cache</span><span class="p">(</span><span class="n">anime</span><span class="p">:</span> <span class="n">SourceAnime</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">CACHE</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">anime</span><span class="p">)</span></div>
+
+
 <div class="viewcode-block" id="build_anime_from_doc"><a class="viewcode-back" href="../../../reference/anime/sources.html#grobber.anime.sources.build_anime_from_doc">[docs]</a><span class="k">async</span> <span class="k">def</span> <span class="nf">build_anime_from_doc</span><span class="p">(</span><span class="n">uid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">doc</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">SourceAnime</span><span class="p">:</span>
     <span class="n">source_id</span> <span class="o">=</span> <span class="n">doc</span><span class="p">[</span><span class="s2">&quot;cls&quot;</span><span class="p">]</span>
 
@@ -116,7 +120,7 @@
 
     <span class="n">doc</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">uid</span>
     <span class="n">anime</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_state</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
-    <span class="n">CACHE</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">anime</span><span class="p">)</span>
+    <span class="n">track_in_cache</span><span class="p">(</span><span class="n">anime</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">anime</span></div>
 
 
@@ -198,7 +202,7 @@
             <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{source.__qualname__}</span><span class="s2"> failed to yield a search result&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="n">result</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">waiting_sources</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">waiter</span><span class="p">(</span><span class="n">source</span><span class="p">))</span>
-            <span class="n">CACHE</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">anime</span><span class="p">)</span>
+            <span class="n">track_in_cache</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">anime</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">True</span>
 
         <span class="k">return</span> <span class="kc">False</span>

@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>grobber.utils.aitertools &#8212; Grobber 3.0.23 documentation</title>
+    <title>grobber.utils.aitertools &#8212; Grobber 3.0.24 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -71,7 +71,8 @@
             <span class="k">return</span> <span class="nb">next</span><span class="p">(</span><span class="n">iterable</span><span class="p">)</span>
     <span class="k">except</span> <span class="p">(</span><span class="n">StopAsyncIteration</span><span class="p">,</span> <span class="ne">StopIteration</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">default</span> <span class="ow">is</span> <span class="n">_DEFAULT</span><span class="p">:</span>
-            <span class="k">raise</span>
+            <span class="c1"># let&#39;s make sure it&#39;s unified</span>
+            <span class="k">raise</span> <span class="n">StopAsyncIteration</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">default</span></div>
 
