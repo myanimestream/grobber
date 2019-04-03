@@ -72,7 +72,7 @@ class UID(str, BaseConverter):
         return uid
 
     @classmethod
-    def create_media_id(cls, name: str) -> str:
+    def create_medium_id(cls, name: str) -> str:
         name = name.strip().lower() \
             .replace(" ", "")
 

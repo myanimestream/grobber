@@ -1,12 +1,13 @@
 import asyncio
 import logging
 from itertools import chain
-from typing import Any, Awaitable, Dict, Iterable, List, Optional
+from typing import Any, Awaitable, Dict, Iterable, List, Optional, Tuple, cast
 
+from grobber import index_scraper
 from grobber.anime import Anime, Episode, EpisodeNotFound, SourceAnime, Stream, sources
 from grobber.decorators import cached_property
 from grobber.languages import Language
-from grobber.locals import anime_collection
+from grobber.locals import anime_collection, source_index_collection
 from grobber.uid import MediumType, UID
 from grobber.utils import AIterable, afilter, aiter, amap, do_later, get_first
 
@@ -150,7 +151,7 @@ class AnimeGroup(HasAnimesMixin, Anime):
 
     @property
     async def uid(self) -> UID:
-        return UID.create(MediumType.ANIME, UID.create_media_id(self._title), None, self._language, self._is_dub)
+        return UID.create(MediumType.ANIME, UID.create_medium_id(self._title), None, self._language, self._is_dub)
 
     @cached_property
     async def thumbnail(self) -> str:

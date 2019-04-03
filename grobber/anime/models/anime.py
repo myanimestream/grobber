@@ -38,7 +38,7 @@ class Anime(abc.ABC):
 
     @cached_property
     async def media_id(self) -> str:
-        return UID.create_media_id(await self.title)
+        return UID.create_medium_id(await self.title)
 
     @abc.abstractmethod
     async def get(self, index: int) -> Episode:
