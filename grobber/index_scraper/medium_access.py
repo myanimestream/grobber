@@ -13,9 +13,9 @@ from .medium_group import MediumGroup, medium_group_from_document
 
 __all__ = ["get_medium", "get_medium_group", "get_medium_group_by_uid", "get_medium_data",
            "SearchItem",
-           "search_media_cursor",
-           "map_load_media", "map_load_medium_groups",
-           "search_media"]
+           "map_load_media",
+           "search_media",
+           "get_media_by_title"]
 
 log = logging.getLogger(__name__)
 
@@ -65,12 +65,29 @@ class SearchItem(Generic[T]):
     score: float
 
 
-def search_media_cursor(collection: AsyncIOMotorCollection, medium_type: MediumType, query: str, *,
-                        language: Language,
-                        dubbed: bool,
-                        group: bool,
-                        skip: int = None,
-                        limit: int = None) -> AsyncIOMotorCommandCursor:
+def _pipeline_limit_and_skip(limit: int = None, skip: int = None) -> list:
+    pipeline = []
+
+    if limit is not None:
+        if skip is None:
+            absolute_limit = limit
+        else:
+            absolute_limit = limit + skip
+
+        pipeline.append({"$limit": absolute_limit})
+
+    if skip is not None:
+        pipeline.append({"$skip": skip})
+
+    return pipeline
+
+
+def get_search_media_cursor(collection: AsyncIOMotorCollection, medium_type: MediumType, query: str, *,
+                            language: Language,
+                            dubbed: bool,
+                            group: bool,
+                            skip: int = None,
+                            limit: int = None) -> AsyncIOMotorCommandCursor:
     pipeline = [
         {"$match": {
             "$text": {"$search": query},
@@ -86,56 +103,70 @@ def search_media_cursor(collection: AsyncIOMotorCollection, medium_type: MediumT
     ]
 
     if group:
-        pipeline.extend([
-            {"$group": {
-                "_id": "$item.medium_id",
-                "item": {"$push": "$item"},
-                "search_relevance": {"$max": "$search_relevance"}
-            }}
-        ])
+        pipeline.append({"$group": {
+            "_id": "$item.medium_id",
+            "item": {"$push": "$item"},
+            "search_relevance": {"$max": "$search_relevance"}
+        }})
 
-    pipeline.extend([
-        {"$sort": {
-            "search_relevance": DESCENDING,
-        }},
-    ])
+    pipeline.append({"$sort": {
+        "search_relevance": DESCENDING,
+    }})
 
-    if limit is not None:
-        if skip is None:
-            absolute_limit = limit
-        else:
-            absolute_limit = limit + skip
+    pipeline.extend(_pipeline_limit_and_skip(limit, skip))
 
-        pipeline.append({"$limit": absolute_limit})
+    return collection.aggregate(pipeline)
 
-    if skip is not None:
-        pipeline.append({"$skip": skip})
+
+def get_media_by_title_cursor(collection: AsyncIOMotorCollection, medium_type: MediumType, title: str, *,
+                              language: Language,
+                              dubbed: bool,
+                              group: bool,
+                              skip: int = None,
+                              limit: int = None) -> AsyncIOMotorCommandCursor:
+    pipeline = [{"$match": {
+        "medium_type": medium_type.value,
+        "language": language.value,
+        "dubbed": dubbed,
+        "$or": [
+            {"title": title},
+            {"aliases": title},
+        ]
+    }}]
+
+    if group:
+        pipeline.append({"$group": {
+            "_id": "$medium_id",
+            "items": {"$push": "$$ROOT"}
+        }})
+
+    pipeline.extend(_pipeline_limit_and_skip(limit, skip))
 
     return collection.aggregate(pipeline)
 
 
 @overload
 async def map_search_item_tuple(iterable: AIterable[Dict[str, Any]], *,
-                                ignore_exception: bool) -> AsyncIterator[SearchItem[Dict[str, Any]]]:
+                                ignore_exceptions: bool) -> AsyncIterator[SearchItem[Dict[str, Any]]]:
     ...
 
 
 @overload
 async def map_search_item_tuple(iterable: AIterable[Dict[str, Any]], *,
-                                ignore_exception: bool,
+                                ignore_exceptions: bool,
                                 callback: Callable[[Dict[str, Any]], T]) -> AsyncIterator[SearchItem[T]]:
     ...
 
 
 async def map_search_item_tuple(iterable: AIterable[Dict[str, Any]], *,
-                                ignore_exception: bool,
+                                ignore_exceptions: bool,
                                 callback: Callable[[Dict[str, Any]], T] = None) -> AsyncIterator[SearchItem[T]]:
     async for doc in aiter(iterable):
         try:
             raw_item = doc["item"]
             search_relevance: float = doc["search_relevance"]
         except KeyError as e:
-            if ignore_exception:
+            if ignore_exceptions:
                 log.warning(f"Illegal document received (suppressed): {doc}\n{e!r}")
                 continue
             else:
@@ -145,7 +176,7 @@ async def map_search_item_tuple(iterable: AIterable[Dict[str, Any]], *,
             try:
                 item = callback(raw_item)
             except Exception as e:
-                if not ignore_exception:
+                if not ignore_exceptions:
                     raise e
             else:
                 yield SearchItem(item, search_relevance)
@@ -153,14 +184,14 @@ async def map_search_item_tuple(iterable: AIterable[Dict[str, Any]], *,
             yield SearchItem(raw_item, search_relevance)
 
 
-def map_load_media(iterable: AIterable[Dict[str, Any]], *, ignore_exception: bool = True) -> AsyncIterator[SearchItem[Medium]]:
-    # noinspection PyTypeChecker
-    return map_search_item_tuple(iterable, ignore_exception=ignore_exception, callback=medium_from_document)
+def map_load_media(iterable: AIterable[Dict[str, Any]], group: bool, *, ignore_exceptions: bool = True) -> AsyncIterator[SearchItem[MediumData]]:
+    if group:
+        callback = medium_group_from_document
+    else:
+        callback = medium_from_document
 
-
-def map_load_medium_groups(iterable: AIterable[Dict[str, Any]], *, ignore_exception: bool = True) -> AsyncIterator[SearchItem[MediumGroup]]:
     # noinspection PyTypeChecker
-    return map_search_item_tuple(iterable, ignore_exception=ignore_exception, callback=medium_group_from_document)
+    return map_search_item_tuple(iterable, ignore_exceptions=ignore_exceptions, callback=callback)
 
 
 async def search_media(collection: AsyncIOMotorCollection, medium_type: MediumType, query: str, *,
@@ -169,12 +200,41 @@ async def search_media(collection: AsyncIOMotorCollection, medium_type: MediumTy
                        group: bool = True,
                        page: int = 0,
                        items_per_page: int = 20) -> List[SearchItem[MediumData]]:
-    cursor = search_media_cursor(collection, medium_type, query, language=language, dubbed=dubbed,
-                                 group=group,
-                                 skip=page * items_per_page,
-                                 limit=items_per_page)
+    cursor = get_search_media_cursor(collection, medium_type, query,
+                                     language=language, dubbed=dubbed,
+                                     group=group,
+                                     skip=page * items_per_page,
+                                     limit=items_per_page)
 
-    if group:
-        return await alist(map_load_medium_groups(cursor))
-    else:
-        return await alist(map_load_media(cursor))
+    return await alist(map_load_media(cursor, group))
+
+
+async def map_load_medium(iterable: AIterable[Dict[str, Any]], group: bool, *, ignore_exceptions: bool = True) -> AsyncIterator[MediumData]:
+    async for doc in aiter(iterable):
+        try:
+            if group:
+                medium = medium_group_from_document(doc["items"])
+            else:
+                medium = medium_from_document(doc)
+        except Exception as e:
+            if ignore_exceptions:
+                log.info(f"suppressed exception while handling: {doc}\n{e!r}")
+            else:
+                raise e
+        else:
+            yield medium
+
+
+async def get_media_by_title(collection: AsyncIOMotorCollection, medium_type: MediumType, title: str, *,
+                             language: Language,
+                             dubbed: bool,
+                             group: bool = True,
+                             page: int = 0,
+                             items_per_page: int = 20) -> List[MediumData]:
+    cursor = get_media_by_title_cursor(collection, medium_type, title,
+                                       language=language, dubbed=dubbed,
+                                       group=group,
+                                       skip=page * items_per_page,
+                                       limit=items_per_page)
+
+    return await alist(map_load_medium(cursor, group))

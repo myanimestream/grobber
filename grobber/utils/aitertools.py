@@ -38,7 +38,8 @@ async def anext(iterable: AIterable[T], default: Any = _DEFAULT) -> T:
             return next(iterable)
     except (StopAsyncIteration, StopIteration):
         if default is _DEFAULT:
-            raise
+            # let's make sure it's unified
+            raise StopAsyncIteration
         else:
             return default
 

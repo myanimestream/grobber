@@ -15,7 +15,7 @@ from .exceptions import InvalidRequest, UIDUnknown
 from .languages import Language
 from .locals import source_index_collection
 from .telemetry import ANIME_QUERY_TYPE, ANIME_RESOLVE_TIME, ANIME_SEARCH_TIME, LANGUAGE_COUNTER, SOURCE_COUNTER
-from .uid import UID
+from .uid import MediumType, UID
 from .utils import alist, fuzzy_bool, get_certainty
 
 request = cast(Request, request)
@@ -25,6 +25,36 @@ log = logging.getLogger(__name__)
 T = TypeVar("T")
 U = TypeVar("U")
 _DEFAULT = object()
+
+
+def _get_arg(*names: str, cls: Callable[[str], T] = None, default: U = _DEFAULT) -> Union[T, U]:
+    rep_name: str = names[0]
+
+    for name in names:
+        try:
+            value = request.args[name]
+        except KeyError:
+            continue
+
+        if cls is None:
+            return value
+
+        try:
+            return cls(value)
+        except Exception:
+            continue
+
+    if default is _DEFAULT:
+        raise InvalidRequest(f"No valid value for parameter \"{rep_name}\" set!")
+    else:
+        return default
+
+
+def get_lookup_spec() -> Tuple[Language, bool, bool]:
+    language = _get_arg("language", cls=languages.get_lang, default=Language.ENGLISH)
+    dubbed = _get_arg("dubbed", cls=fuzzy_bool, default=False)
+    group = _get_arg("group", cls=fuzzy_bool, default=True)
+    return language, dubbed, group
 
 
 class SearchFilter(NamedTuple):
@@ -118,6 +148,7 @@ class UIDAnimeQuery(AnimeQuery):
         else:
             anime = await sources.get_anime(self.uid)
             if not anime:
+                log.info(f"{self} uid not found in anime collection, trying source index!")
                 medium = await index_scraper.get_medium(source_index_collection, self.uid)
                 if medium is not None:
                     anime = index_scraper.source_anime_from_medium(medium)
@@ -194,6 +225,25 @@ async def _search_anime(query: str, filters: SearchFilter, num_results: int) -> 
 
     log.debug(f"current total: {len(results_pool)}/{num_results}")
 
+    media = cast(List[index_scraper.Medium],
+                 await index_scraper.get_media_by_title(
+                     source_index_collection, MediumType.ANIME, query,
+                     language=filters.language,
+                     dubbed=filters.dubbed,
+                     group=False
+                 ))
+
+    for medium in media:
+        try:
+            anime = index_scraper.source_anime_from_medium(medium)
+        except Exception:
+            log.exception(f"Couldn't convert medium to anime ({medium}), moving on...")
+        else:
+            log.debug(f"adding {anime} from medium {medium} to pool")
+            results_pool.add(SearchResult(anime, 1))
+
+    log.debug(f"current total: {len(results_pool)}/{num_results}")
+
     # if we didn't get enough, use the actual search
     if len(results_pool) < num_results:
         # look at a sensible amount of search results (at least 1.5 times the amount of sources up to 5 and then just use the requested amount)
@@ -227,36 +277,6 @@ async def _search_anime(query: str, filters: SearchFilter, num_results: int) -> 
         results_pool.update(search_results)
 
     return results_pool
-
-
-def _get_arg(*names: str, cls: Callable[[str], T] = None, default: U = _DEFAULT) -> Union[T, U]:
-    rep_name: str = names[0]
-
-    for name in names:
-        try:
-            value = request.args[name]
-        except KeyError:
-            continue
-
-        if cls is None:
-            return value
-
-        try:
-            return cls(value)
-        except Exception:
-            continue
-
-    if default is _DEFAULT:
-        raise InvalidRequest(f"No valid value for parameter \"{rep_name}\" set!")
-    else:
-        return default
-
-
-def get_lookup_spec() -> Tuple[Language, bool, bool]:
-    language = _get_arg("language", cls=languages.get_lang, default=Language.ENGLISH)
-    dubbed = _get_arg("dubbed", cls=fuzzy_bool, default=False)
-    group = _get_arg("group", cls=fuzzy_bool, default=True)
-    return language, dubbed, group
 
 
 @time(ANIME_SEARCH_TIME)

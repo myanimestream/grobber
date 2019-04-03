@@ -51,7 +51,7 @@ def teardown_app_context(*_):
 @app.before_serving
 async def before_serving():
     log.info(f"grobber version {__info__.__version__} running!")
-    locals.before_serving()
+    await locals.before_serving()
 
 
 @app.before_request

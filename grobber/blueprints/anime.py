@@ -60,7 +60,12 @@ async def quick_search() -> Response:
     media_result_data = []
 
     for search_item in results:
-        data = medium_to_dict(search_item.item)
+        try:
+            data = medium_to_dict(search_item.item)
+        except Exception:
+            log.exception(f"Couldn't convert medium to dict (silenced): {search_item}")
+            continue
+
         data["episodes"] = data["episode_count"]
         data["media_id"] = search_item.item.medium_id
 
