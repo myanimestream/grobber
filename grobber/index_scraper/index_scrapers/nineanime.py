@@ -113,8 +113,9 @@ class NineAnimeNewIndexScraper(UpdateUntilLastStateIndexScraper, MaxPageIndexInd
                 pass
             else:
                 if japanese_raw_title and japanese_raw_title != raw_title:
-                    japanese_title = parse_raw_title(japanese_raw_title)[0]
-                    aliases.append(japanese_title)
+                    # use the japanese title and use the "real title" as an alias
+                    aliases.append(title)
+                    title = parse_raw_title(japanese_raw_title)[0]
 
             thumbnail_container: Optional[Tag] = item.select_one(".poster img")
             if thumbnail_container:
