@@ -1,3 +1,4 @@
+import abc
 import dataclasses
 from dataclasses import dataclass
 from datetime import datetime
@@ -8,19 +9,68 @@ from grobber.languages import Language, get_lang
 from grobber.request import Request
 from grobber.uid import MediumType, UID
 
-__all__ = ["Medium",
+__all__ = ["MediumData", "medium_to_dict", "Medium",
            "create_medium",
            "medium_to_document",
-           "medium_from_document",
-           "medium_from_source_anime_document", "source_anime_from_medium"]
+           "medium_from_document", "medium_from_source_anime_document",
+           "source_anime_from_medium"]
+
+
+class MediumData(abc.ABC):
+    uid: UID
+    medium_type: str
+    medium_id: str
+    language: str
+    dubbed: bool
+
+    title: str
+    aliases: List[str]
+    thumbnail: Optional[str]
+    episode_count: Optional[int]
+
+    def __repr__(self) -> str:
+        cls_name = type(self).__name__
+
+        keys = ("uid", "medium_type", "medium_id", "language", "dubbed", "title", "aliases", "thumbnail", "episode_count")
+        kv: List[str] = []
+        for key in keys:
+            value = getattr(self, key, "undefined")
+            kv.append(f"{key}={value!r}")
+
+        kv_str = ",".join(kv)
+        return f"{cls_name}({kv_str})"
+
+    def __str__(self) -> str:
+        return f"{self.title}"
+
+    @property
+    def medium_type_enum(self) -> MediumType:
+        return MediumType(self.medium_type)
+
+    @property
+    def language_enum(self) -> Language:
+        return get_lang(self.language)
+
+
+def medium_to_dict(medium: MediumData) -> Dict[str, Any]:
+    return {
+        "uid": medium.uid,
+        "language": medium.language,
+        "dubbed": medium.dubbed,
+        "title": medium.title,
+        "aliases": medium.aliases,
+        "thumbnail": medium.thumbnail,
+        "episode_count": medium.episode_count,
+    }
 
 
 @dataclass(frozen=True)
-class Medium:
+class Medium(MediumData):
     _id: str
     source_cls: str
     updated: datetime = dataclasses.field(compare=False)
     medium_type: str
+    medium_id: str
 
     language: str
     dubbed: bool
@@ -40,14 +90,6 @@ class Medium:
     def uid(self) -> UID:
         return UID(self._id)
 
-    @property
-    def medium_type_enum(self) -> MediumType:
-        return MediumType(self.medium_type)
-
-    @property
-    def language_enum(self) -> Language:
-        return get_lang(self.language)
-
 
 def create_medium(source_cls: str, medium_type: MediumType, title: str, href: str, *,
                   language: Language,
@@ -57,8 +99,10 @@ def create_medium(source_cls: str, medium_type: MediumType, title: str, href: st
                   episode_count: int = None,
                   thumbnail: str = None,
                   aliases: List[str] = None) -> Medium:
+    medium_id = UID.create_medium_id(title)
+
     if uid is None:
-        uid = UID.create(medium_type, UID.create_media_id(title), source_cls, language, dubbed)
+        uid = UID.create(medium_type, medium_id, source_cls, language, dubbed)
     else:
         uid = str(uid)
 
@@ -72,6 +116,7 @@ def create_medium(source_cls: str, medium_type: MediumType, title: str, href: st
                   source_cls=source_cls,
                   updated=updated,
                   medium_type=medium_type.value,
+                  medium_id=medium_id,
                   language=language.value,
                   dubbed=dubbed,
                   title=title,
@@ -90,7 +135,12 @@ MEDIUM_FIELD_NAMES: Set[str] = {field.name for field in MEDIUM_FIELDS}
 
 
 def medium_from_document(doc: Dict[str, Any]) -> Medium:
-    return Medium(**doc)
+    try:
+        return Medium(**doc)
+    except TypeError:
+        # let's assume that this is an unexpected keyword argument issue
+        kwargs = {key: value for key, value in doc if key in MEDIUM_FIELD_NAMES}
+        return Medium(**kwargs)
 
 
 def medium_from_source_anime_document(doc: Dict[str, Any]) -> Medium:
@@ -116,10 +166,16 @@ def source_anime_from_medium(medium: Medium) -> SourceAnime:
     cls = sources.get_source(medium.source_cls)
 
     req = Request(medium.href)
-    return cls(req, data=dict(
+    source_anime = cls(req, data=dict(
+        media_id=medium.medium_id,
         is_dub=medium.dubbed,
         language=medium.language_enum,
         title=medium.title,
         thumbnail=medium.thumbnail,
         episode_count=medium.episode_count,
+        last_update=medium.updated,
+        dirty=True,
     ))
+
+    sources.track_in_cache(source_anime)
+    return source_anime
