@@ -168,6 +168,18 @@ class Expiring(Stateful):
     def last_update(self) -> datetime:
         return self._last_update
 
+    @last_update.setter
+    def last_update(self, value: datetime) -> None:
+        try:
+            last_update = self._last_update
+        except AttributeError:
+            pass
+        else:
+            if last_update >= value:
+                return
+
+        self._last_update = value
+
     @property
     def _update(self) -> bool:
         current_time = datetime.now()

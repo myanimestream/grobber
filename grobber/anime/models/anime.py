@@ -131,7 +131,8 @@ class SourceAnime(Anime, Expiring, abc.ABC):
     @dirty.setter
     def dirty(self, value: bool):
         self._dirty = value
-        if hasattr(self, "_episodes"):
+        # only set dirty flag for episode if we're cleaning
+        if not value and hasattr(self, "_episodes"):
             for ep in self._episodes.values():
                 ep.dirty = value
 

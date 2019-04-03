@@ -1,12 +1,17 @@
 import asyncio
 import logging
+from typing import cast
 
 import quart
-from quart import Blueprint, Response, redirect
+from quart import Blueprint, Request, Response, redirect, request
 
-from .. import query
-from ..uid import UID
-from ..utils import create_response, external_url_for
+from grobber import locals, query
+from grobber.exceptions import InvalidRequest
+from grobber.index_scraper import medium_to_dict, search_media
+from grobber.uid import MediumType, UID
+from grobber.utils import create_response, external_url_for
+
+request = cast(Request, request)
 
 log = logging.getLogger(__name__)
 
@@ -19,6 +24,52 @@ async def search() -> Response:
     results = await asyncio.gather(*(a.to_dict() for a in search_results))
 
     return create_response(anime=results)
+
+
+@anime_blueprint.route("/quicksearch/")
+async def quick_search() -> Response:
+    try:
+        search_query = request.args.get("query")
+    except Exception:
+        search_query = None
+
+    if not search_query:
+        raise InvalidRequest("Please specify a query")
+
+    try:
+        page = request.args.get("page", type=int)
+    except Exception:
+        page = 0
+
+    if not 0 <= page < 30:
+        raise InvalidRequest("Page must be between 0 and 29")
+
+    try:
+        items_per_page = request.args.get("results", type=int)
+    except Exception:
+        items_per_page = 20
+
+    language, dubbed, group = query.get_lookup_spec()
+
+    results = await search_media(locals.source_index_collection, MediumType.ANIME, search_query,
+                                 language=language,
+                                 dubbed=dubbed,
+                                 group=group,
+                                 page=page,
+                                 items_per_page=items_per_page)
+    media_result_data = []
+
+    for search_item in results:
+        data = medium_to_dict(search_item.item)
+        data["episodes"] = data["episode_count"]
+        data["media_id"] = search_item.item.medium_id
+
+        media_result_data.append({
+            "anime": data,
+            "certainty": search_item.score
+        })
+
+    return create_response(anime=media_result_data)
 
 
 @anime_blueprint.route("/")

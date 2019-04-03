@@ -108,11 +108,15 @@ class AnimeGroup(HasAnimesMixin, Anime):
     _language: Language
     _is_dub: bool
 
-    def __init__(self, uids: List[UID], title: str, language: Language, is_dub: bool):
+    def __init__(self, uids: List[UID], title: str, language: Language, is_dub: bool, *, animes: List[SourceAnime] = None):
         self.uids = uids
         self._title = title
         self._language = language
         self._is_dub = is_dub
+
+        if animes:
+            # noinspection PyPropertyAccess
+            self.animes = animes
 
     def __repr__(self) -> str:
         return f"Group {super().__repr__()} ({len(self.uids)})"
@@ -176,10 +180,21 @@ class AnimeGroup(HasAnimesMixin, Anime):
 
     async def add_anime(self, anime: SourceAnime) -> None:
         uid = await anime.uid
+        if uid in self.uids:
+            return
+
         self.uids.append(uid)
 
-        animes = await self.animes
-        animes.append(anime)
+        try:
+            # noinspection PyUnresolvedReferences
+            animes: List[SourceAnime] = self._animes
+        except AttributeError:
+            pass
+        else:
+            animes.append(anime)
+
+    async def add_animes(self, animes: AIterable[SourceAnime]) -> None:
+        await asyncio.gather(*map(self.add_anime, animes))
 
     async def could_contain(self, anime: SourceAnime) -> bool:
         do_later(anime.preload_attrs("language", "is_dub", "media_id", "episode_count"))
@@ -230,9 +245,7 @@ async def group_animes(animes: AIterable, *, unique_groups: bool = True) -> List
 
         if not found_group:
             auid, title, language, is_dub = await asyncio.gather(anime.uid, anime.title, anime.language, anime.is_dub)
-            group = AnimeGroup([auid], title, language, is_dub)
-            # noinspection PyPropertyAccess
-            group.animes = [anime]
+            group = AnimeGroup([auid], title, language, is_dub, animes=[anime])
             groups.append(group)
 
     return groups
@@ -250,15 +263,30 @@ async def _get_anime_group(selector: Dict[str, Any]) -> Optional[AnimeGroup]:
     cursor = anime_collection.find(selector)
     anime_iter = afilter(None, amap(build_anime, cursor))
     groups = await group_animes(anime_iter, unique_groups=False)
+    if not groups:
+        return None
     return max(groups, key=lambda group: len(group.uids))
 
 
 async def get_anime_group(uid: UID) -> Optional[AnimeGroup]:
-    return await _get_anime_group({
-        "media_id": uid.medium_id,
-        f"language{SourceAnime._SPECIAL_MARKER}": uid.language.value,
-        "is_dub": uid.dubbed
-    })
+    anime_group, medium_group = cast(Tuple[Optional[AnimeGroup], Optional[index_scraper.MediumGroup]], await asyncio.gather(
+        _get_anime_group({
+            "media_id": uid.medium_id,
+            f"language{SourceAnime._SPECIAL_MARKER}": uid.language.value,
+            "is_dub": uid.dubbed
+        }),
+        index_scraper.get_medium_group_by_uid(source_index_collection, uid),
+    ))
+
+    if anime_group is None:
+        if medium_group is not None:
+            return index_scraper.source_group_from_medium_group(medium_group)
+        else:
+            return None
+
+    medium_source_animes = index_scraper.source_animes_from_medium_group(medium_group)
+    await anime_group.add_animes(medium_source_animes)
+    return anime_group
 
 
 async def get_anime_group_by_title(title: str, language: Language, dubbed: bool) -> Optional[AnimeGroup]:

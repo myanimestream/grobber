@@ -71,6 +71,10 @@ async def delete_anime(uid: str) -> None:
     await anime_collection.delete_one(dict(_id=uid))
 
 
+def track_in_cache(anime: SourceAnime) -> None:
+    CACHE.add(anime)
+
+
 async def build_anime_from_doc(uid: str, doc: Dict[str, Any]) -> SourceAnime:
     source_id = doc["cls"]
 
@@ -83,7 +87,7 @@ async def build_anime_from_doc(uid: str, doc: Dict[str, Any]) -> SourceAnime:
 
     doc["id"] = uid
     anime = cls.from_state(doc)
-    CACHE.add(anime)
+    track_in_cache(anime)
     return anime
 
 
@@ -165,7 +169,7 @@ async def search_anime(query: str, *, language=Language.ENGLISH, dubbed=False) -
             log.error(f"{source.__qualname__} failed to yield a search result", exc_info=result)
         else:
             waiting_sources.add(waiter(source))
-            CACHE.add(result.anime)
+            track_in_cache(result.anime)
             return True
 
         return False

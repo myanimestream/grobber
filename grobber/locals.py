@@ -1,3 +1,4 @@
+import asyncio
 import os
 
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection, AsyncIOMotorDatabase
@@ -36,10 +37,14 @@ source_index_meta_collection: AsyncIOMotorClient = LocalProxy(lambda: db["source
 
 
 def before_serving():
-    anime_collection.create_indexes([
-        IndexModel([("title", ASCENDING), ("language", ASCENDING), ("is_dub", ASCENDING)], name="Query Index"),
-        IndexModel([("media_id", ASCENDING), ("language", ASCENDING), ("is_dub", ASCENDING)], name="Media ID Index"),
-    ])
-
     from .index_scraper import add_collection_indexes
-    add_collection_indexes(source_index_collection)
+
+    async def task():
+        await anime_collection.create_indexes([
+            IndexModel([("title", ASCENDING), ("language", ASCENDING), ("is_dub", ASCENDING)], name="Query Index"),
+            IndexModel([("media_id", ASCENDING), ("language", ASCENDING), ("is_dub", ASCENDING)], name="Media ID Index"),
+        ])
+
+        await add_collection_indexes(source_index_collection)
+
+    asyncio.ensure_future(task())
