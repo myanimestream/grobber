@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>grobber.blueprints.anime &#8212; Grobber 3.0.24 documentation</title>
+    <title>grobber.blueprints.anime &#8212; Grobber 3.0.25 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -59,8 +59,8 @@
     <span class="k">return</span> <span class="n">create_response</span><span class="p">(</span><span class="n">anime</span><span class="o">=</span><span class="n">results</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="quick_search"><a class="viewcode-back" href="../../../reference/blueprints/anime.html#grobber.blueprints.anime.quick_search">[docs]</a><span class="nd">@anime_blueprint</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/quicksearch/&quot;</span><span class="p">)</span>
-<span class="k">async</span> <span class="k">def</span> <span class="nf">quick_search</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Response</span><span class="p">:</span>
+<div class="viewcode-block" id="index_search"><a class="viewcode-back" href="../../../reference/blueprints/anime.html#grobber.blueprints.anime.index_search">[docs]</a><span class="nd">@anime_blueprint</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/indexsearch/&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">index_search</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Response</span><span class="p">:</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">search_query</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;query&quot;</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>

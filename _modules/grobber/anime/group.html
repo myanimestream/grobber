@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>grobber.anime.group &#8212; Grobber 3.0.24 documentation</title>
+    <title>grobber.anime.group &#8212; Grobber 3.0.25 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -257,6 +257,10 @@
                 <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Couldn&#39;t get episode count from </span><span class="si">{anime!r}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span>
 
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">episode_count</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{self}</span><span class="s2"> not accepting: </span><span class="si">{anime!r}</span><span class="s2">, returned something other than an int for episode_count: </span><span class="si">{episode_count}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
             <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">min_ep_count</span> <span class="o">&lt;=</span> <span class="n">episode_count</span> <span class="o">&lt;=</span> <span class="n">max_ep_count</span><span class="p">):</span>
                 <span class="k">return</span> <span class="kc">False</span>
 
@@ -317,8 +321,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
 
-    <span class="n">medium_source_animes</span> <span class="o">=</span> <span class="n">index_scraper</span><span class="o">.</span><span class="n">source_animes_from_medium_group</span><span class="p">(</span><span class="n">medium_group</span><span class="p">)</span>
-    <span class="k">await</span> <span class="n">anime_group</span><span class="o">.</span><span class="n">add_animes</span><span class="p">(</span><span class="n">medium_source_animes</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">medium_group</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">medium_source_animes</span> <span class="o">=</span> <span class="n">index_scraper</span><span class="o">.</span><span class="n">source_animes_from_medium_group</span><span class="p">(</span><span class="n">medium_group</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">anime_group</span><span class="o">.</span><span class="n">add_animes</span><span class="p">(</span><span class="n">medium_source_animes</span><span class="p">)</span>
+
     <span class="k">return</span> <span class="n">anime_group</span></div>
 
 
