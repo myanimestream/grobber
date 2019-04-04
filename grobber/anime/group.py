@@ -224,6 +224,10 @@ class AnimeGroup(HasAnimesMixin, Anime):
                 log.exception(f"Couldn't get episode count from {anime!r}")
                 return False
 
+            if not isinstance(episode_count, int):
+                log.error(f"{self} not accepting: {anime!r}, returned something other than an int for episode_count: {episode_count}")
+                return False
+
             if not (min_ep_count <= episode_count <= max_ep_count):
                 return False
 

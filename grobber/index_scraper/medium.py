@@ -8,6 +8,7 @@ from grobber.anime import SourceAnime
 from grobber.languages import Language, get_lang
 from grobber.request import Request
 from grobber.uid import MediumType, UID
+from grobber.utils import mut_map_filter_values
 
 __all__ = ["MediumData", "medium_to_dict", "Medium",
            "create_medium",
@@ -166,7 +167,7 @@ def source_anime_from_medium(medium: Medium) -> SourceAnime:
     cls = sources.get_source(medium.source_cls)
 
     req = Request(medium.href)
-    source_anime = cls(req, data=dict(
+    data = dict(
         media_id=medium.medium_id,
         is_dub=medium.dubbed,
         language=medium.language_enum,
@@ -175,7 +176,11 @@ def source_anime_from_medium(medium: Medium) -> SourceAnime:
         episode_count=medium.episode_count,
         last_update=medium.updated,
         dirty=True,
-    ))
+    )
+
+    mut_map_filter_values(None, data)
+
+    source_anime = cls(req, data=data)
 
     sources.track_in_cache(source_anime)
     return source_anime

@@ -9,16 +9,18 @@ from typing import Any, Awaitable, Callable, Dict, List, Mapping, Match, Optiona
 
 from quart import url_for
 
-from . import aitertools
+from . import aitertools, mutate
 from .aitertools import *
 from .async_string_formatter import AsyncFormatter
+from .mutate import *
 from .response import *
 
 __all__ = ["AsyncFormatter",
            "create_response", "error_response",
            "add_http_scheme", "parse_js_json", "external_url_for", "format_available", "do_later",
+           "fuzzy_bool", "get_certainty",
            *aitertools.__all__,
-           "fuzzy_bool", "get_certainty"]
+           *mutate.__all__]
 
 log = logging.getLogger(__name__)
 
