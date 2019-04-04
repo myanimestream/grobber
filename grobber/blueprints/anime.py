@@ -26,8 +26,8 @@ async def search() -> Response:
     return create_response(anime=results)
 
 
-@anime_blueprint.route("/quicksearch/")
-async def quick_search() -> Response:
+@anime_blueprint.route("/indexsearch/")
+async def index_search() -> Response:
     try:
         search_query = request.args.get("query")
     except Exception:

@@ -284,8 +284,10 @@ async def get_anime_group(uid: UID) -> Optional[AnimeGroup]:
         else:
             return None
 
-    medium_source_animes = index_scraper.source_animes_from_medium_group(medium_group)
-    await anime_group.add_animes(medium_source_animes)
+    if medium_group is not None:
+        medium_source_animes = index_scraper.source_animes_from_medium_group(medium_group)
+        await anime_group.add_animes(medium_source_animes)
+
     return anime_group
 
 

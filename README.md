@@ -32,7 +32,8 @@ a [MongoDB] database, a slightly modified version of [Scylla]
     while technically optional, it is strongly recommended to use an
     external chrome browser such as [Browserless]
 - `SENTRY_DSN`:
-    If you want some sweet error reports, there's a [Sentry] integration.
+    If you want some sweet error reports, there's a [Sentry](https://sentry.io/welcome/)
+    integration.
 
 [browserless]: https://www.browserless.io/ "Browserless website"
 [nginx]: https://www.nginx.com/ "NginX website"
