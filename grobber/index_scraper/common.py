@@ -12,6 +12,7 @@ from pymongo.results import BulkWriteResult
 
 from grobber.anime import SourceAnime
 from grobber.request import Request
+from grobber.utils import mut_map_filter_values
 from .medium import Medium, medium_to_document
 
 __all__ = ["SCRAPE_DELAY",
@@ -78,6 +79,9 @@ class IndexScraper(abc.ABC):
             doc = medium_to_document(medium)
             with suppress(KeyError):
                 del doc["_id"]
+
+            # make sure not to overwrite previous non-None fields!
+            mut_map_filter_values(None, doc)
 
             update = {"$set": doc}
             request = UpdateOne({"_id": medium.raw_uid}, update, upsert=True)
