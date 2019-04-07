@@ -61,13 +61,8 @@ async def before_request():
     API_REQUESTS.labels(request.method, request.endpoint).inc()
 
 
-@app.after_request
-async def after_request(response: Response) -> Response:
-    response.headers["Grobber-Version"] = __info__.__version__
-    return response
-
-
 @app.route("/dolos-info")
+@app.route("/grobber-info")
 async def get_dolos_info() -> Response:
     return create_response(id="grobber", version=__info__.__version__)
 
