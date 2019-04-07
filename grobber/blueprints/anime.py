@@ -66,7 +66,8 @@ async def index_search() -> Response:
             log.exception(f"Couldn't convert medium to dict (silenced): {search_item}")
             continue
 
-        data["episodes"] = data["episode_count"]
+        # in the spirit of compatibility make sure it's always a number
+        data["episodes"] = data["episode_count"] or 0
         data["media_id"] = search_item.item.medium_id
 
         media_result_data.append({
