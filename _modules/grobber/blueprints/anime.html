@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>grobber.blueprints.anime &#8212; Grobber 3.0.25 documentation</title>
+    <title>grobber.blueprints.anime &#8212; Grobber 3.0.26 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -99,7 +99,8 @@
             <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Couldn&#39;t convert medium to dict (silenced): </span><span class="si">{search_item}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">continue</span>
 
-        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;episodes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;episode_count&quot;</span><span class="p">]</span>
+        <span class="c1"># in the spirit of compatibility make sure it&#39;s always a number</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;episodes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;episode_count&quot;</span><span class="p">]</span> <span class="ow">or</span> <span class="mi">0</span>
         <span class="n">data</span><span class="p">[</span><span class="s2">&quot;media_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">search_item</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">medium_id</span>
 
         <span class="n">media_result_data</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
