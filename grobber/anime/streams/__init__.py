@@ -8,7 +8,7 @@ from ..models import Stream
 
 log = logging.getLogger(__name__)
 
-_STREAMS = ["generic", "mp4upload", "openload", "rapidvideo", "streamango", "vidstreaming"]
+_STREAMS = ["generic", "mp4upload", "openload", "rapidvideo", "streamango", "vidstreaming", "xstreamcdn"]
 STREAMS: List[Type[Stream]] = []
 STREAM_MAP: Dict[str, Type[Stream]] = {}
 

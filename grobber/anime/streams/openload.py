@@ -31,7 +31,7 @@ class Openload(Stream):
     ATTRS = ("player_data",)
     PRIORITY = 5
 
-    HOST = ["openload.co", "oload.tv"]
+    HOST = ["openload.co", "oload.tv", "oload.download"]
 
     @cached_property
     async def player_data(self) -> Dict[str, Any]:

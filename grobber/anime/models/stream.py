@@ -98,7 +98,8 @@ class Stream(Expiring, abc.ABC):
             return None
 
     @staticmethod
-    async def get_successful_links(sources: Union[Request, MutableSequence[Request]]) -> List[str]:
+    async def get_successful_links(sources: Union[Request, MutableSequence[Request]], *,
+                                   use_redirected_url: bool = False) -> List[str]:
         if isinstance(sources, Request):
             sources = [sources]
 
@@ -121,9 +122,14 @@ class Stream(Expiring, abc.ABC):
 
         requests = await Request.all(sources, predicate=source_check)
 
-        urls = []
+        urls: List[str] = []
         for req in requests:
-            urls.append(await req.url)
+            if use_redirected_url:
+                url = str(await req.redirected_url)
+            else:
+                url = await req.url
+
+            urls.append(url)
 
         log.debug(f"found {len(urls)} working sources")
         return urls

@@ -227,7 +227,8 @@ class SourceAnime(Anime, Expiring, abc.ABC):
 
     @classmethod
     @abc.abstractmethod
-    async def search(cls, query: str, *, dubbed: bool = False, language: Language = Language.ENGLISH) -> AsyncIterator["SearchResult"]:
+    async def search(cls, query: str, *,
+                     dubbed: bool = False, language: Language = Language.ENGLISH) -> AsyncIterator["SearchResult"]:
         ...
 
     def serialise_special(self, key: str, value: Any) -> BsonType:

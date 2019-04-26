@@ -116,6 +116,7 @@ class Request:
 
     def __init__(self, url: str, params: Any = None, headers: Any = None, *,
                  timeout: int = None, max_retries: int = 5, use_proxy: bool = False,
+                 get_method: str = "get", head_method: str = "head",
                  **request_kwargs) -> None:
         self._session = AIOSESSION
         self._formatter = DefaultUrlFormatter
@@ -124,6 +125,9 @@ class Request:
         self._raw_url = url
         self._params = params
         self._headers = headers
+
+        self._get_method = get_method
+        self._head_method = head_method
 
         self._timeout = timeout
         self._use_proxy = use_proxy or self._formatter.should_use_proxy(self._raw_url)
@@ -202,6 +206,11 @@ class Request:
         return url.human_repr()
 
     @cached_property
+    async def redirected_url(self) -> yarl.URL:
+        resp = await self.head_response
+        return resp.url
+
+    @cached_property
     async def yarl(self):
         return yarl.URL(await self.url)
 
@@ -211,7 +220,7 @@ class Request:
                                   message="Getting Response",
                                   data=dict(url=self._raw_url),
                                   level="info")
-        return await self.perform_request("get", timeout=self._timeout or 30)
+        return await self.perform_request(self._get_method, timeout=self._timeout or 30)
 
     @cached_property
     async def success(self) -> bool:
@@ -232,7 +241,7 @@ class Request:
         if hasattr(self, "_response"):
             return self._response
 
-        return await self.perform_request("head", timeout=self._timeout or 10)
+        return await self.perform_request(self._head_method, timeout=self._timeout or 10)
 
     @cached_property
     async def head_success(self) -> bool:
@@ -358,6 +367,10 @@ class Request:
                          ("Already using proxy, trying again" if self._use_proxy else "Trying again with proxy") +
                          f" try {self._retry_count}/{self._max_retries}")
 
+                if method == self._head_method:
+                    method = self._get_method
+                    log.info(f"{self} switched from get to head method!")
+
                 self._use_proxy = True
                 continue
 
@@ -437,7 +450,7 @@ class Request:
 
     @staticmethod
     async def all(requests: Iterable["Request"], *, timeout: float = None,
-                  predicate: Callable[["Request"], Awaitable[bool]] = None) -> ["Request"]:
+                  predicate: Callable[["Request"], Awaitable[bool]] = None) -> List["Request"]:
         """Get all requests that fulfill predicate
 
         :param requests: Iterable of Request instances
