@@ -1,3 +1,4 @@
+import re
 from typing import List, Optional
 
 from bs4 import BeautifulSoup
@@ -8,8 +9,11 @@ from . import register_stream
 from ..models import Stream
 
 
+# TODO it seems that one can change https://www.rapidvideo.com/e/5cbbd9876c528 to
+#  https://www.rapidvideo.com/p/5cbbd9876c528 (notice the p)
+
 class RapidVideo(Stream):
-    HOST = "rapidvideo.com"
+    HOST = re.compile(r"rapidvideo\.\w{2,3}")
 
     @cached_property
     async def bs(self) -> BeautifulSoup:

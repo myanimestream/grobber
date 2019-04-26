@@ -153,7 +153,11 @@ class SourceAnime(Anime, Expiring, abc.ABC):
 
     @cached_property
     async def episode_count(self) -> int:
-        eps = await self.get_episodes()
+        try:
+            eps = await self.get_episodes()
+        except Exception:
+            log.exception(f"{self} Couldn't get episodes")
+            return 0
 
         if isinstance(eps, dict):
             try:

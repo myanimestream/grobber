@@ -18,7 +18,6 @@ class UrlPool:
           urls (List[str]): List of the possible urls
           strip_slash (bool): Whether or not tailing slashes should be removed
           ttl (timedelta): Time until the current url expires
-
     """
 
     def __init__(self, name: str, urls: List[str], *, strip_slash: bool = True, ttl: int = 3600) -> None:
@@ -33,8 +32,20 @@ class UrlPool:
 
         self.__lock = None
 
+    def __repr__(self) -> str:
+        return f"UrlPool({self.name!r}, {self.urls!r}, strip_slash={self.strip_slash}, ttl={self.ttl})"
+
     def __str__(self) -> str:
-        return f"<Pool {self.name}: {self._url}>"
+        return self._id
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @name.setter
+    def name(self, value: str) -> None:
+        self._name = value
+        self._id = value.upper() + "_URL"
 
     @property
     def _lock(self) -> Lock:
@@ -74,7 +85,9 @@ class UrlPool:
 
     async def upload(self) -> None:
         """Upload the current url to the database."""
-        await locals.url_pool_collection.update_one(dict(_id=self.name), {"$set": dict(url=self._url, next_update=self._next_update)}, upsert=True)
+        await locals.url_pool_collection.update_one(dict(_id=self.name),
+                                                    {"$set": dict(url=self._url, next_update=self._next_update)},
+                                                    upsert=True)
 
     def prepare_url(self, url: str) -> str:
         """Prepare an url to be used as the current url.

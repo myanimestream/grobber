@@ -1,7 +1,7 @@
 # Uses ip lock, but good proof of concept
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 from pyppeteer.page import Page, PageError
 
@@ -31,13 +31,13 @@ class Openload(Stream):
     ATTRS = ("player_data",)
     PRIORITY = 5
 
-    HOST = "openload.co"
+    HOST = ["openload.co", "oload.tv"]
 
     @cached_property
     async def player_data(self) -> Dict[str, Any]:
         try:
-            page: Page
             async with self._req.page as page:
+                page = cast(Page, page)
                 await page.click("div#videooverlay")
                 data = await page.querySelectorEval("video#olvideo_html5_api", EXTRACT_DATA_SCRIPT)
 

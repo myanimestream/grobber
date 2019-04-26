@@ -301,6 +301,7 @@ async def search_anime() -> List[SearchResult]:
 
     log.info(f"found {len(results_pool)}/{num_results}")
     results = sorted(results_pool, key=attrgetter("certainty"), reverse=True)[:num_results]
+
     with suppress(AttributeError):
         await asyncio.gather(*(result.anime.preload_attrs(*SourceAnime.PRELOAD_ATTRS) for result in results))
 

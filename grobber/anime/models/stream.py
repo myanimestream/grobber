@@ -3,7 +3,7 @@ __all__ = ["Stream"]
 import abc
 import asyncio
 import logging
-from typing import Dict, List, MutableSequence, Optional, Union
+from typing import Dict, List, MutableSequence, Optional, Pattern, Union
 
 from grobber.decorators import cached_property
 from grobber.request import Request
@@ -41,7 +41,18 @@ class Stream(Expiring, abc.ABC):
         :param req: request to stream to check
         :return: true if this Stream may be able to extract something from the size, false otherwise
         """
-        return (await req.yarl).host.lstrip("www.") == cls.HOST
+        match = cls.HOST
+
+        if isinstance(match, Pattern):
+            url = await req.url
+            return bool(match.search(url))
+        else:
+            host = (await req.yarl).host.lstrip("www.")
+
+            if isinstance(match, str):
+                return match == host
+
+            return host in match
 
     @property
     def persist(self) -> bool:
@@ -121,7 +132,7 @@ class Stream(Expiring, abc.ABC):
         links, poster = await asyncio.gather(self.links, self.poster)
 
         return {"type": type(self).__qualname__,
-                "url": self._req._raw_url,
+                "url": self._req.raw_finalised_url,
                 "links": links,
                 "poster": poster,
                 "updated": self.last_update.isoformat()}

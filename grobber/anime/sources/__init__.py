@@ -14,7 +14,7 @@ from ..models import SearchResult, SourceAnime
 
 log = logging.getLogger(__name__)
 
-_SOURCES = ["gogoanime", "nineanime", "vidstreaming"]
+_SOURCES = ["animevibe", "gogoanime", "nineanime", "vidstreaming"]
 SOURCES: Dict[str, Type[SourceAnime]] = {}
 
 
@@ -126,7 +126,8 @@ async def get_animes(uids: Iterable[UID]) -> Dict[UID, SourceAnime]:
 
 
 async def get_animes_by_title(title: str, *, language=Language.ENGLISH, dubbed=False) -> AsyncIterator[SourceAnime]:
-    cursor = anime_collection.find({"title": title, f"language{SourceAnime._SPECIAL_MARKER}": language.value, "is_dub": dubbed})
+    cursor = anime_collection.find(
+        {"title": title, f"language{SourceAnime._SPECIAL_MARKER}": language.value, "is_dub": dubbed})
     async for doc in cursor:
         try:
             yield await build_anime_from_doc(doc["_id"], doc)
@@ -142,7 +143,8 @@ async def get_anime_by_title(title: str, *, language=Language.ENGLISH, dubbed=Fa
 
 async def search_anime(query: str, *, language=Language.ENGLISH, dubbed=False) -> AsyncIterator[SearchResult]:
     # noinspection PyTypeChecker
-    sources: List[AsyncIterator[SearchResult]] = [source.search(query, language=language, dubbed=dubbed) for source in SOURCES.values()]
+    sources: List[AsyncIterator[SearchResult]] = [source.search(query, language=language, dubbed=dubbed) for source in
+                                                  SOURCES.values()]
 
     def waiter(src):
         async def wrapped():

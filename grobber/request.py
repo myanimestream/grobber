@@ -3,12 +3,13 @@ import inspect
 import json
 import logging
 import os
-from typing import Any, Awaitable, Callable, Dict, Iterable, List, Optional, Tuple, Union, cast
+from typing import Any, Awaitable, Callable, Dict, Iterable, List, Optional, TYPE_CHECKING, Tuple, Union, cast
 
 import sentry_sdk
 import yarl
 from aiohttp import ClientResponse, ClientSession, TCPConnector
-from aiohttp.client_exceptions import ClientConnectionError, ClientError, ClientHttpProxyError, ClientProxyConnectionError
+from aiohttp.client_exceptions import ClientConnectionError, ClientError, ClientHttpProxyError, \
+    ClientProxyConnectionError
 from bs4 import BeautifulSoup
 from pyppeteer.browser import Browser
 from pyppeteer.page import Page
@@ -19,10 +20,14 @@ from .decorators import cached_contextmanager, cached_property
 from .telemetry import HTTP_REQUESTS
 from .utils import AsyncFormatter
 
+if TYPE_CHECKING:
+    from .url_pool import UrlPool
+
 log = logging.getLogger(__name__)
 
 DEFAULT_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+                  "Chrome/60.0.3112.113 Safari/537.36 "
 }
 
 
@@ -34,8 +39,14 @@ class UrlFormatter(AsyncFormatter):
         self._FIELDS = fields or {}
         self._PROXY_DOMAINS = proxy_domains or {}
 
-    def add_field(self, key: Any, value: Any) -> None:
+    def add_pool(self, pool: "UrlPool", *, use_proxy: bool = None) -> None:
+        self.add_field(str(pool), lambda: pool.url, use_proxy=use_proxy)
+
+    def add_field(self, key: Any, value: Any, *, use_proxy: bool = None) -> None:
         self._FIELDS[key] = value
+
+        if use_proxy is not None:
+            self.use_proxy(key, use_proxy)
 
     def use_proxy(self, key: str, use: bool = True):
         if key not in self._FIELDS:
@@ -376,7 +387,8 @@ class Request:
                 log.warning(f"{self} couldn't delete attr {attr} {e}")
 
     @staticmethod
-    async def try_req(req: "Request", *, predicate: Callable[["Request"], Awaitable[bool]] = None) -> Optional["Request"]:
+    async def try_req(req: "Request", *, predicate: Callable[["Request"], Awaitable[bool]] = None) -> Optional[
+        "Request"]:
         """Return request if it passes predicate, otherwise None
 
         :param req: Request to check
@@ -424,7 +436,8 @@ class Request:
         return None
 
     @staticmethod
-    async def all(requests: Iterable["Request"], *, timeout: float = None, predicate: Callable[["Request"], Awaitable[bool]] = None) -> ["Request"]:
+    async def all(requests: Iterable["Request"], *, timeout: float = None,
+                  predicate: Callable[["Request"], Awaitable[bool]] = None) -> ["Request"]:
         """Get all requests that fulfill predicate
 
         :param requests: Iterable of Request instances
