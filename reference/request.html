@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Request &#8212; Grobber 3.0.26 documentation</title>
+    <title>Request &#8212; Grobber 3.1.0 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -38,7 +38,7 @@
 </div>
 <span class="target" id="module-grobber.request"></span><dl class="class">
 <dt id="grobber.request.Request">
-<em class="property">class </em><code class="descname">Request</code><span class="sig-paren">(</span><em>url</em>, <em>params=None</em>, <em>headers=None</em>, <em>*</em>, <em>timeout=None</em>, <em>max_retries=5</em>, <em>use_proxy=False</em>, <em>**request_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/request.html#Request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.request.Request" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descname">Request</code><span class="sig-paren">(</span><em>url</em>, <em>params=None</em>, <em>headers=None</em>, <em>*</em>, <em>timeout=None</em>, <em>max_retries=5</em>, <em>use_proxy=False</em>, <em>get_method='get'</em>, <em>head_method='head'</em>, <em>**request_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/request.html#Request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.request.Request" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="attribute">
 <dt id="grobber.request.Request.RELOAD_ATTRS">
 <code class="descname">RELOAD_ATTRS</code><em class="property"> = ('response', 'head_response', 'success', 'head_success', 'text', 'json', 'bs', 'browser', 'page')</em><a class="headerlink" href="#grobber.request.Request.RELOAD_ATTRS" title="Permalink to this definition">¶</a></dt>
@@ -62,7 +62,7 @@
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p>[‘Request’]</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference internal" href="#grobber.request.Request" title="grobber.request.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a>]</p>
 </dd>
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>List of Requests that fulfilled predicate</p>
@@ -182,6 +182,16 @@
 <dd><dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.request.Request.redirected_url">
+<code class="descname">redirected_url</code><a class="headerlink" href="#grobber.request.Request.redirected_url" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">URL</span></code></p>
 </dd>
 </dl>
 </dd></dl>
@@ -307,7 +317,7 @@
 <em class="property">class </em><code class="descname">UrlFormatter</code><span class="sig-paren">(</span><em>fields=None</em>, <em>proxy_domains=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/request.html#UrlFormatter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.request.UrlFormatter" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="method">
 <dt id="grobber.request.UrlFormatter.add_field">
-<code class="descname">add_field</code><span class="sig-paren">(</span><em>key</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/request.html#UrlFormatter.add_field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.request.UrlFormatter.add_field" title="Permalink to this definition">¶</a></dt>
+<code class="descname">add_field</code><span class="sig-paren">(</span><em>key</em>, <em>value</em>, <em>*</em>, <em>use_proxy=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/request.html#UrlFormatter.add_field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.request.UrlFormatter.add_field" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
@@ -321,6 +331,16 @@
 <dd><dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="grobber.request.UrlFormatter.add_pool">
+<code class="descname">add_pool</code><span class="sig-paren">(</span><em>pool</em>, <em>*</em>, <em>use_proxy=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/grobber/request.html#UrlFormatter.add_pool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.request.UrlFormatter.add_pool" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.7)">None</a></p>
 </dd>
 </dl>
 </dd></dl>

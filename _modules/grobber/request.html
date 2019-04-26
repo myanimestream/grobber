@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>grobber.request &#8212; Grobber 3.0.26 documentation</title>
+    <title>grobber.request &#8212; Grobber 3.1.0 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -36,12 +36,13 @@
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Awaitable</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">cast</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Awaitable</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">cast</span>
 
 <span class="kn">import</span> <span class="nn">sentry_sdk</span>
 <span class="kn">import</span> <span class="nn">yarl</span>
 <span class="kn">from</span> <span class="nn">aiohttp</span> <span class="k">import</span> <span class="n">ClientResponse</span><span class="p">,</span> <span class="n">ClientSession</span><span class="p">,</span> <span class="n">TCPConnector</span>
-<span class="kn">from</span> <span class="nn">aiohttp.client_exceptions</span> <span class="k">import</span> <span class="n">ClientConnectionError</span><span class="p">,</span> <span class="n">ClientError</span><span class="p">,</span> <span class="n">ClientHttpProxyError</span><span class="p">,</span> <span class="n">ClientProxyConnectionError</span>
+<span class="kn">from</span> <span class="nn">aiohttp.client_exceptions</span> <span class="k">import</span> <span class="n">ClientConnectionError</span><span class="p">,</span> <span class="n">ClientError</span><span class="p">,</span> <span class="n">ClientHttpProxyError</span><span class="p">,</span> \
+    <span class="n">ClientProxyConnectionError</span>
 <span class="kn">from</span> <span class="nn">bs4</span> <span class="k">import</span> <span class="n">BeautifulSoup</span>
 <span class="kn">from</span> <span class="nn">pyppeteer.browser</span> <span class="k">import</span> <span class="n">Browser</span>
 <span class="kn">from</span> <span class="nn">pyppeteer.page</span> <span class="k">import</span> <span class="n">Page</span>
@@ -52,10 +53,14 @@
 <span class="kn">from</span> <span class="nn">.telemetry</span> <span class="k">import</span> <span class="n">HTTP_REQUESTS</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">AsyncFormatter</span>
 
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">.url_pool</span> <span class="k">import</span> <span class="n">UrlPool</span>
+
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="n">DEFAULT_HEADERS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;User-Agent&quot;</span><span class="p">:</span> <span class="s2">&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36&quot;</span>
+    <span class="s2">&quot;User-Agent&quot;</span><span class="p">:</span> <span class="s2">&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) &quot;</span>
+                  <span class="s2">&quot;Chrome/60.0.3112.113 Safari/537.36 &quot;</span>
 <span class="p">}</span>
 
 
@@ -67,8 +72,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_FIELDS</span> <span class="o">=</span> <span class="n">fields</span> <span class="ow">or</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_PROXY_DOMAINS</span> <span class="o">=</span> <span class="n">proxy_domains</span> <span class="ow">or</span> <span class="p">{}</span>
 
-<div class="viewcode-block" id="UrlFormatter.add_field"><a class="viewcode-back" href="../../reference/request.html#grobber.request.UrlFormatter.add_field">[docs]</a>    <span class="k">def</span> <span class="nf">add_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_FIELDS</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span></div>
+<div class="viewcode-block" id="UrlFormatter.add_pool"><a class="viewcode-back" href="../../reference/request.html#grobber.request.UrlFormatter.add_pool">[docs]</a>    <span class="k">def</span> <span class="nf">add_pool</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pool</span><span class="p">:</span> <span class="s2">&quot;UrlPool&quot;</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">use_proxy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pool</span><span class="p">),</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">pool</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="n">use_proxy</span><span class="o">=</span><span class="n">use_proxy</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="UrlFormatter.add_field"><a class="viewcode-back" href="../../reference/request.html#grobber.request.UrlFormatter.add_field">[docs]</a>    <span class="k">def</span> <span class="nf">add_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">use_proxy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_FIELDS</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+        <span class="k">if</span> <span class="n">use_proxy</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">use_proxy</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">use_proxy</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="UrlFormatter.use_proxy"><a class="viewcode-back" href="../../reference/request.html#grobber.request.UrlFormatter.use_proxy">[docs]</a>    <span class="k">def</span> <span class="nf">use_proxy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">use</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_FIELDS</span><span class="p">:</span>
@@ -138,6 +149,7 @@
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">headers</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
                  <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">max_retries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">use_proxy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="n">get_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;get&quot;</span><span class="p">,</span> <span class="n">head_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;head&quot;</span><span class="p">,</span>
                  <span class="o">**</span><span class="n">request_kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_session</span> <span class="o">=</span> <span class="n">AIOSESSION</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_formatter</span> <span class="o">=</span> <span class="n">DefaultUrlFormatter</span>
@@ -146,6 +158,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_raw_url</span> <span class="o">=</span> <span class="n">url</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="n">params</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_headers</span> <span class="o">=</span> <span class="n">headers</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_get_method</span> <span class="o">=</span> <span class="n">get_method</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_head_method</span> <span class="o">=</span> <span class="n">head_method</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_timeout</span> <span class="o">=</span> <span class="n">timeout</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_use_proxy</span> <span class="o">=</span> <span class="n">use_proxy</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formatter</span><span class="o">.</span><span class="n">should_use_proxy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_raw_url</span><span class="p">)</span>
@@ -224,6 +239,11 @@
         <span class="k">return</span> <span class="n">url</span><span class="o">.</span><span class="n">human_repr</span><span class="p">()</span>
 
     <span class="nd">@cached_property</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">redirected_url</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">yarl</span><span class="o">.</span><span class="n">URL</span><span class="p">:</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">head_response</span>
+        <span class="k">return</span> <span class="n">resp</span><span class="o">.</span><span class="n">url</span>
+
+    <span class="nd">@cached_property</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">yarl</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">yarl</span><span class="o">.</span><span class="n">URL</span><span class="p">(</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
 
@@ -233,7 +253,7 @@
                                   <span class="n">message</span><span class="o">=</span><span class="s2">&quot;Getting Response&quot;</span><span class="p">,</span>
                                   <span class="n">data</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_raw_url</span><span class="p">),</span>
                                   <span class="n">level</span><span class="o">=</span><span class="s2">&quot;info&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">perform_request</span><span class="p">(</span><span class="s2">&quot;get&quot;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_timeout</span> <span class="ow">or</span> <span class="mi">30</span><span class="p">)</span>
+        <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">perform_request</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_method</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_timeout</span> <span class="ow">or</span> <span class="mi">30</span><span class="p">)</span>
 
     <span class="nd">@cached_property</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">success</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -254,7 +274,7 @@
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_response&quot;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_response</span>
 
-        <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">perform_request</span><span class="p">(</span><span class="s2">&quot;head&quot;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_timeout</span> <span class="ow">or</span> <span class="mi">10</span><span class="p">)</span>
+        <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">perform_request</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_head_method</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_timeout</span> <span class="ow">or</span> <span class="mi">10</span><span class="p">)</span>
 
     <span class="nd">@cached_property</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">head_success</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -380,6 +400,10 @@
                          <span class="p">(</span><span class="s2">&quot;Already using proxy, trying again&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_proxy</span> <span class="k">else</span> <span class="s2">&quot;Trying again with proxy&quot;</span><span class="p">)</span> <span class="o">+</span>
                          <span class="n">f</span><span class="s2">&quot; try </span><span class="si">{self._retry_count}</span><span class="s2">/</span><span class="si">{self._max_retries}</span><span class="s2">&quot;</span><span class="p">)</span>
 
+                <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_head_method</span><span class="p">:</span>
+                    <span class="n">method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_method</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{self}</span><span class="s2"> switched from get to head method!&quot;</span><span class="p">)</span>
+
                 <span class="bp">self</span><span class="o">.</span><span class="n">_use_proxy</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="k">continue</span>
 
@@ -409,7 +433,8 @@
                 <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{self}</span><span class="s2"> couldn&#39;t delete attr </span><span class="si">{attr}</span><span class="s2"> </span><span class="si">{e}</span><span class="s2">&quot;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Request.try_req"><a class="viewcode-back" href="../../reference/request.html#grobber.request.Request.try_req">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">try_req</span><span class="p">(</span><span class="n">req</span><span class="p">:</span> <span class="s2">&quot;Request&quot;</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">predicate</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="s2">&quot;Request&quot;</span><span class="p">],</span> <span class="n">Awaitable</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Request&quot;</span><span class="p">]:</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">try_req</span><span class="p">(</span><span class="n">req</span><span class="p">:</span> <span class="s2">&quot;Request&quot;</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">predicate</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="s2">&quot;Request&quot;</span><span class="p">],</span> <span class="n">Awaitable</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span>
+        <span class="s2">&quot;Request&quot;</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Return request if it passes predicate, otherwise None</span>
 
 <span class="sd">        :param req: Request to check</span>
@@ -457,7 +482,8 @@
         <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="Request.all"><a class="viewcode-back" href="../../reference/request.html#grobber.request.Request.all">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">all</span><span class="p">(</span><span class="n">requests</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="s2">&quot;Request&quot;</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">predicate</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="s2">&quot;Request&quot;</span><span class="p">],</span> <span class="n">Awaitable</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="s2">&quot;Request&quot;</span><span class="p">]:</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">all</span><span class="p">(</span><span class="n">requests</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="s2">&quot;Request&quot;</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                  <span class="n">predicate</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="s2">&quot;Request&quot;</span><span class="p">],</span> <span class="n">Awaitable</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Request&quot;</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Get all requests that fulfill predicate</span>
 
 <span class="sd">        :param requests: Iterable of Request instances</span>

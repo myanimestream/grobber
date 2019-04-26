@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>grobber.anime.models.stream &#8212; Grobber 3.0.26 documentation</title>
+    <title>grobber.anime.models.stream &#8212; Grobber 3.1.0 documentation</title>
     <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
@@ -36,7 +36,7 @@
 <span class="kn">import</span> <span class="nn">abc</span>
 <span class="kn">import</span> <span class="nn">asyncio</span>
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">MutableSequence</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">MutableSequence</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Pattern</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">from</span> <span class="nn">grobber.decorators</span> <span class="k">import</span> <span class="n">cached_property</span>
 <span class="kn">from</span> <span class="nn">grobber.request</span> <span class="k">import</span> <span class="n">Request</span>
@@ -74,7 +74,18 @@
 <span class="sd">        :param req: request to stream to check</span>
 <span class="sd">        :return: true if this Stream may be able to extract something from the size, false otherwise</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">(</span><span class="k">await</span> <span class="n">req</span><span class="o">.</span><span class="n">yarl</span><span class="p">)</span><span class="o">.</span><span class="n">host</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;www.&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="bp">cls</span><span class="o">.</span><span class="n">HOST</span></div>
+        <span class="n">match</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">HOST</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">match</span><span class="p">,</span> <span class="n">Pattern</span><span class="p">):</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="k">await</span> <span class="n">req</span><span class="o">.</span><span class="n">url</span>
+            <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">url</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">host</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">req</span><span class="o">.</span><span class="n">yarl</span><span class="p">)</span><span class="o">.</span><span class="n">host</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;www.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">match</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">match</span> <span class="o">==</span> <span class="n">host</span>
+
+            <span class="k">return</span> <span class="n">host</span> <span class="ow">in</span> <span class="n">match</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">persist</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -120,7 +131,8 @@
             <span class="k">return</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="Stream.get_successful_links"><a class="viewcode-back" href="../../../../reference/anime/models.html#grobber.anime.models.Stream.get_successful_links">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">get_successful_links</span><span class="p">(</span><span class="n">sources</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Request</span><span class="p">,</span> <span class="n">MutableSequence</span><span class="p">[</span><span class="n">Request</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">get_successful_links</span><span class="p">(</span><span class="n">sources</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Request</span><span class="p">,</span> <span class="n">MutableSequence</span><span class="p">[</span><span class="n">Request</span><span class="p">]],</span> <span class="o">*</span><span class="p">,</span>
+                                   <span class="n">use_redirected_url</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="n">Request</span><span class="p">):</span>
             <span class="n">sources</span> <span class="o">=</span> <span class="p">[</span><span class="n">sources</span><span class="p">]</span>
 
@@ -143,9 +155,14 @@
 
         <span class="n">requests</span> <span class="o">=</span> <span class="k">await</span> <span class="n">Request</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="n">predicate</span><span class="o">=</span><span class="n">source_check</span><span class="p">)</span>
 
-        <span class="n">urls</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">urls</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">req</span> <span class="ow">in</span> <span class="n">requests</span><span class="p">:</span>
-            <span class="n">urls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="k">await</span> <span class="n">req</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">use_redirected_url</span><span class="p">:</span>
+                <span class="n">url</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="k">await</span> <span class="n">req</span><span class="o">.</span><span class="n">redirected_url</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">url</span> <span class="o">=</span> <span class="k">await</span> <span class="n">req</span><span class="o">.</span><span class="n">url</span>
+
+            <span class="n">urls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
 
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;found {len(urls)} working sources&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">urls</span></div>
@@ -154,7 +171,7 @@
         <span class="n">links</span><span class="p">,</span> <span class="n">poster</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">links</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">poster</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__qualname__</span><span class="p">,</span>
-                <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_req</span><span class="o">.</span><span class="n">_raw_url</span><span class="p">,</span>
+                <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_req</span><span class="o">.</span><span class="n">raw_finalised_url</span><span class="p">,</span>
                 <span class="s2">&quot;links&quot;</span><span class="p">:</span> <span class="n">links</span><span class="p">,</span>
                 <span class="s2">&quot;poster&quot;</span><span class="p">:</span> <span class="n">poster</span><span class="p">,</span>
                 <span class="s2">&quot;updated&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_update</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()}</span></div></div>
