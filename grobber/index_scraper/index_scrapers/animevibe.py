@@ -27,6 +27,7 @@ class AnimeVibeFullBase(IndexScraper, ABC):
             medium = create_medium(self.source_cls, MediumType.ANIME, info.title, info.url,
                                    language=Language.ENGLISH,
                                    dubbed=info.dubbed,
+                                   episode_count=info.episode_count,
                                    thumbnail=info.thumbnail)
             media.add(medium)
 
