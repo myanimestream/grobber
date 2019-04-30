@@ -36,7 +36,11 @@ def extract_player_data(text: str) -> dict:
 
     variables = _extract_variables(text)
 
-    return parse_js_json(match.group(1), variables=variables)
+    try:
+        return parse_js_json(match.group(1), variables=variables)
+    except Exception:
+        log.exception(f"Couldn't parse js json from:\n{text!r}")
+        return {}
 
 
 class Vidstreaming(Stream):

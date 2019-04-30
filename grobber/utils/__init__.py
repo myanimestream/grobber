@@ -3,24 +3,27 @@ import asyncio
 import json
 import logging
 import re
-from difflib import SequenceMatcher
 from string import Formatter
 from typing import Any, Awaitable, Callable, Dict, List, Mapping, Match, Optional, Tuple, TypeVar, Union
 
 from quart import url_for
 
-from . import aitertools, mutate
+from . import aitertools, mongo, mutate, text
 from .aitertools import *
 from .async_string_formatter import AsyncFormatter
+from .mongo import *
 from .mutate import *
 from .response import *
+from .text import *
 
 __all__ = ["AsyncFormatter",
            "create_response", "error_response",
            "add_http_scheme", "parse_js_json", "external_url_for", "format_available", "do_later",
-           "fuzzy_bool", "get_certainty",
+           "fuzzy_bool",
            *aitertools.__all__,
-           *mutate.__all__]
+           *mongo.__all__,
+           *mutate.__all__,
+           *text.__all__]
 
 log = logging.getLogger(__name__)
 
@@ -48,10 +51,6 @@ def fuzzy_bool(s: Optional[str], *, default: bool = False) -> bool:
     return False
 
 
-def get_certainty(a: str, b: str) -> float:
-    return round(SequenceMatcher(a=a, b=b).ratio(), 2)
-
-
 def perform_safe(func: Callable, *args, **kwargs) -> Tuple[Optional[Any], Optional[Exception]]:
     try:
         res = func(*args, **kwargs)
@@ -62,7 +61,7 @@ def perform_safe(func: Callable, *args, **kwargs) -> Tuple[Optional[Any], Option
 
 
 RE_JSON_EXPANDER = re.compile(r"([`'])?([a-z0-9A-Z_]+)([`'])?\s*:(?=\s*[\[\d`'\"{])", re.DOTALL)
-RE_JSON_REMOVE_TRAILING_COMMA = re.compile(r"([\]}])\s*,(?=\s*[\]}])")
+RE_JSON_REMOVE_TRAILING_COMMA = re.compile(r"([\]}\"])\s*,(?=\s*[\]}])")
 
 RE_JSON_VARIABLE_DETECT = re.compile(r"\"(?P<key>[^\"]+?)\"\s*:\s*(?P<value>[^`'\"][a-zA-Z]+)\b,?")
 

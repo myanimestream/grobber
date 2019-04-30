@@ -9,7 +9,7 @@ from grobber import locals, query
 from grobber.exceptions import InvalidRequest
 from grobber.index_scraper import medium_to_dict, search_media
 from grobber.uid import MediumType, UID
-from grobber.utils import create_response, external_url_for
+from grobber.utils import create_response, external_url_for, full_normalise_text_score
 
 request = cast(Request, request)
 
@@ -72,7 +72,7 @@ async def index_search() -> Response:
 
         media_result_data.append({
             "anime": data,
-            "certainty": search_item.score
+            "certainty": full_normalise_text_score(search_query, search_item.item.title, search_item.score)
         })
 
     return create_response(anime=media_result_data)
