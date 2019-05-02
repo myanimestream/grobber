@@ -10,7 +10,7 @@ from quart import Request, request
 
 from . import index_scraper, languages
 from .anime import Anime, AnimeNotFound, Episode, SearchResult, SourceAnime, SourceNotFound, Stream, sources
-from .anime.group import get_anime_group, get_anime_group_by_title, group_animes
+from .anime.group import AnimeGroup, get_anime_group, get_anime_group_by_title, group_animes
 from .exceptions import InvalidRequest, UIDUnknown
 from .languages import Language
 from .locals import source_index_collection
@@ -246,7 +246,8 @@ async def _search_anime(query: str, filters: SearchFilter, num_results: int) -> 
 
     # if we didn't get enough, use the actual search
     if len(results_pool) < num_results:
-        # look at a sensible amount of search results (at least 1.5 times the amount of sources up to 5 and then just use the requested amount)
+        # look at a sensible amount of search results (at least 1.5 times the amount of sources up
+        # to 5 and then just use the requested amount)
         consider_results = max(num_results, min(int(len(sources.SOURCES) * 1.5), 5))
 
         # use a separate pool for this so we can manipulate them later
@@ -279,6 +280,20 @@ async def _search_anime(query: str, filters: SearchFilter, num_results: int) -> 
     return results_pool
 
 
+def search_result_score(result: SearchResult) -> Any:
+    anime = result.anime
+
+    title = str(getattr(anime, "_title", ""))
+    episode_count = int(getattr(anime, "_episode_count", 0))
+
+    if isinstance(anime, AnimeGroup):
+        source_count = anime.source_count
+    else:
+        source_count = 1
+
+    return result.certainty, title, episode_count, source_count
+
+
 @time(ANIME_SEARCH_TIME)
 async def search_anime() -> List[SearchResult]:
     query = AnimeQuery.build()
@@ -306,7 +321,7 @@ async def search_anime() -> List[SearchResult]:
         await asyncio.gather(*(result.anime.preload_attrs(*SourceAnime.PRELOAD_ATTRS) for result in results))
 
     # sort by certainty, title, episode count
-    results.sort(key=lambda sr: (sr.certainty, getattr(sr.anime, "_title", ""), getattr(sr.anime, "_episode_count", 0)), reverse=True)
+    results.sort(key=search_result_score, reverse=True)
 
     return results
 

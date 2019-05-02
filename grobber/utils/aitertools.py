@@ -1,9 +1,16 @@
-__all__ = ["AIterable", "AFunction", "aiter", "anext", "alist", "maybe_await", "amap", "afilter", "get_first"]
+import logging
+
+__all__ = ["AIterable", "AFunction",
+           "aiter", "as_completed", "anext", "alist",
+           "maybe_await", "amap", "afilter",
+           "get_first"]
 
 import asyncio
 import inspect
-from typing import Any, AsyncIterable, AsyncIterator, Awaitable, Callable, Container, Iterable, List, Optional, Set, Tuple, Type, TypeVar, Union, \
-    overload
+from typing import Any, AsyncIterable, AsyncIterator, Awaitable, Callable, Container, Iterable, List, Optional, \
+    Sequence, Set, Tuple, Type, TypeVar, Union, cast, overload
+
+log = logging.getLogger(__name__)
 
 _DEFAULT = object()
 
@@ -28,6 +35,15 @@ def aiter(iterable: AIterable[T]) -> AsyncIterator[T]:
         return gen()
     else:
         raise TypeError(f"Type {type(iterable)} is not aiterable.")
+
+
+async def as_completed(iterable: Iterable[Awaitable[T]]) -> AsyncIterator[T]:
+    if not isinstance(iterable, Sequence):
+        iterable = set(iterable)
+
+    for fut in asyncio.as_completed(iterable):
+        fut = cast(asyncio.Future, fut)
+        yield await fut
 
 
 async def anext(iterable: AIterable[T], default: Any = _DEFAULT) -> T:
@@ -88,21 +104,24 @@ async def afilter(func: Optional[AFunction], iterable: AIterable[T]) -> AsyncIte
 
 async def get_first(coros: Iterable[Awaitable[T]],
                     predicate: Callable[[T], Union[bool, Awaitable[bool]]] = bool, *,
+                    reject_exceptions: bool = True,
                     cancel_running: bool = True) -> Optional[T]:
-    """Return the result of the first coroutine from coros that finishes with a result that passes predicate.
-
-    :param coros: coroutines to wait for
-    :param predicate: predicate to check for a positive result (defaults to a truthy check)
-    :param cancel_running:  Whether or not to cancel coroutines that are still running
-    :return: first result or None
-    """
     while coros:
         done, coros = await asyncio.wait(list(coros), return_when=asyncio.FIRST_COMPLETED)
         if done:
-            result = next(iter(done)).result()
-            res = predicate(result)
-            if inspect.isawaitable(res):
-                res = await res
+            try:
+                result = next(iter(done)).result()
+            except Exception as e:
+                if reject_exceptions:
+                    log.info(f"rejecting exception {e} from {coros} in {done}")
+                    result = None
+                    res = False
+                else:
+                    raise
+            else:
+                res = predicate(result)
+                if inspect.isawaitable(res):
+                    res = await res
 
             if not res:
                 continue

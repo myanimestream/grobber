@@ -138,11 +138,11 @@ def format_available(text: str, *args, **kwargs) -> str:
     return ModestFormatter.format(text, *args, **kwargs)
 
 
-def do_later(target: Awaitable) -> None:
+def do_later(target: Awaitable, log_level: int = logging.WARN) -> None:
     async def safe_run(aw: Awaitable) -> None:
         try:
             await aw
         except Exception:
-            log.exception(f"Something went wrong while awaiting {target}")
+            log.log(log_level, f"Something went wrong while awaiting {target}")
 
     asyncio.ensure_future(safe_run(target))

@@ -122,6 +122,10 @@ class AnimeGroup(HasAnimesMixin, Anime):
         return f"Group {super().__repr__()} ({len(self.uids)})"
 
     @property
+    def source_count(self) -> int:
+        return len(self.uids)
+
+    @property
     async def title(self) -> str:
         return self._title
 

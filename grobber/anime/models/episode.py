@@ -1,5 +1,3 @@
-__all__ = ["Episode", "SourceEpisode"]
-
 import abc
 import asyncio
 import logging
@@ -10,9 +8,11 @@ from typing import Any, Dict, List, Optional, TypeVar
 from grobber.decorators import cached_property
 from grobber.request import Request
 from grobber.stateful import BsonType, Expiring
-from grobber.utils import anext, get_first
+from grobber.utils import anext, as_completed, get_first
 from .stream import Stream
 from ..exceptions import StreamNotFound
+
+__all__ = ["Episode", "SourceEpisode"]
 
 log = logging.getLogger(__name__)
 
@@ -40,9 +40,8 @@ class Episode(abc.ABC):
     async def sources(self) -> List[str]:
         sources = []
         streams = await self.streams
-        stream_links = await asyncio.gather(*(stream.links for stream in streams))
 
-        for links in stream_links:
+        async for links in as_completed(stream.links for stream in streams):
             sources.extend(links)
 
         return sources
@@ -115,7 +114,8 @@ class SourceEpisode(Episode, Expiring, abc.ABC):
     def serialise_special(self, key: str, value: Any) -> BsonType:
         if key == "streams":
             # if there are no links/poster in a stream and it has already been "processed", get rid of it
-            return [stream.state for stream in value if stream.persist or getattr(stream, "_links", True) or getattr(stream, "_poster", True)]
+            return [stream.state for stream in value if
+                    stream.persist or getattr(stream, "_links", True) or getattr(stream, "_poster", True)]
         elif key == "stream":
             return value.state
 

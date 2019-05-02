@@ -8,7 +8,8 @@ from grobber.anime.sources.nineanime import BASE_URL, NineAnime, extract_episode
 from grobber.languages import Language
 from grobber.request import Request
 from grobber.uid import MediumType
-from .. import IndexScraper, IndexScraperCategory, MaxPageIndexIndexScraper, Medium, UpdateUntilLastStateIndexScraper, create_medium, \
+from .. import IndexScraper, IndexScraperCategory, MaxPageIndexIndexScraper, Medium, UpdateUntilLastStateIndexScraper, \
+    create_medium, \
     get_next_page_index_selector_impl, index_scraper
 
 log = logging.getLogger(__name__)
@@ -73,7 +74,8 @@ class NineAnimeFullIndexScraper(IndexScraper):
         return media
 
     async def get_next_page_index(self, req: Request, current_page_index: int) -> Optional[int]:
-        return await get_next_page_index_selector_impl(self, req, current_page_index, ".paging-wrapper .pull-right:not(.disabled)")
+        return await get_next_page_index_selector_impl(self, req, current_page_index,
+                                                       ".paging-wrapper .pull-right:not(.disabled)")
 
 
 @index_scraper(NineAnime, IndexScraperCategory.NEW)
@@ -137,4 +139,5 @@ class NineAnimeNewIndexScraper(UpdateUntilLastStateIndexScraper, MaxPageIndexInd
         return media
 
     async def get_next_page_index(self, req: Request, current_page_index: int) -> Optional[int]:
-        return await get_next_page_index_selector_impl(self, req, current_page_index, ".paging-wrapper .pull-right:not(.disabled)")
+        return await get_next_page_index_selector_impl(self, req, current_page_index,
+                                                       ".paging-wrapper .pull-right:not(.disabled)")
