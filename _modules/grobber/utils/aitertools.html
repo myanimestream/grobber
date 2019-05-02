@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>grobber.utils.aitertools &#8212; Grobber 3.1.0 documentation</title>
+    <title>grobber.utils.aitertools &#8212; Grobber 3.1.1 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -31,12 +31,19 @@
           <div class="body" role="main">
             
   <h1>Source code for grobber.utils.aitertools</h1><div class="highlight"><pre>
-<span></span><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;AIterable&quot;</span><span class="p">,</span> <span class="s2">&quot;AFunction&quot;</span><span class="p">,</span> <span class="s2">&quot;aiter&quot;</span><span class="p">,</span> <span class="s2">&quot;anext&quot;</span><span class="p">,</span> <span class="s2">&quot;alist&quot;</span><span class="p">,</span> <span class="s2">&quot;maybe_await&quot;</span><span class="p">,</span> <span class="s2">&quot;amap&quot;</span><span class="p">,</span> <span class="s2">&quot;afilter&quot;</span><span class="p">,</span> <span class="s2">&quot;get_first&quot;</span><span class="p">]</span>
+<span></span><span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;AIterable&quot;</span><span class="p">,</span> <span class="s2">&quot;AFunction&quot;</span><span class="p">,</span>
+           <span class="s2">&quot;aiter&quot;</span><span class="p">,</span> <span class="s2">&quot;as_completed&quot;</span><span class="p">,</span> <span class="s2">&quot;anext&quot;</span><span class="p">,</span> <span class="s2">&quot;alist&quot;</span><span class="p">,</span>
+           <span class="s2">&quot;maybe_await&quot;</span><span class="p">,</span> <span class="s2">&quot;amap&quot;</span><span class="p">,</span> <span class="s2">&quot;afilter&quot;</span><span class="p">,</span>
+           <span class="s2">&quot;get_first&quot;</span><span class="p">]</span>
 
 <span class="kn">import</span> <span class="nn">asyncio</span>
 <span class="kn">import</span> <span class="nn">inspect</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">AsyncIterable</span><span class="p">,</span> <span class="n">AsyncIterator</span><span class="p">,</span> <span class="n">Awaitable</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Container</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> \
-    <span class="n">overload</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">AsyncIterable</span><span class="p">,</span> <span class="n">AsyncIterator</span><span class="p">,</span> <span class="n">Awaitable</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Container</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> \
+    <span class="n">Sequence</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">cast</span><span class="p">,</span> <span class="n">overload</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="n">_DEFAULT</span> <span class="o">=</span> <span class="nb">object</span><span class="p">()</span>
 
@@ -61,6 +68,15 @@
         <span class="k">return</span> <span class="n">gen</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Type {type(iterable)} is not aiterable.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="as_completed"><a class="viewcode-back" href="../../../reference/utils.html#grobber.utils.as_completed">[docs]</a><span class="k">async</span> <span class="k">def</span> <span class="nf">as_completed</span><span class="p">(</span><span class="n">iterable</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Awaitable</span><span class="p">[</span><span class="n">T</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">AsyncIterator</span><span class="p">[</span><span class="n">T</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">iterable</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">):</span>
+        <span class="n">iterable</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">iterable</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">fut</span> <span class="ow">in</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">as_completed</span><span class="p">(</span><span class="n">iterable</span><span class="p">):</span>
+        <span class="n">fut</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">,</span> <span class="n">fut</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="k">await</span> <span class="n">fut</span></div>
 
 
 <div class="viewcode-block" id="anext"><a class="viewcode-back" href="../../../reference/utils.html#grobber.utils.anext">[docs]</a><span class="k">async</span> <span class="k">def</span> <span class="nf">anext</span><span class="p">(</span><span class="n">iterable</span><span class="p">:</span> <span class="n">AIterable</span><span class="p">[</span><span class="n">T</span><span class="p">],</span> <span class="n">default</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">_DEFAULT</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
@@ -121,21 +137,24 @@
 
 <div class="viewcode-block" id="get_first"><a class="viewcode-back" href="../../../reference/utils.html#grobber.utils.get_first">[docs]</a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_first</span><span class="p">(</span><span class="n">coros</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Awaitable</span><span class="p">[</span><span class="n">T</span><span class="p">]],</span>
                     <span class="n">predicate</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">T</span><span class="p">],</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Awaitable</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]]</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
+                    <span class="n">reject_exceptions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
                     <span class="n">cancel_running</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">T</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;Return the result of the first coroutine from coros that finishes with a result that passes predicate.</span>
-
-<span class="sd">    :param coros: coroutines to wait for</span>
-<span class="sd">    :param predicate: predicate to check for a positive result (defaults to a truthy check)</span>
-<span class="sd">    :param cancel_running:  Whether or not to cancel coroutines that are still running</span>
-<span class="sd">    :return: first result or None</span>
-<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">while</span> <span class="n">coros</span><span class="p">:</span>
         <span class="n">done</span><span class="p">,</span> <span class="n">coros</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">coros</span><span class="p">),</span> <span class="n">return_when</span><span class="o">=</span><span class="n">asyncio</span><span class="o">.</span><span class="n">FIRST_COMPLETED</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">done</span><span class="p">:</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">done</span><span class="p">))</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
-            <span class="n">res</span> <span class="o">=</span> <span class="n">predicate</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isawaitable</span><span class="p">(</span><span class="n">res</span><span class="p">):</span>
-                <span class="n">res</span> <span class="o">=</span> <span class="k">await</span> <span class="n">res</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">done</span><span class="p">))</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">reject_exceptions</span><span class="p">:</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;rejecting exception </span><span class="si">{e}</span><span class="s2"> from </span><span class="si">{coros}</span><span class="s2"> in </span><span class="si">{done}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="n">res</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">res</span> <span class="o">=</span> <span class="n">predicate</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isawaitable</span><span class="p">(</span><span class="n">res</span><span class="p">):</span>
+                    <span class="n">res</span> <span class="o">=</span> <span class="k">await</span> <span class="n">res</span>
 
             <span class="k">if</span> <span class="ow">not</span> <span class="n">res</span><span class="p">:</span>
                 <span class="k">continue</span>

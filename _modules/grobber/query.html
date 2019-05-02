@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>grobber.query &#8212; Grobber 3.1.0 documentation</title>
+    <title>grobber.query &#8212; Grobber 3.1.1 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -43,7 +43,7 @@
 
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">index_scraper</span><span class="p">,</span> <span class="n">languages</span>
 <span class="kn">from</span> <span class="nn">.anime</span> <span class="k">import</span> <span class="n">Anime</span><span class="p">,</span> <span class="n">AnimeNotFound</span><span class="p">,</span> <span class="n">Episode</span><span class="p">,</span> <span class="n">SearchResult</span><span class="p">,</span> <span class="n">SourceAnime</span><span class="p">,</span> <span class="n">SourceNotFound</span><span class="p">,</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">sources</span>
-<span class="kn">from</span> <span class="nn">.anime.group</span> <span class="k">import</span> <span class="n">get_anime_group</span><span class="p">,</span> <span class="n">get_anime_group_by_title</span><span class="p">,</span> <span class="n">group_animes</span>
+<span class="kn">from</span> <span class="nn">.anime.group</span> <span class="k">import</span> <span class="n">AnimeGroup</span><span class="p">,</span> <span class="n">get_anime_group</span><span class="p">,</span> <span class="n">get_anime_group_by_title</span><span class="p">,</span> <span class="n">group_animes</span>
 <span class="kn">from</span> <span class="nn">.exceptions</span> <span class="k">import</span> <span class="n">InvalidRequest</span><span class="p">,</span> <span class="n">UIDUnknown</span>
 <span class="kn">from</span> <span class="nn">.languages</span> <span class="k">import</span> <span class="n">Language</span>
 <span class="kn">from</span> <span class="nn">.locals</span> <span class="k">import</span> <span class="n">source_index_collection</span>
@@ -279,7 +279,8 @@
 
     <span class="c1"># if we didn&#39;t get enough, use the actual search</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">results_pool</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">num_results</span><span class="p">:</span>
-        <span class="c1"># look at a sensible amount of search results (at least 1.5 times the amount of sources up to 5 and then just use the requested amount)</span>
+        <span class="c1"># look at a sensible amount of search results (at least 1.5 times the amount of sources up</span>
+        <span class="c1"># to 5 and then just use the requested amount)</span>
         <span class="n">consider_results</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">num_results</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sources</span><span class="o">.</span><span class="n">SOURCES</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1.5</span><span class="p">),</span> <span class="mi">5</span><span class="p">))</span>
 
         <span class="c1"># use a separate pool for this so we can manipulate them later</span>
@@ -312,6 +313,20 @@
     <span class="k">return</span> <span class="n">results_pool</span>
 
 
+<div class="viewcode-block" id="search_result_score"><a class="viewcode-back" href="../../reference/query.html#grobber.query.search_result_score">[docs]</a><span class="k">def</span> <span class="nf">search_result_score</span><span class="p">(</span><span class="n">result</span><span class="p">:</span> <span class="n">SearchResult</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="n">anime</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">anime</span>
+
+    <span class="n">title</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">anime</span><span class="p">,</span> <span class="s2">&quot;_title&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+    <span class="n">episode_count</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">anime</span><span class="p">,</span> <span class="s2">&quot;_episode_count&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">anime</span><span class="p">,</span> <span class="n">AnimeGroup</span><span class="p">):</span>
+        <span class="n">source_count</span> <span class="o">=</span> <span class="n">anime</span><span class="o">.</span><span class="n">source_count</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">source_count</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">certainty</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">episode_count</span><span class="p">,</span> <span class="n">source_count</span></div>
+
+
 <div class="viewcode-block" id="search_anime"><a class="viewcode-back" href="../../reference/query.html#grobber.query.search_anime">[docs]</a><span class="nd">@time</span><span class="p">(</span><span class="n">ANIME_SEARCH_TIME</span><span class="p">)</span>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">search_anime</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">SearchResult</span><span class="p">]:</span>
     <span class="n">query</span> <span class="o">=</span> <span class="n">AnimeQuery</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
@@ -339,7 +354,7 @@
         <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">anime</span><span class="o">.</span><span class="n">preload_attrs</span><span class="p">(</span><span class="o">*</span><span class="n">SourceAnime</span><span class="o">.</span><span class="n">PRELOAD_ATTRS</span><span class="p">)</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">))</span>
 
     <span class="c1"># sort by certainty, title, episode count</span>
-    <span class="n">results</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">sr</span><span class="p">:</span> <span class="p">(</span><span class="n">sr</span><span class="o">.</span><span class="n">certainty</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">sr</span><span class="o">.</span><span class="n">anime</span><span class="p">,</span> <span class="s2">&quot;_title&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">sr</span><span class="o">.</span><span class="n">anime</span><span class="p">,</span> <span class="s2">&quot;_episode_count&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">results</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">search_result_score</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">results</span></div>
 

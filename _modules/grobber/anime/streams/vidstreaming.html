@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>grobber.anime.streams.vidstreaming &#8212; Grobber 3.1.0 documentation</title>
+    <title>grobber.anime.streams.vidstreaming &#8212; Grobber 3.1.1 documentation</title>
     <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
@@ -69,7 +69,11 @@
 
     <span class="n">variables</span> <span class="o">=</span> <span class="n">_extract_variables</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">parse_js_json</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">variables</span><span class="o">=</span><span class="n">variables</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">parse_js_json</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">variables</span><span class="o">=</span><span class="n">variables</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Couldn&#39;t parse js json from:</span><span class="se">\n</span><span class="si">{text!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{}</span>
 
 
 <div class="viewcode-block" id="Vidstreaming"><a class="viewcode-back" href="../../../../reference/anime/streams.html#grobber.anime.streams.vidstreaming.Vidstreaming">[docs]</a><span class="k">class</span> <span class="nc">Vidstreaming</span><span class="p">(</span><span class="n">Stream</span><span class="p">):</span>
