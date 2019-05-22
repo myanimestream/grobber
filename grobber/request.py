@@ -369,7 +369,7 @@ class Request:
 
                 if method == self._head_method:
                     method = self._get_method
-                    log.info(f"{self} switched from get to head method!")
+                    log.info(f"{self} switched from head to get method!")
 
                 self._use_proxy = True
                 continue
