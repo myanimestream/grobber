@@ -192,6 +192,8 @@ class SourceAnime(Anime, Expiring, abc.ABC):
 
                 self._episodes = eps_dict
 
+            _ = self.request_save()
+
         return self._episodes
 
     async def get(self, index: int) -> EPISODE_CLS:
@@ -248,13 +250,16 @@ class SourceAnime(Anime, Expiring, abc.ABC):
 
         return super().deserialise_special(key, value)
 
+    def request_save(self) -> asyncio.Future:
+        from ..sources import request_save
+        return request_save(self)
+
     async def preload_attrs(self, *attrs: str, recursive: bool = False) -> List[Any]:
         if not attrs:
             attrs = self.PRELOAD_ATTRS
 
         result = await super().preload_attrs(*attrs, recursive=recursive)
 
-        from ..sources import request_save
-        _ = request_save(self)
+        _ = self.request_save()
 
         return result
