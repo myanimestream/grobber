@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import re
 from dataclasses import dataclass
@@ -286,7 +287,10 @@ class AnimeVibeAnime(SourceAnime):
         return episodes
 
     async def get_episode(self, index: int) -> AnimeVibeEpisode:
-        slug = await self.slug
+        slug, episode_count = await asyncio.gather(self.slug, self.episode_count)
+        if not 0 <= index < episode_count:
+            raise IndexError("episode index out of range")
+
         req = Request(f"{{{animevibe_pool}}}/a/{slug}/{index + 1}")
         return AnimeVibeEpisode(req)
 
