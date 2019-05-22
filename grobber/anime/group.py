@@ -1,7 +1,9 @@
 import asyncio
 import logging
+import time
+from enum import IntEnum
 from itertools import chain
-from typing import Any, Awaitable, Dict, Iterable, List, Optional, Tuple, cast
+from typing import Any, Awaitable, Callable, Dict, Iterable, Iterator, List, Optional, Tuple, TypeVar, cast
 
 from grobber import index_scraper
 from grobber.anime import Anime, Episode, EpisodeNotFound, SourceAnime, Stream, sources
@@ -12,6 +14,65 @@ from grobber.uid import MediumType, UID
 from grobber.utils import AIterable, afilter, aiter, amap, do_later, get_first
 
 log = logging.getLogger(__name__)
+
+T = TypeVar("T")
+
+
+async def smart_wait(fs: Iterable[Awaitable[T]], *,
+                     result_selector: Callable[[T], bool] = None,
+                     timeout: float = None) -> List[T]:
+    """Wait for at least one future to complete.
+
+    Wait for the first future to complete and then give the other futures
+    half the time it took for the first future.
+
+    Args:
+        fs: Iterable of futures to wait for
+        result_selector: Selector which selects which values are to be accepted.
+            Invalid values will not be returned or count toward the first result.
+        timeout: Time to wait for the first result
+
+    Returns:
+        List of results of the futures that completed in time.
+    """
+    results: List[T] = []
+
+    completed_iter: Iterator[Awaitable[T]] = asyncio.as_completed(fs, timeout=timeout)
+    while True:
+        start = time.perf_counter()
+        try:
+            first_result = await next(completed_iter)
+        except StopIteration:
+            return []
+
+        first_time = time.perf_counter() - start
+
+        if result_selector and not result_selector(first_result):
+            continue
+
+        results.append(first_result)
+        break
+
+    pending_fs = list(completed_iter)
+    if not pending_fs:
+        return results
+
+    done_fs, _ = await asyncio.wait(pending_fs, timeout=first_time / 2)
+
+    for future in done_fs:
+        result = future.result()
+
+        if result_selector and not result_selector(first_result):
+            continue
+
+        results.append(result)
+
+    return results
+
+
+class WaitStrategy(IntEnum):
+    ALL = 0
+    SMART = 1
 
 
 class HasAnimesMixin:
@@ -26,7 +87,9 @@ class HasAnimesMixin:
 
         return super().__repr__()
 
-    async def wait_for_all(self, fs: Iterable[Awaitable], *, timeout: float = None) -> List[Any]:
+    async def wait_for_all(self, fs: Iterable[Awaitable], *,
+                           timeout: float = None,
+                           strategy=WaitStrategy.SMART) -> List[Any]:
         async def save_wait(future: Awaitable) -> Optional[Any]:
             try:
                 return await asyncio.wait_for(future, timeout=timeout)
@@ -37,9 +100,18 @@ class HasAnimesMixin:
 
             return None
 
-        return list(filter(None, await asyncio.gather(*map(save_wait, fs))))
+        fs = map(save_wait, fs)
 
-    async def get_from_all(self, attr: str, containers: Any = None) -> List[Any]:
+        if strategy == WaitStrategy.SMART:
+            return await smart_wait(fs, result_selector=lambda result: result is not None, timeout=timeout)
+        elif strategy == WaitStrategy.ALL:
+            return list(filter(None, await asyncio.gather(*fs)))
+        else:
+            raise TypeError("Invalid wait strategy")
+
+    async def get_from_all(self, attr: str, containers: Any = None, *,
+                           timeout: float = None,
+                           strategy=WaitStrategy.SMART) -> List[Any]:
         if containers is None:
             containers = await self.animes
 
@@ -51,7 +123,9 @@ class HasAnimesMixin:
                 return None
 
         log.debug(f"getting {attr} from all {len(containers)} containers")
-        return list(filter(None, await asyncio.gather(*(save_getattr(container, attr) for container in containers))))
+        return await self.wait_for_all((save_getattr(container, attr) for container in containers),
+                                       timeout=timeout,
+                                       strategy=strategy)
 
     async def get_from_first(self, attr: str, containers: Any = None) -> Any:
         if containers is None:
@@ -84,7 +158,8 @@ class EpisodeGroup(HasAnimesMixin, Episode):
         episodes = await self.episodes
         streams = await self.get_from_all("streams", episodes)
 
-        return list(filter(None, await self.wait_for_all([stream.working_external_self for stream in chain.from_iterable(streams)])))
+        return list(filter(None, await self.wait_for_all(
+            [stream.working_external_self for stream in chain.from_iterable(streams)])))
 
     @property
     def state(self) -> Dict[str, Any]:
@@ -108,7 +183,8 @@ class AnimeGroup(HasAnimesMixin, Anime):
     _language: Language
     _is_dub: bool
 
-    def __init__(self, uids: List[UID], title: str, language: Language, is_dub: bool, *, animes: List[SourceAnime] = None):
+    def __init__(self, uids: List[UID], title: str, language: Language, is_dub: bool, *,
+                 animes: List[SourceAnime] = None):
         self.uids = uids
         self._title = title
         self._language = language
@@ -229,7 +305,8 @@ class AnimeGroup(HasAnimesMixin, Anime):
                 return False
 
             if not isinstance(episode_count, int):
-                log.error(f"{self} not accepting: {anime!r}, returned something other than an int for episode_count: {episode_count}")
+                log.error(
+                    f"{self} not accepting: {anime!r}, returned something other than an int for episode_count: {episode_count}")
                 return False
 
             if not (min_ep_count <= episode_count <= max_ep_count):
@@ -277,14 +354,15 @@ async def _get_anime_group(selector: Dict[str, Any]) -> Optional[AnimeGroup]:
 
 
 async def get_anime_group(uid: UID) -> Optional[AnimeGroup]:
-    anime_group, medium_group = cast(Tuple[Optional[AnimeGroup], Optional[index_scraper.MediumGroup]], await asyncio.gather(
-        _get_anime_group({
-            "media_id": uid.medium_id,
-            f"language{SourceAnime._SPECIAL_MARKER}": uid.language.value,
-            "is_dub": uid.dubbed
-        }),
-        index_scraper.get_medium_group_by_uid(source_index_collection, uid),
-    ))
+    anime_group, medium_group = cast(Tuple[Optional[AnimeGroup], Optional[index_scraper.MediumGroup]],
+                                     await asyncio.gather(
+                                         _get_anime_group({
+                                             "media_id": uid.medium_id,
+                                             f"language{SourceAnime._SPECIAL_MARKER}": uid.language.value,
+                                             "is_dub": uid.dubbed
+                                         }),
+                                         index_scraper.get_medium_group_by_uid(source_index_collection, uid),
+                                     ))
 
     if anime_group is None:
         if medium_group is not None:
