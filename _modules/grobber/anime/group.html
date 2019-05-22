@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>grobber.anime.group &#8212; Grobber 3.1.1 documentation</title>
+    <title>grobber.anime.group &#8212; Grobber 3.1.2 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -33,8 +33,10 @@
   <h1>Source code for grobber.anime.group</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">asyncio</span>
 <span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="k">import</span> <span class="n">IntEnum</span>
 <span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">chain</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Awaitable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">cast</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Awaitable</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">cast</span>
 
 <span class="kn">from</span> <span class="nn">grobber</span> <span class="k">import</span> <span class="n">index_scraper</span>
 <span class="kn">from</span> <span class="nn">grobber.anime</span> <span class="k">import</span> <span class="n">Anime</span><span class="p">,</span> <span class="n">Episode</span><span class="p">,</span> <span class="n">EpisodeNotFound</span><span class="p">,</span> <span class="n">SourceAnime</span><span class="p">,</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">sources</span>
@@ -45,6 +47,65 @@
 <span class="kn">from</span> <span class="nn">grobber.utils</span> <span class="k">import</span> <span class="n">AIterable</span><span class="p">,</span> <span class="n">afilter</span><span class="p">,</span> <span class="n">aiter</span><span class="p">,</span> <span class="n">amap</span><span class="p">,</span> <span class="n">do_later</span><span class="p">,</span> <span class="n">get_first</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="smart_wait"><a class="viewcode-back" href="../../../reference/anime/group.html#grobber.anime.group.smart_wait">[docs]</a><span class="k">async</span> <span class="k">def</span> <span class="nf">smart_wait</span><span class="p">(</span><span class="n">fs</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Awaitable</span><span class="p">[</span><span class="n">T</span><span class="p">]],</span> <span class="o">*</span><span class="p">,</span>
+                     <span class="n">result_selector</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">T</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">T</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Wait for at least one future to complete.</span>
+
+<span class="sd">    Wait for the first future to complete and then give the other futures</span>
+<span class="sd">    half the time it took for the first future.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fs: Iterable of futures to wait for</span>
+<span class="sd">        result_selector: Selector which selects which values are to be accepted.</span>
+<span class="sd">            Invalid values will not be returned or count toward the first result.</span>
+<span class="sd">        timeout: Time to wait for the first result</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        List of results of the futures that completed in time.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">results</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">T</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">completed_iter</span><span class="p">:</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Awaitable</span><span class="p">[</span><span class="n">T</span><span class="p">]]</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">as_completed</span><span class="p">(</span><span class="n">fs</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">first_result</span> <span class="o">=</span> <span class="k">await</span> <span class="nb">next</span><span class="p">(</span><span class="n">completed_iter</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+        <span class="n">first_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+
+        <span class="k">if</span> <span class="n">result_selector</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">result_selector</span><span class="p">(</span><span class="n">first_result</span><span class="p">):</span>
+            <span class="k">continue</span>
+
+        <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">first_result</span><span class="p">)</span>
+        <span class="k">break</span>
+
+    <span class="n">pending_fs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">completed_iter</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">pending_fs</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">results</span>
+
+    <span class="n">done_fs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="n">pending_fs</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">first_time</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">future</span> <span class="ow">in</span> <span class="n">done_fs</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">result_selector</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">result_selector</span><span class="p">(</span><span class="n">first_result</span><span class="p">):</span>
+            <span class="k">continue</span>
+
+        <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">results</span></div>
+
+
+<div class="viewcode-block" id="WaitStrategy"><a class="viewcode-back" href="../../../reference/anime/group.html#grobber.anime.group.WaitStrategy">[docs]</a><span class="k">class</span> <span class="nc">WaitStrategy</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
+    <span class="n">ALL</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">SMART</span> <span class="o">=</span> <span class="mi">1</span></div>
 
 
 <div class="viewcode-block" id="HasAnimesMixin"><a class="viewcode-back" href="../../../reference/anime/group.html#grobber.anime.group.HasAnimesMixin">[docs]</a><span class="k">class</span> <span class="nc">HasAnimesMixin</span><span class="p">:</span>
@@ -59,7 +120,9 @@
 
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
 
-<div class="viewcode-block" id="HasAnimesMixin.wait_for_all"><a class="viewcode-back" href="../../../reference/anime/group.html#grobber.anime.group.HasAnimesMixin.wait_for_all">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">wait_for_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fs</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Awaitable</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<div class="viewcode-block" id="HasAnimesMixin.wait_for_all"><a class="viewcode-back" href="../../../reference/anime/group.html#grobber.anime.group.HasAnimesMixin.wait_for_all">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">wait_for_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fs</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Awaitable</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span>
+                           <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                           <span class="n">strategy</span><span class="o">=</span><span class="n">WaitStrategy</span><span class="o">.</span><span class="n">SMART</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
         <span class="k">async</span> <span class="k">def</span> <span class="nf">save_wait</span><span class="p">(</span><span class="n">future</span><span class="p">:</span> <span class="n">Awaitable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">wait_for</span><span class="p">(</span><span class="n">future</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
@@ -70,9 +133,18 @@
 
             <span class="k">return</span> <span class="kc">None</span>
 
-        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="n">save_wait</span><span class="p">,</span> <span class="n">fs</span><span class="p">))))</span></div>
+        <span class="n">fs</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">save_wait</span><span class="p">,</span> <span class="n">fs</span><span class="p">)</span>
 
-<div class="viewcode-block" id="HasAnimesMixin.get_from_all"><a class="viewcode-back" href="../../../reference/anime/group.html#grobber.anime.group.HasAnimesMixin.get_from_all">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">get_from_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">containers</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">strategy</span> <span class="o">==</span> <span class="n">WaitStrategy</span><span class="o">.</span><span class="n">SMART</span><span class="p">:</span>
+            <span class="k">return</span> <span class="k">await</span> <span class="n">smart_wait</span><span class="p">(</span><span class="n">fs</span><span class="p">,</span> <span class="n">result_selector</span><span class="o">=</span><span class="k">lambda</span> <span class="n">result</span><span class="p">:</span> <span class="n">result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">strategy</span> <span class="o">==</span> <span class="n">WaitStrategy</span><span class="o">.</span><span class="n">ALL</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="n">fs</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Invalid wait strategy&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HasAnimesMixin.get_from_all"><a class="viewcode-back" href="../../../reference/anime/group.html#grobber.anime.group.HasAnimesMixin.get_from_all">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">get_from_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">containers</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
+                           <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                           <span class="n">strategy</span><span class="o">=</span><span class="n">WaitStrategy</span><span class="o">.</span><span class="n">SMART</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
         <span class="k">if</span> <span class="n">containers</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">containers</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">animes</span>
 
@@ -84,7 +156,9 @@
                 <span class="k">return</span> <span class="kc">None</span>
 
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;getting </span><span class="si">{attr}</span><span class="s2"> from all {len(containers)} containers&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">save_getattr</span><span class="p">(</span><span class="n">container</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span> <span class="k">for</span> <span class="n">container</span> <span class="ow">in</span> <span class="n">containers</span><span class="p">))))</span></div>
+        <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">wait_for_all</span><span class="p">((</span><span class="n">save_getattr</span><span class="p">(</span><span class="n">container</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span> <span class="k">for</span> <span class="n">container</span> <span class="ow">in</span> <span class="n">containers</span><span class="p">),</span>
+                                       <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">,</span>
+                                       <span class="n">strategy</span><span class="o">=</span><span class="n">strategy</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="HasAnimesMixin.get_from_first"><a class="viewcode-back" href="../../../reference/anime/group.html#grobber.anime.group.HasAnimesMixin.get_from_first">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">get_from_first</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">containers</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">containers</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -117,7 +191,8 @@
         <span class="n">episodes</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">episodes</span>
         <span class="n">streams</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_from_all</span><span class="p">(</span><span class="s2">&quot;streams&quot;</span><span class="p">,</span> <span class="n">episodes</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">wait_for_all</span><span class="p">([</span><span class="n">stream</span><span class="o">.</span><span class="n">working_external_self</span> <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">streams</span><span class="p">)])))</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">wait_for_all</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">stream</span><span class="o">.</span><span class="n">working_external_self</span> <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">streams</span><span class="p">)])))</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">state</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
@@ -141,7 +216,8 @@
     <span class="n">_language</span><span class="p">:</span> <span class="n">Language</span>
     <span class="n">_is_dub</span><span class="p">:</span> <span class="nb">bool</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">UID</span><span class="p">],</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">language</span><span class="p">:</span> <span class="n">Language</span><span class="p">,</span> <span class="n">is_dub</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">animes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">SourceAnime</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">UID</span><span class="p">],</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">language</span><span class="p">:</span> <span class="n">Language</span><span class="p">,</span> <span class="n">is_dub</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
+                 <span class="n">animes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">SourceAnime</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">uids</span> <span class="o">=</span> <span class="n">uids</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_title</span> <span class="o">=</span> <span class="n">title</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_language</span> <span class="o">=</span> <span class="n">language</span>
@@ -262,7 +338,8 @@
                 <span class="k">return</span> <span class="kc">False</span>
 
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">episode_count</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-                <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{self}</span><span class="s2"> not accepting: </span><span class="si">{anime!r}</span><span class="s2">, returned something other than an int for episode_count: </span><span class="si">{episode_count}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="n">f</span><span class="s2">&quot;</span><span class="si">{self}</span><span class="s2"> not accepting: </span><span class="si">{anime!r}</span><span class="s2">, returned something other than an int for episode_count: </span><span class="si">{episode_count}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span>
 
             <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">min_ep_count</span> <span class="o">&lt;=</span> <span class="n">episode_count</span> <span class="o">&lt;=</span> <span class="n">max_ep_count</span><span class="p">):</span>
@@ -272,22 +349,43 @@
 
 
 <div class="viewcode-block" id="group_animes"><a class="viewcode-back" href="../../../reference/anime/group.html#grobber.anime.group.group_animes">[docs]</a><span class="k">async</span> <span class="k">def</span> <span class="nf">group_animes</span><span class="p">(</span><span class="n">animes</span><span class="p">:</span> <span class="n">AIterable</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">unique_groups</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">AnimeGroup</span><span class="p">]:</span>
+    <span class="n">preload_queue</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">preload_worker</span><span class="p">():</span>
+        <span class="k">async</span> <span class="k">for</span> <span class="n">anime</span> <span class="ow">in</span> <span class="n">aiter</span><span class="p">(</span><span class="n">animes</span><span class="p">):</span>
+            <span class="n">anime</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">SourceAnime</span><span class="p">,</span> <span class="n">anime</span><span class="p">)</span>
+            <span class="k">await</span> <span class="n">anime</span><span class="o">.</span><span class="n">preload_attrs</span><span class="p">()</span>
+            <span class="n">preload_queue</span><span class="o">.</span><span class="n">put_nowait</span><span class="p">(</span><span class="n">anime</span><span class="p">)</span>
+
     <span class="n">groups</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">AnimeGroup</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">async</span> <span class="k">for</span> <span class="n">anime</span> <span class="ow">in</span> <span class="n">aiter</span><span class="p">(</span><span class="n">animes</span><span class="p">):</span>
-        <span class="n">found_group</span> <span class="o">=</span> <span class="kc">False</span>
 
-        <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
-            <span class="k">if</span> <span class="k">await</span> <span class="n">group</span><span class="o">.</span><span class="n">could_contain</span><span class="p">(</span><span class="n">anime</span><span class="p">):</span>
-                <span class="k">await</span> <span class="n">group</span><span class="o">.</span><span class="n">add_anime</span><span class="p">(</span><span class="n">anime</span><span class="p">)</span>
-                <span class="n">found_group</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">group_worker</span><span class="p">():</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">anime</span> <span class="o">=</span> <span class="k">await</span> <span class="n">preload_queue</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
 
-                <span class="k">if</span> <span class="n">unique_groups</span><span class="p">:</span>
-                    <span class="k">break</span>
+            <span class="n">found_group</span> <span class="o">=</span> <span class="kc">False</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">found_group</span><span class="p">:</span>
-            <span class="n">auid</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">language</span><span class="p">,</span> <span class="n">is_dub</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">anime</span><span class="o">.</span><span class="n">uid</span><span class="p">,</span> <span class="n">anime</span><span class="o">.</span><span class="n">title</span><span class="p">,</span> <span class="n">anime</span><span class="o">.</span><span class="n">language</span><span class="p">,</span> <span class="n">anime</span><span class="o">.</span><span class="n">is_dub</span><span class="p">)</span>
-            <span class="n">group</span> <span class="o">=</span> <span class="n">AnimeGroup</span><span class="p">([</span><span class="n">auid</span><span class="p">],</span> <span class="n">title</span><span class="p">,</span> <span class="n">language</span><span class="p">,</span> <span class="n">is_dub</span><span class="p">,</span> <span class="n">animes</span><span class="o">=</span><span class="p">[</span><span class="n">anime</span><span class="p">])</span>
-            <span class="n">groups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
+                <span class="k">if</span> <span class="k">await</span> <span class="n">group</span><span class="o">.</span><span class="n">could_contain</span><span class="p">(</span><span class="n">anime</span><span class="p">):</span>
+                    <span class="k">await</span> <span class="n">group</span><span class="o">.</span><span class="n">add_anime</span><span class="p">(</span><span class="n">anime</span><span class="p">)</span>
+                    <span class="n">found_group</span> <span class="o">=</span> <span class="kc">True</span>
+
+                    <span class="k">if</span> <span class="n">unique_groups</span><span class="p">:</span>
+                        <span class="k">break</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">found_group</span><span class="p">:</span>
+                <span class="n">auid</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">language</span><span class="p">,</span> <span class="n">is_dub</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">anime</span><span class="o">.</span><span class="n">uid</span><span class="p">,</span> <span class="n">anime</span><span class="o">.</span><span class="n">title</span><span class="p">,</span> <span class="n">anime</span><span class="o">.</span><span class="n">language</span><span class="p">,</span>
+                                                                     <span class="n">anime</span><span class="o">.</span><span class="n">is_dub</span><span class="p">)</span>
+                <span class="n">group</span> <span class="o">=</span> <span class="n">AnimeGroup</span><span class="p">([</span><span class="n">auid</span><span class="p">],</span> <span class="n">title</span><span class="p">,</span> <span class="n">language</span><span class="p">,</span> <span class="n">is_dub</span><span class="p">,</span> <span class="n">animes</span><span class="o">=</span><span class="p">[</span><span class="n">anime</span><span class="p">])</span>
+                <span class="n">groups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
+
+            <span class="n">preload_queue</span><span class="o">.</span><span class="n">task_done</span><span class="p">()</span>
+
+    <span class="n">group_future</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">ensure_future</span><span class="p">(</span><span class="n">group_worker</span><span class="p">())</span>
+    <span class="k">await</span> <span class="n">preload_worker</span><span class="p">()</span>
+    <span class="k">await</span> <span class="n">preload_queue</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+
+    <span class="n">group_future</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
 
     <span class="k">return</span> <span class="n">groups</span></div>
 
@@ -295,29 +393,35 @@
 <span class="k">async</span> <span class="k">def</span> <span class="nf">_get_anime_group</span><span class="p">(</span><span class="n">selector</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">AnimeGroup</span><span class="p">]:</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">build_anime</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Anime</span><span class="p">]:</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="k">await</span> <span class="n">sources</span><span class="o">.</span><span class="n">build_anime_from_doc</span><span class="p">(</span><span class="n">doc</span><span class="p">[</span><span class="s2">&quot;_id&quot;</span><span class="p">],</span> <span class="n">doc</span><span class="p">)</span>
+            <span class="n">anime</span> <span class="o">=</span> <span class="k">await</span> <span class="n">sources</span><span class="o">.</span><span class="n">build_anime_from_doc</span><span class="p">(</span><span class="n">doc</span><span class="p">[</span><span class="s2">&quot;_id&quot;</span><span class="p">],</span> <span class="n">doc</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">title</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;title&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;media_id&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;unknown&quot;</span>
             <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;ignoring </span><span class="si">{title}</span><span class="s2">: </span><span class="si">{e!r}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">anime</span>
 
     <span class="n">cursor</span> <span class="o">=</span> <span class="n">anime_collection</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">selector</span><span class="p">)</span>
     <span class="n">anime_iter</span> <span class="o">=</span> <span class="n">afilter</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">amap</span><span class="p">(</span><span class="n">build_anime</span><span class="p">,</span> <span class="n">cursor</span><span class="p">))</span>
     <span class="n">groups</span> <span class="o">=</span> <span class="k">await</span> <span class="n">group_animes</span><span class="p">(</span><span class="n">anime_iter</span><span class="p">,</span> <span class="n">unique_groups</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">groups</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;got {len(groups)} group(s)&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">groups</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">group</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">uids</span><span class="p">))</span>
 
 
 <div class="viewcode-block" id="get_anime_group"><a class="viewcode-back" href="../../../reference/anime/group.html#grobber.anime.group.get_anime_group">[docs]</a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_anime_group</span><span class="p">(</span><span class="n">uid</span><span class="p">:</span> <span class="n">UID</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">AnimeGroup</span><span class="p">]:</span>
-    <span class="n">anime_group</span><span class="p">,</span> <span class="n">medium_group</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">AnimeGroup</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">index_scraper</span><span class="o">.</span><span class="n">MediumGroup</span><span class="p">]],</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span>
-        <span class="n">_get_anime_group</span><span class="p">({</span>
-            <span class="s2">&quot;media_id&quot;</span><span class="p">:</span> <span class="n">uid</span><span class="o">.</span><span class="n">medium_id</span><span class="p">,</span>
-            <span class="n">f</span><span class="s2">&quot;language</span><span class="si">{SourceAnime._SPECIAL_MARKER}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">uid</span><span class="o">.</span><span class="n">language</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
-            <span class="s2">&quot;is_dub&quot;</span><span class="p">:</span> <span class="n">uid</span><span class="o">.</span><span class="n">dubbed</span>
-        <span class="p">}),</span>
-        <span class="n">index_scraper</span><span class="o">.</span><span class="n">get_medium_group_by_uid</span><span class="p">(</span><span class="n">source_index_collection</span><span class="p">,</span> <span class="n">uid</span><span class="p">),</span>
-    <span class="p">))</span>
+    <span class="n">anime_group</span><span class="p">,</span> <span class="n">medium_group</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span>
+        <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">AnimeGroup</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">index_scraper</span><span class="o">.</span><span class="n">MediumGroup</span><span class="p">]],</span>
+        <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span>
+            <span class="n">_get_anime_group</span><span class="p">({</span>
+                <span class="s2">&quot;media_id&quot;</span><span class="p">:</span> <span class="n">uid</span><span class="o">.</span><span class="n">medium_id</span><span class="p">,</span>
+                <span class="n">f</span><span class="s2">&quot;language</span><span class="si">{SourceAnime._SPECIAL_MARKER}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">uid</span><span class="o">.</span><span class="n">language</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                <span class="s2">&quot;is_dub&quot;</span><span class="p">:</span> <span class="n">uid</span><span class="o">.</span><span class="n">dubbed</span>
+            <span class="p">}),</span>
+            <span class="n">index_scraper</span><span class="o">.</span><span class="n">get_medium_group_by_uid</span><span class="p">(</span><span class="n">source_index_collection</span><span class="p">,</span> <span class="n">uid</span><span class="p">),</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">anime_group</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">medium_group</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>

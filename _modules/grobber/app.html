@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>grobber.app &#8212; Grobber 3.1.1 documentation</title>
+    <title>grobber.app &#8212; Grobber 3.1.2 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -73,7 +73,7 @@
 <span class="k">def</span> <span class="nf">handle_internal_exception</span><span class="p">(</span><span class="n">exc</span><span class="p">:</span> <span class="ne">Exception</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Response</span><span class="p">:</span>
     <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;internal error&quot;</span><span class="p">)</span>
     <span class="n">INTERNAL_EXCEPTIONS</span><span class="o">.</span><span class="n">labels</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span><span class="o">.</span><span class="n">inc</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">error_response</span><span class="p">(</span><span class="n">GrobberException</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Internal Error: {type(exc).__qualname__}&quot;</span><span class="p">),</span> <span class="n">status_code</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">error_response</span><span class="p">(</span><span class="n">GrobberException</span><span class="p">(</span><span class="s2">&quot;Internal Error&quot;</span><span class="p">),</span> <span class="n">status_code</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="teardown_app_context"><a class="viewcode-back" href="../../reference/app.html#grobber.app.teardown_app_context">[docs]</a><span class="nd">@app</span><span class="o">.</span><span class="n">teardown_appcontext</span>
@@ -89,9 +89,13 @@
 
 <div class="viewcode-block" id="before_request"><a class="viewcode-back" href="../../reference/app.html#grobber.app.before_request">[docs]</a><span class="nd">@app</span><span class="o">.</span><span class="n">before_request</span>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">before_request</span><span class="p">():</span>
+    <span class="n">endpoint</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">endpoint</span>
+    <span class="k">if</span> <span class="n">endpoint</span> <span class="ow">in</span> <span class="n">IGNORED_ENDPOINTS</span><span class="p">:</span>
+        <span class="k">return</span>
+
     <span class="n">args</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2">=</span><span class="si">{value}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
-    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{request.method}</span><span class="s2"> {request.endpoint or request.path} </span><span class="si">{args}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="n">API_REQUESTS</span><span class="o">.</span><span class="n">labels</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">method</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">endpoint</span><span class="p">)</span><span class="o">.</span><span class="n">inc</span><span class="p">()</span></div>
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{request.method}</span><span class="s2"> {endpoint or request.path} </span><span class="si">{args}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">API_REQUESTS</span><span class="o">.</span><span class="n">labels</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">method</span><span class="p">,</span> <span class="n">endpoint</span><span class="p">)</span><span class="o">.</span><span class="n">inc</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="get_dolos_info"><a class="viewcode-back" href="../../reference/app.html#grobber.app.get_dolos_info">[docs]</a><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/dolos-info&quot;</span><span class="p">)</span>
@@ -104,6 +108,9 @@
 <span class="k">async</span> <span class="k">def</span> <span class="nf">get_metrics</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Response</span><span class="p">:</span>
     <span class="n">metrics</span><span class="p">,</span> <span class="n">content_type</span> <span class="o">=</span> <span class="n">telemetry</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">metrics</span><span class="p">,</span> <span class="n">content_type</span><span class="o">=</span><span class="n">content_type</span><span class="p">)</span></div>
+
+
+<span class="n">IGNORED_ENDPOINTS</span> <span class="o">=</span> <span class="p">{</span><span class="n">get_metrics</span><span class="o">.</span><span class="vm">__name__</span><span class="p">}</span>
 </pre></div>
 
           </div>

@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>grobber.anime.sources.gogoanime &#8212; Grobber 3.1.1 documentation</title>
+    <title>grobber.anime.sources.gogoanime &#8212; Grobber 3.1.2 documentation</title>
     <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
@@ -36,8 +36,6 @@
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">AsyncIterator</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Pattern</span><span class="p">,</span> <span class="n">Tuple</span>
 
-<span class="kn">import</span> <span class="nn">math</span>
-
 <span class="kn">from</span> <span class="nn">grobber.decorators</span> <span class="k">import</span> <span class="n">cached_property</span>
 <span class="kn">from</span> <span class="nn">grobber.languages</span> <span class="k">import</span> <span class="n">Language</span>
 <span class="kn">from</span> <span class="nn">grobber.request</span> <span class="k">import</span> <span class="n">DefaultUrlFormatter</span><span class="p">,</span> <span class="n">Request</span>
@@ -61,6 +59,7 @@
 
 <span class="n">RE_NOT_FOUND</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;&lt;h1 class=</span><span class="se">\&quot;</span><span class="s2">entry-title</span><span class="se">\&quot;</span><span class="s2">&gt;Page not found&lt;/h1&gt;&quot;</span><span class="p">)</span>
 <span class="n">RE_EPISODE_URL_PARSER</span><span class="p">:</span> <span class="n">Pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;(?P&lt;prefix&gt;[^/]+-episode-)(?P&lt;episode&gt;.+)$&quot;</span><span class="p">)</span>
+<span class="n">RE_EPISODE_URL_TEMPLATE</span><span class="p">:</span> <span class="n">Pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;/([^/]+?)(?:-episode-\d+)?$&quot;</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">parse_raw_title</span><span class="p">(</span><span class="n">raw_title</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
@@ -71,14 +70,6 @@
 
 <span class="k">async</span> <span class="k">def</span> <span class="nf">is_not_found_page</span><span class="p">(</span><span class="n">req</span><span class="p">:</span> <span class="n">Request</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
     <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">RE_NOT_FOUND</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="k">await</span> <span class="n">req</span><span class="o">.</span><span class="n">text</span><span class="p">))</span>
-
-
-<span class="k">def</span> <span class="nf">get_potential_page_name</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="n">page_name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-    <span class="n">page_name</span> <span class="o">=</span> <span class="n">RE_SPACE</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">page_name</span><span class="p">)</span>
-    <span class="n">page_name</span> <span class="o">=</span> <span class="n">RE_SPECIAL</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">page_name</span><span class="p">)</span>
-    <span class="n">page_name</span> <span class="o">=</span> <span class="n">RE_CLEAN</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">page_name</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">page_name</span>
 
 
 <span class="k">class</span> <span class="nc">GogoEpisode</span><span class="p">(</span><span class="n">SourceEpisode</span><span class="p">):</span>
@@ -97,6 +88,15 @@
 <div class="viewcode-block" id="GogoAnime"><a class="viewcode-back" href="../../../../reference/anime/sources.html#grobber.anime.sources.gogoanime.GogoAnime">[docs]</a><span class="k">class</span> <span class="nc">GogoAnime</span><span class="p">(</span><span class="n">SourceAnime</span><span class="p">):</span>
     <span class="n">ATTRS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;anime_id&quot;</span><span class="p">,</span> <span class="s2">&quot;raw_title&quot;</span><span class="p">)</span>
     <span class="n">EPISODE_CLS</span> <span class="o">=</span> <span class="n">GogoEpisode</span>
+
+    <span class="nd">@cached_property</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">episode_url_template</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_req</span><span class="o">.</span><span class="n">raw_finalised_url</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="n">RE_EPISODE_URL_TEMPLATE</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">match</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Couldn&#39;t find episode url template in </span><span class="si">{url!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="nd">@cached_property</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">anime_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -125,20 +125,16 @@
     <span class="nd">@cached_property</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">episode_count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="n">holder</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_req</span><span class="o">.</span><span class="n">bs</span><span class="p">)</span><span class="o">.</span><span class="n">select_one</span><span class="p">(</span><span class="s2">&quot;#episode_page a.active&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">holder</span><span class="p">:</span>
-            <span class="k">return</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">holder</span><span class="p">:</span>
+            <span class="n">last_ep_text</span> <span class="o">=</span> <span class="n">holder</span><span class="p">[</span><span class="s2">&quot;ep_end&quot;</span><span class="p">]</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">last_ep_text</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Last episode label isn&#39;t numeric: </span><span class="si">{last_ep_text}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{self}</span><span class="s2"> couldn&#39;t find last episode label&quot;</span><span class="p">)</span>
 
-        <span class="n">last_ep_text</span> <span class="o">=</span> <span class="n">holder</span><span class="p">[</span><span class="s2">&quot;ep_end&quot;</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">last_ep_text</span><span class="o">.</span><span class="n">isnumeric</span><span class="p">():</span>
-            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">last_ep_text</span><span class="p">)</span>
-
-        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Last episode label isn&#39;t numeric: </span><span class="si">{last_ep_text}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-        <span class="k">try</span><span class="p">:</span>
-            <span class="c1"># I&#39;m totally assuming that decimal values are always .5... Try to stop me</span>
-            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">last_ep_text</span><span class="p">)))</span>
-        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Couldn&#39;t understand last episode label for </span><span class="si">{self}</span><span class="s2">: </span><span class="se">\&quot;</span><span class="si">{last_ep_text}</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="k">await</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">episode_count</span>
 
 <div class="viewcode-block" id="GogoAnime.search"><a class="viewcode-back" href="../../../../reference/anime/sources.html#grobber.anime.sources.gogoanime.GogoAnime.search">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">search</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">language</span><span class="o">=</span><span class="n">Language</span><span class="o">.</span><span class="n">ENGLISH</span><span class="p">,</span> <span class="n">dubbed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AsyncIterator</span><span class="p">[</span><span class="n">SearchResult</span><span class="p">]:</span>
@@ -203,8 +199,8 @@
         <span class="k">return</span> <span class="n">episodes</span>
 
 <div class="viewcode-block" id="GogoAnime.get_episode"><a class="viewcode-back" href="../../../../reference/anime/sources.html#grobber.anime.sources.gogoanime.GogoAnime.get_episode">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">get_episode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">GogoEpisode</span><span class="p">]:</span>
-        <span class="n">page_name</span> <span class="o">=</span> <span class="n">get_potential_page_name</span><span class="p">(</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">title</span><span class="p">)</span>
-        <span class="n">ep_req</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{BASE_URL}</span><span class="s2">/</span><span class="si">{page_name}</span><span class="s2">-episode-{index + 1}&quot;</span><span class="p">)</span>
+        <span class="n">url_prefix</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">episode_url_template</span>
+        <span class="n">ep_req</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{BASE_URL}</span><span class="s2">/</span><span class="si">{url_prefix}</span><span class="s2">-episode-{index + 1}&quot;</span><span class="p">)</span>
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Trying to predict episode link </span><span class="si">{ep_req}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="k">await</span> <span class="n">is_not_found_page</span><span class="p">(</span><span class="n">ep_req</span><span class="p">):</span>
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;-&gt; Prediction Invalid, manually fetching...&quot;</span><span class="p">)</span>

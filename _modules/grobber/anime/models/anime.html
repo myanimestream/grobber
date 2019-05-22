@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>grobber.anime.models.anime &#8212; Grobber 3.1.1 documentation</title>
+    <title>grobber.anime.models.anime &#8212; Grobber 3.1.2 documentation</title>
     <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
@@ -225,6 +225,8 @@
 
                 <span class="bp">self</span><span class="o">.</span><span class="n">_episodes</span> <span class="o">=</span> <span class="n">eps_dict</span>
 
+            <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request_save</span><span class="p">()</span>
+
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_episodes</span>
 
 <div class="viewcode-block" id="SourceAnime.get"><a class="viewcode-back" href="../../../../reference/anime/models.html#grobber.anime.models.SourceAnime.get">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EPISODE_CLS</span><span class="p">:</span>
@@ -279,7 +281,21 @@
         <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;language&quot;</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">Language</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">deserialise_special</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">deserialise_special</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SourceAnime.request_save"><a class="viewcode-back" href="../../../../reference/anime/models.html#grobber.anime.models.SourceAnime.request_save">[docs]</a>    <span class="k">def</span> <span class="nf">request_save</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">..sources</span> <span class="k">import</span> <span class="n">request_save</span>
+        <span class="k">return</span> <span class="n">request_save</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SourceAnime.preload_attrs"><a class="viewcode-back" href="../../../../reference/anime/models.html#grobber.anime.models.SourceAnime.preload_attrs">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">preload_attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">attrs</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">attrs</span><span class="p">:</span>
+            <span class="n">attrs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">PRELOAD_ATTRS</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">preload_attrs</span><span class="p">(</span><span class="o">*</span><span class="n">attrs</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">)</span>
+
+        <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request_save</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">result</span></div></div>
 </pre></div>
 
           </div>

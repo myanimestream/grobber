@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Group &#8212; Grobber 3.1.1 documentation</title>
+    <title>Group &#8212; Grobber 3.1.2 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -221,7 +221,7 @@ can be used to extract a lot more information.</p>
 <em class="property">class </em><code class="descname">HasAnimesMixin</code><a class="reference internal" href="../../_modules/grobber/anime/group.html#HasAnimesMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.group.HasAnimesMixin" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="method">
 <dt id="grobber.anime.group.HasAnimesMixin.get_from_all">
-<em class="property">coroutine </em><code class="descname">get_from_all</code><span class="sig-paren">(</span><em>self</em>, <em>attr</em>, <em>containers=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/group.html#HasAnimesMixin.get_from_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.group.HasAnimesMixin.get_from_all" title="Permalink to this definition">¶</a></dt>
+<em class="property">coroutine </em><code class="descname">get_from_all</code><span class="sig-paren">(</span><em>self</em>, <em>attr</em>, <em>containers=None</em>, <em>*</em>, <em>timeout=None</em>, <em>strategy=&lt;WaitStrategy.SMART: 1&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/group.html#HasAnimesMixin.get_from_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.group.HasAnimesMixin.get_from_all" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</p>
@@ -241,13 +241,29 @@ can be used to extract a lot more information.</p>
 
 <dl class="method">
 <dt id="grobber.anime.group.HasAnimesMixin.wait_for_all">
-<em class="property">coroutine </em><code class="descname">wait_for_all</code><span class="sig-paren">(</span><em>self</em>, <em>fs</em>, <em>*</em>, <em>timeout=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/group.html#HasAnimesMixin.wait_for_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.group.HasAnimesMixin.wait_for_all" title="Permalink to this definition">¶</a></dt>
+<em class="property">coroutine </em><code class="descname">wait_for_all</code><span class="sig-paren">(</span><em>self</em>, <em>fs</em>, <em>*</em>, <em>timeout=None</em>, <em>strategy=&lt;WaitStrategy.SMART: 1&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/group.html#HasAnimesMixin.wait_for_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.group.HasAnimesMixin.wait_for_all" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</p>
 </dd>
 </dl>
 </dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="grobber.anime.group.WaitStrategy">
+<em class="property">class </em><code class="descname">WaitStrategy</code><a class="reference internal" href="../../_modules/grobber/anime/group.html#WaitStrategy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.group.WaitStrategy" title="Permalink to this definition">¶</a></dt>
+<dd><p>An enumeration.</p>
+<dl class="attribute">
+<dt id="grobber.anime.group.WaitStrategy.ALL">
+<code class="descname">ALL</code><em class="property"> = 0</em><a class="headerlink" href="#grobber.anime.group.WaitStrategy.ALL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="grobber.anime.group.WaitStrategy.SMART">
+<code class="descname">SMART</code><em class="property"> = 1</em><a class="headerlink" href="#grobber.anime.group.WaitStrategy.SMART" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -277,6 +293,30 @@ can be used to extract a lot more information.</p>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference internal" href="#grobber.anime.group.AnimeGroup" title="grobber.anime.group.AnimeGroup"><code class="xref py py-class docutils literal notranslate"><span class="pre">AnimeGroup</span></code></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="grobber.anime.group.smart_wait">
+<em class="property">coroutine </em><code class="descname">smart_wait</code><span class="sig-paren">(</span><em>fs</em>, <em>*</em>, <em>result_selector=None</em>, <em>timeout=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/grobber/anime/group.html#smart_wait"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grobber.anime.group.smart_wait" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wait for at least one future to complete.</p>
+<p>Wait for the first future to complete and then give the other futures
+half the time it took for the first future.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fs</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Iterable</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Awaitable" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Awaitable</span></code></a>[~T]]) – Iterable of futures to wait for</p></li>
+<li><p><strong>result_selector</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></a>[[~T], <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>]]) – Selector which selects which values are to be accepted.
+Invalid values will not be returned or count toward the first result.</p></li>
+<li><p><strong>timeout</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]) – Time to wait for the first result</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[~T]</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>List of results of the futures that completed in time.</p>
 </dd>
 </dl>
 </dd></dl>
