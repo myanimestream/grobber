@@ -40,7 +40,7 @@ def handle_grobber_exception(exc: GrobberException) -> Response:
 def handle_internal_exception(exc: Exception) -> Response:
     log.exception("internal error")
     INTERNAL_EXCEPTIONS.labels(type(exc).__name__).inc()
-    return error_response(GrobberException(f"Internal Error: {type(exc).__qualname__}"), status_code=500)
+    return error_response(GrobberException("Internal Error"), status_code=500)
 
 
 @app.teardown_appcontext
@@ -56,9 +56,13 @@ async def before_serving():
 
 @app.before_request
 async def before_request():
+    endpoint = request.endpoint
+    if endpoint in IGNORED_ENDPOINTS:
+        return
+
     args = " ".join(f"{key}={value}" for key, value in request.args.items())
-    log.info(f"{request.method} {request.endpoint or request.path} {args}")
-    API_REQUESTS.labels(request.method, request.endpoint).inc()
+    log.info(f"{request.method} {endpoint or request.path} {args}")
+    API_REQUESTS.labels(request.method, endpoint).inc()
 
 
 @app.route("/dolos-info")
@@ -71,3 +75,6 @@ async def get_dolos_info() -> Response:
 async def get_metrics() -> Response:
     metrics, content_type = telemetry.get_metrics()
     return Response(metrics, content_type=content_type)
+
+
+IGNORED_ENDPOINTS = {get_metrics.__name__}
