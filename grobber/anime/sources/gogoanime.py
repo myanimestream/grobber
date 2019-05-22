@@ -3,8 +3,6 @@ import logging
 import re
 from typing import AsyncIterator, Dict, List, Optional, Pattern, Tuple
 
-import math
-
 from grobber.decorators import cached_property
 from grobber.languages import Language
 from grobber.request import DefaultUrlFormatter, Request
@@ -28,6 +26,7 @@ RE_DUB_STRIPPER = re.compile(r"\s\(Dub\)$")
 
 RE_NOT_FOUND = re.compile(r"<h1 class=\"entry-title\">Page not found</h1>")
 RE_EPISODE_URL_PARSER: Pattern = re.compile(r"(?P<prefix>[^/]+-episode-)(?P<episode>.+)$")
+RE_EPISODE_URL_TEMPLATE: Pattern = re.compile(r"/([^/]+?)(?:-episode-\d+)?$")
 
 
 def parse_raw_title(raw_title: str) -> Tuple[str, bool]:
@@ -38,14 +37,6 @@ def parse_raw_title(raw_title: str) -> Tuple[str, bool]:
 
 async def is_not_found_page(req: Request) -> bool:
     return bool(RE_NOT_FOUND.search(await req.text))
-
-
-def get_potential_page_name(name: str) -> str:
-    page_name = name.lower()
-    page_name = RE_SPACE.sub("-", page_name)
-    page_name = RE_SPECIAL.sub("", page_name)
-    page_name = RE_CLEAN.sub("-", page_name)
-    return page_name
 
 
 class GogoEpisode(SourceEpisode):
@@ -64,6 +55,15 @@ class GogoEpisode(SourceEpisode):
 class GogoAnime(SourceAnime):
     ATTRS = ("anime_id", "raw_title")
     EPISODE_CLS = GogoEpisode
+
+    @cached_property
+    async def episode_url_template(self) -> str:
+        url = self._req.raw_finalised_url
+        match = RE_EPISODE_URL_TEMPLATE.search(url)
+        if not match:
+            raise ValueError(f"Couldn't find episode url template in {url!r}")
+
+        return match.group(1)
 
     @cached_property
     async def anime_id(self) -> str:
@@ -92,20 +92,16 @@ class GogoAnime(SourceAnime):
     @cached_property
     async def episode_count(self) -> int:
         holder = (await self._req.bs).select_one("#episode_page a.active")
-        if not holder:
-            return 0
+        if holder:
+            last_ep_text = holder["ep_end"]
+            try:
+                return int(last_ep_text)
+            except ValueError:
+                log.info(f"Last episode label isn't numeric: {last_ep_text}")
+        else:
+            log.warning(f"{self} couldn't find last episode label")
 
-        last_ep_text = holder["ep_end"]
-        if last_ep_text.isnumeric():
-            return int(last_ep_text)
-
-        log.info(f"Last episode label isn't numeric: {last_ep_text}")
-
-        try:
-            # I'm totally assuming that decimal values are always .5... Try to stop me
-            return int(math.ceil(float(last_ep_text)))
-        except ValueError:
-            raise ValueError(f"Couldn't understand last episode label for {self}: \"{last_ep_text}\"")
+        return await super().episode_count
 
     @classmethod
     async def search(cls, query: str, *, language=Language.ENGLISH, dubbed=False) -> AsyncIterator[SearchResult]:
@@ -170,8 +166,8 @@ class GogoAnime(SourceAnime):
         return episodes
 
     async def get_episode(self, index: int) -> Optional[GogoEpisode]:
-        page_name = get_potential_page_name(await self.title)
-        ep_req = Request(f"{BASE_URL}/{page_name}-episode-{index + 1}")
+        url_prefix = await self.episode_url_template
+        ep_req = Request(f"{BASE_URL}/{url_prefix}-episode-{index + 1}")
         log.debug(f"Trying to predict episode link {ep_req}")
         if await is_not_found_page(ep_req):
             log.debug("-> Prediction Invalid, manually fetching...")
