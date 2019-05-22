@@ -4,6 +4,16 @@ __all__ = ["normalise_text_score", "full_normalise_text_score"]
 
 
 def normalise_text_score(query: str, score: float) -> float:
+    """Approximate a mongo text score to the range [0, 1].
+
+    Args:
+        query: Query which was used
+        score: Text score
+
+    Returns:
+        An approximation of the normalised text score which is guaranteed
+        to be in the closed interval [0, 1].
+    """
     words = len(query.split())
     expected_max_score = (words + 1) * .5
 
