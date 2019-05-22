@@ -66,6 +66,17 @@ async def save_dirty() -> None:
     CACHE.clear()
 
 
+def request_save(anime: SourceAnime) -> asyncio.Future:
+    if anime in CACHE:
+        log.debug(f"not saving {anime}, already tracked in CACHE")
+        return
+
+    future = asyncio.ensure_future(save_anime(anime, silent=True))
+    future.add_done_callback(lambda _: log.info(f"saved {anime}"))
+
+    return future
+
+
 async def delete_anime(uid: str) -> None:
     log.info(f"deleting anime {uid}...")
     await anime_collection.delete_one(dict(_id=uid))

@@ -247,3 +247,14 @@ class SourceAnime(Anime, Expiring, abc.ABC):
             return Language(value)
 
         return super().deserialise_special(key, value)
+
+    async def preload_attrs(self, *attrs: str, recursive: bool = False) -> List[Any]:
+        if not attrs:
+            attrs = self.PRELOAD_ATTRS
+
+        result = await super().preload_attrs(*attrs, recursive=recursive)
+
+        from ..sources import request_save
+        _ = request_save(self)
+
+        return result
