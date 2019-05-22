@@ -316,22 +316,43 @@ class AnimeGroup(HasAnimesMixin, Anime):
 
 
 async def group_animes(animes: AIterable, *, unique_groups: bool = True) -> List[AnimeGroup]:
+    preload_queue = asyncio.Queue()
+
+    async def preload_worker():
+        async for anime in aiter(animes):
+            anime = cast(SourceAnime, anime)
+            await anime.preload_attrs()
+            preload_queue.put_nowait(anime)
+
     groups: List[AnimeGroup] = []
-    async for anime in aiter(animes):
-        found_group = False
 
-        for group in groups:
-            if await group.could_contain(anime):
-                await group.add_anime(anime)
-                found_group = True
+    async def group_worker():
+        while True:
+            anime = await preload_queue.get()
 
-                if unique_groups:
-                    break
+            found_group = False
 
-        if not found_group:
-            auid, title, language, is_dub = await asyncio.gather(anime.uid, anime.title, anime.language, anime.is_dub)
-            group = AnimeGroup([auid], title, language, is_dub, animes=[anime])
-            groups.append(group)
+            for group in groups:
+                if await group.could_contain(anime):
+                    await group.add_anime(anime)
+                    found_group = True
+
+                    if unique_groups:
+                        break
+
+            if not found_group:
+                auid, title, language, is_dub = await asyncio.gather(anime.uid, anime.title, anime.language,
+                                                                     anime.is_dub)
+                group = AnimeGroup([auid], title, language, is_dub, animes=[anime])
+                groups.append(group)
+
+            preload_queue.task_done()
+
+    group_future = asyncio.ensure_future(group_worker())
+    await preload_worker()
+    await preload_queue.join()
+
+    group_future.cancel()
 
     return groups
 
@@ -339,30 +360,35 @@ async def group_animes(animes: AIterable, *, unique_groups: bool = True) -> List
 async def _get_anime_group(selector: Dict[str, Any]) -> Optional[AnimeGroup]:
     async def build_anime(doc: Dict[str, Any]) -> Optional[Anime]:
         try:
-            return await sources.build_anime_from_doc(doc["_id"], doc)
+            anime = await sources.build_anime_from_doc(doc["_id"], doc)
         except Exception as e:
             title = doc.get("title") or doc.get("media_id") or "unknown"
             log.info(f"ignoring {title}: {e!r}")
             return None
+
+        return anime
 
     cursor = anime_collection.find(selector)
     anime_iter = afilter(None, amap(build_anime, cursor))
     groups = await group_animes(anime_iter, unique_groups=False)
     if not groups:
         return None
+    log.info(f"got {len(groups)} group(s)")
     return max(groups, key=lambda group: len(group.uids))
 
 
 async def get_anime_group(uid: UID) -> Optional[AnimeGroup]:
-    anime_group, medium_group = cast(Tuple[Optional[AnimeGroup], Optional[index_scraper.MediumGroup]],
-                                     await asyncio.gather(
-                                         _get_anime_group({
-                                             "media_id": uid.medium_id,
-                                             f"language{SourceAnime._SPECIAL_MARKER}": uid.language.value,
-                                             "is_dub": uid.dubbed
-                                         }),
-                                         index_scraper.get_medium_group_by_uid(source_index_collection, uid),
-                                     ))
+    anime_group, medium_group = cast(
+        Tuple[Optional[AnimeGroup], Optional[index_scraper.MediumGroup]],
+        await asyncio.gather(
+            _get_anime_group({
+                "media_id": uid.medium_id,
+                f"language{SourceAnime._SPECIAL_MARKER}": uid.language.value,
+                "is_dub": uid.dubbed
+            }),
+            index_scraper.get_medium_group_by_uid(source_index_collection, uid),
+        ),
+    )
 
     if anime_group is None:
         if medium_group is not None:
