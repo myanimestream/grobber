@@ -279,13 +279,17 @@ class AnimeGroup(HasAnimesMixin, Anime):
     async def could_contain(self, anime: SourceAnime) -> bool:
         do_later(anime.preload_attrs("language", "is_dub", "media_id", "episode_count"))
 
-        if self._language != await anime.language:
-            return False
+        try:
+            if self._language != await anime.language:
+                return False
 
-        if self._is_dub != await anime.is_dub:
-            return False
+            if self._is_dub != await anime.is_dub:
+                return False
 
-        if await self.media_id != await anime.media_id:
+            if await self.media_id != await anime.media_id:
+                return False
+        except Exception:
+            log.exception(f"{self} error during comparison with {anime}")
             return False
 
         episode_counts: List[int] = await self.get_from_all("episode_count")
@@ -321,7 +325,12 @@ async def group_animes(animes: AIterable, *, unique_groups: bool = True) -> List
     async def preload_worker():
         async for anime in aiter(animes):
             anime = cast(SourceAnime, anime)
-            await anime.preload_attrs()
+            try:
+                await anime.preload_attrs()
+            except Exception as e:
+                log.warning(f"Couldn't preload {anime}: {e}")
+                continue
+
             preload_queue.put_nowait(anime)
 
     groups: List[AnimeGroup] = []

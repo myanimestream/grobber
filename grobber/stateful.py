@@ -1,6 +1,5 @@
 import abc
 import asyncio
-import inspect
 import logging
 from collections import deque
 from contextlib import suppress
@@ -10,6 +9,7 @@ from typing import Any, Dict, Iterable, List, Mapping, Pattern, TypeVar
 import bson
 
 from .request import Request
+from .utils import maybe_await
 
 log = logging.getLogger(__name__)
 
@@ -81,10 +81,11 @@ class Stateful(abc.ABC):
             attrs = self.ATTRS
 
         async def preload(attr: str) -> Any:
-            value = getattr(self, attr)
-
-            if inspect.isawaitable(value):
-                value = await value
+            try:
+                value = await maybe_await(getattr(self, attr))
+            except Exception as e:
+                log.warning(f"Couldn't preload \"{attr}\" from {self}: {e}")
+                value = None
 
             if recursive:
                 coros = []

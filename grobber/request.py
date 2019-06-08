@@ -362,7 +362,7 @@ class Request:
                 self._use_proxy = True
                 continue
 
-            if resp.status in {403, 429, 529} and self._retry_count <= self._max_retries:
+            if resp.status in {403, 429, 503, 529} and self._retry_count <= self._max_retries:
                 log.info(f"{self} request failed ({resp.status}). " +
                          ("Already using proxy, trying again" if self._use_proxy else "Trying again with proxy") +
                          f" try {self._retry_count}/{self._max_retries}")
