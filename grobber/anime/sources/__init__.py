@@ -7,7 +7,6 @@ from typing import Any, AsyncIterator, Dict, Iterable, List, Optional, Set, Type
 from grobber.exceptions import UIDUnknown
 from grobber.languages import Language
 from grobber.locals import anime_collection
-from grobber.telemetry import SEARCH_SOURCE_COUNTER
 from grobber.uid import UID
 from grobber.utils import AIterable, aiter, anext
 from ..models import SearchResult, SourceAnime
@@ -66,10 +65,10 @@ async def save_dirty() -> None:
     CACHE.clear()
 
 
-def request_save(anime: SourceAnime) -> asyncio.Future:
+def request_save(anime: SourceAnime) -> Optional[asyncio.Future]:
     if anime in CACHE:
         log.debug(f"not saving {anime}, already tracked in CACHE")
-        return
+        return None
 
     future = asyncio.ensure_future(save_anime(anime, silent=True))
     future.add_done_callback(lambda _: log.info(f"saved {anime}"))

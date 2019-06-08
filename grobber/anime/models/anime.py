@@ -250,7 +250,7 @@ class SourceAnime(Anime, Expiring, abc.ABC):
 
         return super().deserialise_special(key, value)
 
-    def request_save(self) -> asyncio.Future:
+    def request_save(self) -> Optional[asyncio.Future]:
         from ..sources import request_save
         return request_save(self)
 

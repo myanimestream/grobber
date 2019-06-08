@@ -5,7 +5,6 @@ from contextlib import suppress
 from operator import attrgetter
 from typing import Any, Callable, List, NamedTuple, Set, Tuple, TypeVar, Union, cast, get_type_hints
 
-from prometheus_async.aio import time
 from quart import Request, request
 
 from . import index_scraper, languages
@@ -14,7 +13,6 @@ from .anime.group import AnimeGroup, get_anime_group, get_anime_group_by_title, 
 from .exceptions import InvalidRequest, UIDUnknown
 from .languages import Language
 from .locals import source_index_collection
-from .telemetry import ANIME_QUERY_TYPE, ANIME_RESOLVE_TIME, ANIME_SEARCH_TIME, LANGUAGE_COUNTER, SOURCE_COUNTER
 from .uid import MediumType, UID
 from .utils import alist, fuzzy_bool, get_certainty
 
@@ -111,13 +109,6 @@ class Query(metaclass=abc.ABCMeta):
 
 
 class AnimeQuery(Query):
-    def track_telemetry(self, language: Language, dubbed: bool, source: str):
-        LANGUAGE_COUNTER.labels(language.value, "dub" if dubbed else "sub").inc()
-        SOURCE_COUNTER.labels(source).inc()
-
-        query_type = type(self).__qualname__
-        ANIME_QUERY_TYPE.labels(query_type).inc()
-
     @abc.abstractmethod
     async def search_params(self) -> SearchFilter:
         ...
@@ -156,7 +147,6 @@ class UIDAnimeQuery(AnimeQuery):
         if not anime:
             raise UIDUnknown(self.uid)
 
-        self.track_telemetry(self.uid.language, self.uid.dubbed, self.uid.source)
         return anime
 
 
@@ -192,7 +182,6 @@ class QueryAnimeQuery(AnimeQuery):
         if not anime:
             raise AnimeNotFound(self.anime, dubbed=self.dubbed, language=self.language)
 
-        self.track_telemetry(self.language, self.dubbed, type(anime).__qualname__)
         return anime
 
 
@@ -294,7 +283,6 @@ def search_result_score(result: SearchResult) -> Any:
     return result.certainty, title, episode_count, source_count
 
 
-@time(ANIME_SEARCH_TIME)
 async def search_anime() -> List[SearchResult]:
     query = AnimeQuery.build()
     filters = await query.search_params()
@@ -326,7 +314,6 @@ async def search_anime() -> List[SearchResult]:
     return results
 
 
-@time(ANIME_RESOLVE_TIME)
 async def get_anime(**kwargs) -> SourceAnime:
     return await AnimeQuery.build(**kwargs).resolve()
 

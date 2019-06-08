@@ -17,7 +17,6 @@ from quart.local import LocalProxy
 
 from .browser import get_browser, load_page
 from .decorators import cached_contextmanager, cached_property
-from .telemetry import HTTP_REQUESTS
 from .utils import AsyncFormatter
 
 if TYPE_CHECKING:
@@ -349,8 +348,6 @@ class Request:
             if self._use_proxy:
                 options["proxy"] = PROXY_URL
 
-            self.track_telemetry(self._raw_url, method, self._use_proxy)
-
             try:
                 options.pop("timeout", None)
                 resp = await self.staggered_request(method, url, **options)
@@ -380,10 +377,6 @@ class Request:
             raise TimeoutError(f"Timed out after {self._retry_count}/{self._max_retries} retries!")
 
         return resp
-
-    def track_telemetry(self, url: str, method: str, using_proxy: bool) -> None:
-        host = yarl.URL(url).host
-        HTTP_REQUESTS.labels(host, method, using_proxy).inc()
 
     def reload(self):
         log.debug(f"{self} reloading...")
