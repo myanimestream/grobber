@@ -115,7 +115,7 @@ class Request:
 
     def __init__(self, url: str, params: Any = None, headers: Any = None, *,
                  timeout: int = None, max_retries: int = 5, use_proxy: bool = False,
-                 get_method: str = "get", head_method: str = "head",
+                 get_method: str = "get", head_method: str = None,
                  **request_kwargs) -> None:
         self._session = AIOSESSION
         self._formatter = DefaultUrlFormatter
@@ -126,7 +126,7 @@ class Request:
         self._headers = headers
 
         self._get_method = get_method
-        self._head_method = head_method
+        self._head_method = head_method or get_method
 
         self._timeout = timeout
         self._use_proxy = use_proxy or self._formatter.should_use_proxy(self._raw_url)
